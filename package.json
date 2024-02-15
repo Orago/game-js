@@ -1,6 +1,6 @@
 {
 	"name": "@orago/game",
-	"version": "0.0.4",
+	"version": "0.0.6",
 	"description": "Orago's Game library",
 	"type": "module",
 	"scripts": {
@@ -23,7 +23,8 @@
 	"typesVersions": {
 		"*": {
 			"*": [
-				"./src/*"
+				"./src/*",
+				"./src/brush/*"
 			]
 		}
 	},
