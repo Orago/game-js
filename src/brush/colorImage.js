@@ -202,7 +202,7 @@ function clipEditFrom(chain, sprite) {
  * -
  * @param {HTMLCanvasElement | HTMLImageElement} sprite
  * @param {hslTintOptions} options - Custom options
- * @returns {sprite}
+ * @returns {HTMLImageElement}
  */
 export function hslTintImage(sprite, options) {
 	plainDraw(colorChain, sprite);

@@ -6,17 +6,14 @@ const rerenderCanvas = new BrushCanvas({
 
 const { chainable } = rerenderCanvas;
 
-/**
- * @typedef {HTMLImageElement} ImageType
- */
+/** @typedef {HTMLImageElement} ImageType */
 
 /**
- * 
  * @param {ImageType | HTMLCanvasElement} image 
  * @returns {string}
  */
 export function getDataUrl(image) {
-	if (image instanceof HTMLImageElement){
+	if (image instanceof HTMLImageElement) {
 		return chainable
 			.canvasSize(image.width, image.height)
 			.size(image.width, image.height)
@@ -34,7 +31,6 @@ export function getDataUrl(image) {
 }
 
 /**
- * 
  * @param {ImageType} image 
  * @returns {HTMLCanvasElement}
  */
@@ -56,7 +52,6 @@ export function cloneToCanvas(image) {
 }
 
 /**
- * 
  * @param {ImageType | HTMLCanvasElement} image 
  * @returns {ImageType}
  */
@@ -82,14 +77,10 @@ export async function responseToImageUrl(response) {
 		throw new Error('Network response was not ok');
 	}
 
-	/**
-	 * Read the response as a Blob
-	 */
+	/** Read the response as a Blob */
 	const blob = await response.blob();
 
-	/**
-	 * Create an object URL from the Blob
-	 */
+	/** Create an object URL from the Blob */
 	return URL.createObjectURL(blob);
 }
 
@@ -116,27 +107,17 @@ export function imageToResponse(image) {
  */
 
 export class Spritesheet {
-	/**
-	 * @type {string}
-	 */
+	/** @type {string} */
 	id;
 
-	/**
-	 * @type {boolean}
-	 */
+	/** @type {boolean} */
 	loaded = false;
 
-	/**
-	 * @type {HTMLImageElement}
-	 */
+	/** @type {HTMLImageElement} */
 	sprite = new Image();
 
-	/**
-	 * @type {SpritesheetConfig}
-	 */
+	/** @type {SpritesheetConfig} */
 	config;
-
-
 
 	/**
 	 * @param {object} options 
@@ -192,13 +173,10 @@ export class Spritesheet {
 }
 
 class Sprite {
-	/**
-	 * @type {ImageType}
-	 */
+	/** @type {ImageType} */
 	img;
 
 	/**
-	 * 
 	 * @param {ImageType} image 
 	 */
 	constructor(image) {
@@ -249,9 +227,8 @@ export default class Sprites {
 	host = '';
 	sprites = new Map();
 	loading = new Set;
-	/**
-	 * @type {Map<string, Sprite>}
-	 */
+
+	/** @type {Map<string, Sprite>} */
 	cache = new Map();
 
 	/**
@@ -259,17 +236,13 @@ export default class Sprites {
 	 */
 	cacheDuration = 3600; /* 1 hour */
 
-	/**
-	 * @type {Map<string, Spritesheet>}
-	 */
+	/** @type {Map<string, Spritesheet>} */
 	spriteSheets = new Map();
 
 	/**
-	 * 
-	 * @param {{
-	 *  host?: string,
-	 *  cacheDuration?: number
-	 * }} options 
+	 * @param {object} options 
+	 * @param {string} [options.host]
+	 * @param {number} [options.cacheDuration]
 	 */
 	constructor(options) {
 		if (typeof options === 'object') {
@@ -284,7 +257,6 @@ export default class Sprites {
 	}
 
 	/**
-	 * 
 	 * @param {Spritesheet} spritesheet 
 	 */
 	addSpritesheet(spritesheet) {
@@ -297,7 +269,6 @@ export default class Sprites {
 	}
 
 	/**
-	 * 
 	 * @param {string} url 
 	 * @returns {string}
 	 */
@@ -310,7 +281,6 @@ export default class Sprites {
 	}
 
 	/**
-	 * 
 	 * @param {string} url 
 	 * @returns {boolean}
 	 */
@@ -343,7 +313,6 @@ export default class Sprites {
 	}
 
 	/**
-	 * 
 	 * @param {string} url 
 	 * @param {Function} [onLoad]
 	 * @returns {Sprite}
@@ -378,7 +347,6 @@ export default class Sprites {
 	}
 
 	/**
-	 * 
 	 * @param {string} url 
 	 * @returns {Promise<ImageType>}
 	 */
@@ -387,9 +355,7 @@ export default class Sprites {
 			return this.sprites.get(url);
 		}
 
-		/**
-		 * From spritesheet
-		 */
+		/** From spritesheet */
 		for (const sheet of Array.from(this.spriteSheets.values())) {
 			if (sheet.config.sprites.hasOwnProperty(url) != true) {
 				continue;
@@ -417,23 +383,18 @@ export default class Sprites {
 			}
 		}
 
-		/**
-		 * Return promise loop if in queue
-		 */
+		/** Return promise loop if in queue */
 		if (this.loading.has(url)) {
 			await new Promise((resolve) => setTimeout(resolve, 500));
 
 			return await this.fromCache(url);
 		}
 
-		/**
-		 * Load new
-		 */
+		/** Load new */
 		return await this.promise(url);
 	}
 
 	/**
-	 * 
 	 * @param {string} url 
 	 * @returns {Promise<Sprite['img']>}
 	 */
@@ -458,7 +419,6 @@ export default class Sprites {
 	}
 
 	/**
-	 * 
 	 * @param {string} url 
 	 * @returns {Promise<ImageType>}
 	 */

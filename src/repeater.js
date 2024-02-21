@@ -97,9 +97,7 @@ export class Repeater {
 	loop(timestamp) {
 		if (this.paused){
 			return;
-		}
-
-		if (this.time == null) {
+		} else if (this.time == null) {
 			this.time = timestamp;
 		}
 

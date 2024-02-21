@@ -108,8 +108,7 @@ export class RectBody extends Box {
 	static toBoundingBox(rect) {
 		if (rect instanceof RectBody) {
 			return new Bound(rect.x, rect.y, rect.width, rect.height);
-		}
-		else if (rect instanceof Box) {
+		} else if (rect instanceof Box) {
 			return new Bound(0, 0, rect.width, rect.height);
 		}
 	}
@@ -121,10 +120,10 @@ export class RectBody extends Box {
 	 * @returns {boolean}
 	 */
 	static contains(parent, child) {
-		let parentx2 = parent.x + parent.width;
-		let parenty2 = parent.y + parent.height;
-		let childx2 = child.x + child.width;
-		let childy2 = child.y + child.height;
+		const parentx2 = parent.x + parent.width;
+		const parenty2 = parent.y + parent.height;
+		const childx2 = child.x + child.width;
+		const childy2 = child.y + child.height;
 
 		return parent.x <= child.x && parentx2 >= childx2 && parent.y <= child.y && parenty2 >= childy2;
 	}
@@ -192,8 +191,7 @@ export class RectBody extends Box {
 		if (input instanceof Vector2) {
 			this.x += input.x;
 			this.y += input.y;
-		}
-		else if (typeof x === 'number' && typeof y === 'number') {
+		} else if (typeof x === 'number' && typeof y === 'number') {
 			this.x += x;
 			this.y += y;
 		}
@@ -229,7 +227,6 @@ export class Bound {
 	positions = [0, 0, 0, 0];
 
 	/**
-	 * 
 	 * @param {number} [x1]
 	 * @param {number} [y1]
 	 * @param {number} [x2]

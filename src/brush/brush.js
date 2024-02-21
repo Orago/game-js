@@ -664,8 +664,7 @@ export default class BrushCanvas {
 
 		if (ctx instanceof CanvasRenderingContext2D) {
 			this.ctx = ctx;
-		}
-		else if (
+		} else if (
 			canvas instanceof HTMLCanvasElement ||
 			canvas instanceof OffscreenCanvas
 		) {
@@ -858,8 +857,7 @@ export default class BrushCanvas {
 
 		if (shape == 'radial') {
 			gradient = ctx.createRadialGradient(gx, gy, 0, gx, gy, w * radius);
-		}
-		else {
+		} else {
 			gradient = ctx.createLinearGradient(gx, gy, x + w, y + h);
 		}
 

@@ -1,10 +1,9 @@
 import { Box } from '../shapes.js';
 
 /**
- * @param {{
- *  x: number,
- *  y: number
- * }} obj 
+ * @param {object} obj 
+ * @param {number} obj.x
+ * @param {number} obj.y
  * @param {number} frames
  * @param {number} fps 
  * @returns {number}
@@ -28,15 +27,12 @@ export function getFrameCount(rect, gridSize) {
 }
 
 /**
- * 
  * @param {number} frames 
  * @param {number} currentTime 
  * @param {number} endTime 
  * @returns {number}
  */
 export function gridsheetAnimation(frames, currentTime, endTime) {
-	// const age = (Date.now() - tile?.data?.created) / tileInfo.harvestAt;
-
 	return Math.min(
 		Math.floor(
 			(currentTime / endTime) * frames

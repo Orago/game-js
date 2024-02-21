@@ -125,8 +125,7 @@ export class CanvasRender {
 			context.stroke();
 
 			context.restore();
-		}
-		else {
+		} else {
 			context.save();
 			context.beginPath();
 			context.arc(x, y, radius, 0, 2 * Math.PI, false);
@@ -136,6 +135,7 @@ export class CanvasRender {
 				if (typeof strokeWidth === 'number') {
 					context.lineWidth = strokeWidth;
 				}
+
 				context.strokeStyle = stroke;
 				context.stroke();
 			}

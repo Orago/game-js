@@ -74,7 +74,11 @@ export class EngineObject {
 			if (typeof data.lifetime === 'number') {
 				const endAt = Date.now() + data.lifetime;
 
-				this.events.on('update', () => Date.now() > endAt && this.removeType());
+				this.events.on(
+					'update',
+					() =>
+						Date.now() > endAt && this.removeType()
+				);
 			}
 		}
 	}
@@ -111,8 +115,9 @@ export class EngineObject {
 	addTo(...tags) {
 		this.events.emit('add');
 
-		if (this.engine instanceof Engine)
+		if (this.engine instanceof Engine) {
 			this.engine.objects.add(this);
+		}
 
 		tags.forEach(tag => tag?.isObjGroup == true && tag.add(this));
 
@@ -162,15 +167,17 @@ class createObjectGroup {
 	 * @param {Engine} engine 
 	 */
 	constructor(engine) {
-		if (engine?._pc_by_orago != 'orago is the coolest lol')
+		if (engine?._pc_by_orago != 'orago is the coolest lol') {
 			throw 'Cannot Create Tag Set';
+		}
 
 		this.engine = engine;
 	}
 
 	add() {
-		for (const item of arguments)
+		for (const item of arguments) {
 			this.#items.add(item)
+		}
 	}
 
 	kill() {
@@ -207,18 +214,14 @@ export default class Engine {
 
 		if (brush.canvas instanceof HTMLCanvasElement != true) {
 			throw new Error('Cannot use offscreen canvas for engine');
-		}
-
-		const { parentElement } = brush.canvas;
-
-		if (parentElement == null) {
+		} else if (brush.canvas.parentElement == null) {
 			throw new Error('Cannot assign container');
 		}
 
 		brush.canvas.setAttribute('tabindex', '1');
 
 		this.cursor = new cursor(brush.canvas);
-		this.keyboard = new keyboard(parentElement);
+		this.keyboard = new keyboard(brush.canvas.parentElement);
 
 		this.ticks = new Repeater(64, () => {
 			this.frame = this?.ticks?.frame;
@@ -270,7 +273,6 @@ export default class Engine {
 	collision = Collision;
 
 	/**
-	 * 
 	 * @param {EngineObjectData} data 
 	 * @param {function (EngineObject): void} ref 
 	 * @returns {EngineObject}
@@ -281,9 +283,8 @@ export default class Engine {
 
 	/**
 	 * @param {Vector2 | RectBody} pos 
-	 * @param {{
-	 *  center?: boolean
-	 * }} options 
+	 * @param {object} options 
+	 * @param {boolean} [options.center]
 	 * @returns {Vector2}
 	 * @this {Engine}
 	 */
@@ -299,11 +300,9 @@ export default class Engine {
 	}
 
 	/**
-	 * 
 	 * @param {Vector2} pos 
-	 * @param {{
-	 *  center?: boolean
-	 * }} options 
+	 * @param {object} options 
+	 * @param {boolean} [options.center]
 	 * @returns {Vector2}
 	 * @this {Engine}
 	 */
@@ -321,7 +320,6 @@ export default class Engine {
 	}
 
 	/**
-	 * 
 	 * @param {function (EngineObject): boolean} search 
 	 * @returns {Array<EngineObject>}
 	 */
@@ -366,7 +364,6 @@ export default class Engine {
 		let engine_Mobile_Zoom;
 
 		/**
-		 * 
 		 * @param {TouchEvent} event 
 		 * @returns {number | undefined}
 		 */
@@ -402,23 +399,29 @@ export default class Engine {
 			}
 		);
 
-		this.brush.canvas.addEventListener('touchmove', function handlePinch(event) {
-			event.preventDefault();
+		this.brush.canvas.addEventListener(
+			'touchmove',
+			function handlePinch(event) {
+				event.preventDefault();
 
-			if (event instanceof TouchEvent) {
-				const scale = parsePinchScale(event);
-				if (scale == null || pinch_Start_Scale == null || engine_Mobile_Zoom == null) return;
+				if (event instanceof TouchEvent) {
+					const scale = parsePinchScale(event);
+					if (scale == null || pinch_Start_Scale == null || engine_Mobile_Zoom == null) return;
 
-				eng.zoom = Math.floor(engine_Mobile_Zoom + (scale - pinch_Start_Scale));
+					eng.zoom = Math.floor(engine_Mobile_Zoom + (scale - pinch_Start_Scale));
+				}
 			}
-		});
+		);
 
-		this.brush.canvas.addEventListener('touchend', function handlePinch(event) {
-			event.preventDefault();
+		this.brush.canvas.addEventListener(
+			'touchend',
+			function handlePinch(event) {
+				event.preventDefault();
 
-			engine_Mobile_Zoom = undefined;
-			pinch_Start_Scale = undefined;
-		});
+				engine_Mobile_Zoom = undefined;
+				pinch_Start_Scale = undefined;
+			}
+		);
 
 		return this;
 	}
@@ -431,10 +434,9 @@ export default class Engine {
 	setCursor(url) {
 		const { canvas } = this.brush;
 
-		if (canvas instanceof HTMLCanvasElement)
+		if (canvas instanceof HTMLCanvasElement) {
 			canvas.style.cursor = `url(${url}), pointer`;
-
-		// this.cursor.
+		}
 
 		return this;
 	}
