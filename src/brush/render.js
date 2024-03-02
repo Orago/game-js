@@ -16,6 +16,8 @@
  * @property {number} [strokeWidth] - Stroke Size
  */
 
+
+
 export class CanvasRender {
 	/**
 	 * 

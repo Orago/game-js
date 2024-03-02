@@ -40,24 +40,25 @@ import Emitter from '@orago/lib/emitter';
  * } GlobalCompositeOperation
  */
 
-
 /**
- * @typedef {HTMLCanvasElement | OffscreenCanvas} AnyCanvas
+ * @typedef {object} overrideCircleOptions
+ * @property {number} [x] - Horizontal Position
+ * @property {number} [y] - Vertical Position
+ * @property {number} [radius] - Size
+ * @property {number} [percent] - Fill Percent
+ * @property {string} [stroke] - Stroke Style
+ * @property {number} [strokeWidth] - Stroke Size
  */
 
-/**
- * @typedef {CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D} AnyContext2D
- */
+
+/** @typedef {HTMLCanvasElement | OffscreenCanvas} AnyCanvas */
+/** @typedef {CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D} AnyContext2D */
 
 class ChainableConfig {
-	/**
-	 * @type {HTMLCanvasElement | OffscreenCanvas}
-	 */
+	/** @type {HTMLCanvasElement | OffscreenCanvas} */
 	canvas = document.createElement('canvas');
 
-	/**
-	 * @type {CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D}
-	 */
+	/** @type {CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D} */
 	ctx;
 
 	color = 'black';
@@ -67,7 +68,6 @@ class ChainableConfig {
 	h = 0;
 
 	/**
-	 * 
 	 * @param {object} data 
 	 * @param {HTMLCanvasElement | OffscreenCanvas} [data.canvas]
 	 * @param {CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D} data.ctx
@@ -117,20 +117,15 @@ class ChainableConfig {
  * ! Should not be used on it's own
  */
 export class ChainableCanvas {
-	/**
-	 * @type {Array<ChainableConfig>}
-	 */
+	/** @type {Array<ChainableConfig>} */
 	stack = [];
 
-	/** @type {BrushCanvas} */
-	brush;
-
 	/**
-	 * @param {BrushCanvas} brush 
+	 * @param {object} brush
+	 * @param {AnyCanvas} brush.canvas
+	 * @param {AnyContext2D} brush.ctx
 	 */
 	constructor(brush) {
-		this.brush = brush;
-
 		this.stack.push(
 			new ChainableConfig({
 				canvas: brush.canvas,
@@ -200,7 +195,6 @@ export class ChainableCanvas {
 	}
 
 	/**
-	 * 
 	 * @param {number} width 
 	 * @param {number} [height]
 	 * @returns {this}
@@ -220,29 +214,22 @@ export class ChainableCanvas {
 	}
 	//#endregion //* Positioning *//
 
-	/**
-	 * @returns {ChainableConfig}
-	 */
+	/** @returns {ChainableConfig} */
 	get recentConfig() {
 		return this.stack[this.stack.length - 1];
 	}
 
-	/**
-	 * @returns {AnyCanvas}
-	 */
+	/** @returns {AnyCanvas} */
 	get canvas() {
 		return this.recentConfig.canvas;
 	}
 
-	/**
-	 * @returns {AnyContext2D}
-	 */
+	/** @returns {AnyContext2D} */
 	get ctx() {
 		return this.recentConfig.ctx;
 	}
 
 	/**
-	 * 
 	 * @param {number} rotation 
 	 * @param {object} [center]
 	 * @param {number} center.x
@@ -288,7 +275,6 @@ export class ChainableCanvas {
 	}
 
 	/**
-	 * 
 	 * @param {HTMLImageElement | HTMLCanvasElement} image 
 	 * @param {arrayRect} [fromPos] 
 	 * @param {arrayRect} [toPos]
@@ -306,7 +292,6 @@ export class ChainableCanvas {
 	}
 
 	/**
-	 * 
 	 * @param {*} image 
 	 * @param {arrayRect} fromPos 
 	 * @returns {this}
@@ -348,10 +333,10 @@ export class ChainableCanvas {
 	}
 
 	/**
-	 * Draws a circle
+	 * @param {overrideCircleOptions} [override]
 	 * @returns {this}
 	 */
-	circle() {
+	circle(override) {
 		const [x, y, w] = this.recentConfig.rect;
 
 		CanvasRender.circle(
@@ -359,7 +344,8 @@ export class ChainableCanvas {
 			{
 				x,
 				y,
-				radius: w
+				radius: w,
+				...override
 			}
 		);
 
@@ -401,7 +387,6 @@ export class ChainableCanvas {
 	}
 
 	/**
-	 * 
 	 * @param {object} param0
 	 * @param {string} [param0.font]
 	 * @param {string} [param0.weight]
@@ -459,7 +444,6 @@ export class ChainableCanvas {
 		const r = this.recentConfig;
 		const prev = this.stack[this.stack.length - 1];
 
-
 		CanvasRender.Image(
 			prev.ctx,
 			r.canvas,
@@ -467,7 +451,6 @@ export class ChainableCanvas {
 			undefined,
 			prev.rect
 		);
-
 
 		return this.restore;
 	}
@@ -546,12 +529,12 @@ export class ChainableCanvas {
 	 * @returns {this}
 	 */
 	canvasSize(width, height) {
+		const smoothing = this.ctx.imageSmoothingEnabled;
+		
 		this.canvas.width = width;
 		this.canvas.height = height;
-
 		this.size(width, height);
-
-		this.brush.setSmoothing(this.brush.smoothing);
+		this.ctx.imageSmoothingEnabled = smoothing;
 
 		return this;
 	}
@@ -580,16 +563,14 @@ export class ChainableCanvas {
 export default class BrushCanvas {
 	resolution = 1;
 
-	/**
-	 * @type {boolean}
-	 */
+	/** @type {boolean} */
 	smoothing = true;
 
-	/** @type {HTMLCanvasElement | OffscreenCanvas} */
+	/** @type {HTMLCanvasElement} */
 	// @ts-ignore
 	canvas;
 
-	/** @type {CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D} */
+	/** @type {CanvasRenderingContext2D} */
 	// @ts-ignore
 	ctx;
 
@@ -599,7 +580,7 @@ export default class BrushCanvas {
 	 * 
 	 * @param {object} settings
 	 * @param {[width: number, height: number]} [settings.dimensions]
-	 * @param {HTMLCanvasElement | OffscreenCanvas} [settings.inputCanvas]
+	 * @param {HTMLCanvasElement} [settings.inputCanvas]
 	 * @param {number} [settings.resolution]
 	 */
 	constructor(settings = {}) {
@@ -647,7 +628,7 @@ export default class BrushCanvas {
 	/**
 	 * 
 	 * @param {object} param0 
-	 * @param {HTMLCanvasElement | OffscreenCanvas} param0.canvas
+	 * @param {HTMLCanvasElement} param0.canvas
 	 * @param {CanvasRenderingContext2D} [param0.ctx]
 	 * @param {[x: number, y: number]} [param0.dimensions]
 	 */
@@ -660,14 +641,9 @@ export default class BrushCanvas {
 	) {
 		this.canvas = canvas;
 
-		// canvas.ctx ?? canvas.getContext('2d')
-
 		if (ctx instanceof CanvasRenderingContext2D) {
 			this.ctx = ctx;
-		} else if (
-			canvas instanceof HTMLCanvasElement ||
-			canvas instanceof OffscreenCanvas
-		) {
+		} else if (canvas instanceof HTMLCanvasElement) {
 			const ctx = canvas.getContext('2d');
 
 			if (ctx){
@@ -681,9 +657,7 @@ export default class BrushCanvas {
 	}
 
 	//#region //* Functions / Utils *//
-	/**
-	 * @returns {Vector2}
-	 */
+	/** @returns {Vector2} */
 	center() {
 		return new Vector2(
 			this.width / 2,
@@ -697,9 +671,7 @@ export default class BrushCanvas {
 		}
 	}
 
-	/**
-	 * @returns {{ width: number, height: number }}
-	 */
+	/** @returns {{ width: number, height: number }} */
 	dimensions() {
 		return {
 			width: this.width,
@@ -715,10 +687,7 @@ export default class BrushCanvas {
 		return this.canvas.height;
 	};
 
-	/**
-	 * 
-	 * @param {{ width: number, height: number }} param0 
-	 */
+	/** @param {{ width: number, height: number }} param0 */
 	forceDimensions({ width, height }) {
 		if (
 			typeof width == 'number' &&
@@ -735,7 +704,6 @@ export default class BrushCanvas {
 		}
 	};
 
-	/* Draw */
 	/**
 	 * @param {HTMLImageElement | HTMLCanvasElement | OffscreenCanvas} image 
 	 * @param {arrayRect} [from]
@@ -754,7 +722,6 @@ export default class BrushCanvas {
 	}
 
 	/**
-	 * 
 	 * @param {object} values
 	 * @param {string} values.text
 	 * @param {string} values.color
@@ -775,7 +742,6 @@ export default class BrushCanvas {
 			color,
 			x = 0,
 			y = 0,
-
 			font,
 			weight,
 			size
@@ -796,14 +762,12 @@ export default class BrushCanvas {
 	}
 
 	/**
-	 * 
-	 * @param {{
-	 *  x?: number,
-	 *  y?: number,
-	 *  w?: number,
-	 *  h?: number,
-	 *  color?: string,
-	 * }} values 
+	 * @param {object} values
+	 * @param {number} [values.x]
+	 * @param {number} [values.y]
+	 * @param {number} [values.w]
+	 * @param {number} [values.h]
+	 * @param {string} [values.color]
 	 */
 	shape(values) {
 		if (this.ctx instanceof CanvasRenderingContext2D != true) {
@@ -831,7 +795,6 @@ export default class BrushCanvas {
 	}
 
 	/**
-	 * 
 	 * @param {*} values
 	 * @deprecated
 	 */
@@ -869,7 +832,6 @@ export default class BrushCanvas {
 	}
 
 	/**
-	 * 
 	 * @param {object} values
 	 * @param {string} values.text
 	 * @param {string} [values.font]
@@ -908,7 +870,6 @@ export default class BrushCanvas {
 	}
 
 	/**
-	 * 
 	 * @param {number} x 
 	 * @param {number} y 
 	 * @param {number} width 
@@ -940,7 +901,6 @@ export default class BrushCanvas {
 			const { canvas, setSmoothing } = this;
 			const { documentElement: dE } = document;
 
-			// if ((typeof HTMLCanvasElement != 'null' && typeof OffscreenCanvas != 'null')) {
 			if (
 				canvas instanceof HTMLCanvasElement &&
 				document.body.contains(canvas)
@@ -948,7 +908,6 @@ export default class BrushCanvas {
 				canvas.style.width = `${100 * this.resolution}%`;
 				canvas.style.height = `${100 * this.resolution}%`;
 			}
-			// }
 
 			canvas.width = dE.clientWidth * this.resolution;
 			canvas.height = dE.clientHeight * this.resolution;
