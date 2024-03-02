@@ -1,14 +1,7 @@
 import { Vector2 } from '@orago/vector';
 
 export class Box {
-	/**
-	 * @param {number} containerWidth 
-	 * @param {number} containerHeight 
-	 * @param {number} rectWidth 
-	 * @param {number} rectHeight 
-	 * @returns {Box}
-	 */
-	static scaleToFit(containerWidth, containerHeight, rectWidth, rectHeight) {
+	static scaleToFit(containerWidth: number, containerHeight: number, rectWidth: number, rectHeight: number): Box {
 		// Calculate aspect ratios
 		const containerRatio = containerWidth / containerHeight;
 		const rectRatio = rectWidth / rectHeight;
@@ -28,33 +21,21 @@ export class Box {
 		return new Box(width, height);
 	}
 
-	/**
-	 * 
-	 * @param {number} width 
-	 * @param {number} height 
-	 * @param {number} scale - multiplication factor
-	 * @returns {Box}
-	 */
-	static scale(width, height, scale) {
+	static scale(width: number, height: number, scale: number): Box {
 		width *= scale;
 		height *= scale;
 
 		return new Box(width, height);
 	}
 
-	/**
-	 * @param {Box} obj 
-	 * @returns {Box}
-	 */
-	static FromObj(obj) {
+	static FromObj(obj: Box): Box {
 		return new Box(obj.width, obj.height);
 	}
 
-	/**
-	 * @param {number} width 
-	 * @param {number} height 
-	 */
-	constructor(width, height) {
+	width: number;
+	height: number;
+
+	constructor(width: number, height: number) {
 		this.width = width;
 		this.height = height;
 	}
@@ -69,7 +50,7 @@ export class Box {
 	 * @param {number} scale 
 	 * @returns {Box}
 	 */
-	scaled(scale) {
+	scaled(scale: number): Box {
 		return new Box(this.width * scale, this.height * scale);
 	}
 
@@ -80,7 +61,10 @@ export class Box {
 	 * }} param0
 	 * @returns {Box}
 	 */
-	toFit({ width, height } = this) {
+	toFit({ width, height }: {
+		width: number;
+		height: number;
+	} = this): Box {
 		const fit = Box.scaleToFit(
 			width,
 			height,
@@ -92,20 +76,15 @@ export class Box {
 	}
 }
 
-/**
- * @typedef {object} rectWithPosition
- * @property {number} x - Horizontal
- * @property {number} y - Vertical
- * @property {number} width - Width
- * @property {number} height - Height
- */
+interface rectWithPosition {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}
 
 export class RectBody extends Box {
-	/**
-	 * @param {RectBody | Box} rect 
-	 * @returns {Bound | undefined}
-	 */
-	static toBoundingBox(rect) {
+	static toBoundingBox(rect: RectBody | Box): Bound | undefined {
 		if (rect instanceof RectBody) {
 			return new Bound(rect.x, rect.y, rect.width, rect.height);
 		} else if (rect instanceof Box) {
@@ -113,13 +92,7 @@ export class RectBody extends Box {
 		}
 	}
 
-	/**
-	 * 
-	 * @param {rectWithPosition} parent 
-	 * @param {rectWithPosition} child
-	 * @returns {boolean}
-	 */
-	static contains(parent, child) {
+	static contains(parent: rectWithPosition, child: rectWithPosition): boolean {
 		const parentx2 = parent.x + parent.width;
 		const parenty2 = parent.y + parent.height;
 		const childx2 = child.x + child.width;
@@ -128,43 +101,32 @@ export class RectBody extends Box {
 		return parent.x <= child.x && parentx2 >= childx2 && parent.y <= child.y && parenty2 >= childy2;
 	}
 
-	/**
-	 * 
-	 * @param {RectBody} parent 
-	 * @param {RectBody | Box} child 
-	 * @returns {RectBody}
-	 */
-	static centered(parent, child) {
+	static centered(parent: RectBody, child: RectBody | Box): RectBody {
 		return new RectBody(
 			parent.x + (parent.width - child.width) / 2,
 			parent.y + (parent.height - child.height) / 2
 		);
 	}
 
-	/**
-	 * 
-	 * @param {number} x 
-	 * @param {number} y 
-	 * @param {number} width 
-	 * @param {number} height 
-	 */
-	constructor(x, y, width = 0, height = 0) {
+	x: number;
+	y: number;
+
+	constructor(
+		x: number,
+		y: number,
+		width: number = 0,
+		height: number = 0
+	) {
 		super(width, height);
 
 		this.x = x;
 		this.y = y;
 	}
 
-	/**
-	 * @returns {Vector2}
-	 */
-	get pos() {
+	get pos(): Vector2 {
 		return new Vector2(this.x, this.y);
 	}
 
-	/**
-	 * @type {Vector2}
-	 */
 	set pos(vector2) {
 		this.x = vector2.x;
 		this.y = vector2.y;
@@ -179,13 +141,7 @@ export class RectBody extends Box {
 		);
 	}
 
-	/**
-	 * 
-	 * @param {number | Vector2} x 
-	 * @param {number} [y]
-	 * @returns {RectBody}
-	 */
-	move(x, y) {
+	move(x: number | Vector2, y: number): RectBody {
 		let input = x;
 
 		if (input instanceof Vector2) {
@@ -201,11 +157,7 @@ export class RectBody extends Box {
 }
 
 export class Bound {
-	/**
-	 * @param {Bound} bound 
-	 * @returns {RectBody}
-	 */
-	static toPositionalRect(bound) {
+	static toPositionalRect(bound: Bound): RectBody {
 		const [x1, y1, x2, y2] = bound;
 
 		const x = Math.min(x1, x2); // Get the minimum x-coordinate as the top-left corner x
@@ -216,41 +168,32 @@ export class Bound {
 		return new RectBody(x, y, w, h);
 	}
 
-	/**
-	 * @type {[
-	 *  x1: number,
-	 *  y1: number,
-	 *  x2: number,
-	 *  y2: number
-	 * ]}
-	 */
-	positions = [0, 0, 0, 0];
+	positions: [
+		x1: number,
+		y1: number,
+		x2: number,
+		y2: number
+	] = [0, 0, 0, 0];
 
-	/**
-	 * @param {number} [x1]
-	 * @param {number} [y1]
-	 * @param {number} [x2]
-	 * @param {number} [y2]
-	 */
-	constructor(x1 = 0, y1 = 0, x2 = 0, y2 = 0) {
+	constructor(
+		x1: number = 0, y1: number = 0,
+		x2: number = 0, y2: number = 0
+	) {
 		this.positions = [x1, y1, x2, y2];
 	}
 
 	clear() {
 		this.positions = [0, 0, 0, 0];
 	}
-
-	/**
-	 * @param {Array<[
-	 *  x1: number,
-	 *  x2: number,
-	 *  y1: number,
-	 *  y2: number
-	 * ]>} items 
-	 */
-	set(...items) {
-		if (Array.isArray(items) != true)
+	set(...items: Array<[
+		x1: number,
+		x2: number,
+		y1: number,
+		y2: number
+	]>) {
+		if (Array.isArray(items) != true) {
 			return;
+		}
 
 		this.clear();
 

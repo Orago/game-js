@@ -1,38 +1,19 @@
 import { Box } from '../shapes.js';
 
-/**
- * @param {object} obj 
- * @param {number} obj.x
- * @param {number} obj.y
- * @param {number} frames
- * @param {number} fps 
- * @returns {number}
- */
-export function gridFrame(obj, frames, fps) {
+export function gridFrame(obj: { x: number; y: number; }, frames: number, fps: number): number {
 	const time = performance.now() / 1000;
 
 	return (Math.floor(time / (1 / fps)) + obj.x + obj.y) % Math.max(frames, 1);
 }
 
-/**
- * @param {Box} rect
- * @param {Box} gridSize
- * @returns {number}
- */
-export function getFrameCount(rect, gridSize) {
+export function getFrameCount(rect: Box, gridSize: Box): number {
 	return (
 		(rect.width == gridSize.width ? 0 : rect.width) / gridSize.width +
 		(rect.height == gridSize.height ? 0 : rect.height) / gridSize.height
 	);
 }
 
-/**
- * @param {number} frames 
- * @param {number} currentTime 
- * @param {number} endTime 
- * @returns {number}
- */
-export function gridsheetAnimation(frames, currentTime, endTime) {
+export function gridsheetAnimation(frames: number, currentTime: number, endTime: number): number {
 	return Math.min(
 		Math.floor(
 			(currentTime / endTime) * frames
@@ -43,16 +24,8 @@ export function gridsheetAnimation(frames, currentTime, endTime) {
 
 /**
  * Returns an offset vector
- * @param {object} rect
- * @param {number} rect.width
- * @param {number} rect.height
- * @param {object} gridSize
- * @param {number} gridSize.width
- * @param {number} gridSize.height
- * @param {number} frame
- * @returns {[x: number, y: number]}
  */
-export function calculateGridWrapOffset(rect, gridSize, frame) {
+export function calculateGridWrapOffset(rect: { width: number; height: number; }, gridSize: { width: number; height: number; }, frame: number): [x: number, y: number] {
 	const gridWidth = gridSize?.width ?? 0;
 	const gridHeight = gridSize?.height ?? 0;
 

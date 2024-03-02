@@ -3,22 +3,21 @@ import { Vector2 } from '@orago/vector';
 import { v4 as uuidV4 } from 'uuid';
 import { Collision } from './collision.js';
 import BrushCanvas from './brush/brush.js';
-import cursor from './input/cursor.js';
-import keyboard from './input/keyboard.js';
+import Cursor from './input/cursor.js';
+import Keyboard from './input/keyboard.js';
 import { Repeater } from './repeater.js';
 import { RectBody } from './shapes.js';
 
 const zoomIncrement = .2;
 
-/**
- * @typedef {object} EngineObjectData
- * @property {number} [x] - Horiztonal position
- * @property {number} [y] - Vertical position
- * @property {number} [width] - Width
- * @property {number} [height] - Height
- * @property {number} [priority] - Order to execute or render
- * @property {number} [lifetime] - Expiration date
- */
+interface EngineObjectData {
+	x?: number;
+	y?: number;
+	width?: number;
+	height?: number;
+	priority?: number;
+	lifetime?: number;
+}
 
 /**
  * Engine Object
@@ -35,19 +34,12 @@ export class EngineObject {
 	priority = 1;
 	enabled = true;
 	visible = true;
-
-	/**
-	 * @type {Engine}
-	 */
-	engine;
+	engine: Engine;
 
 	events = new Emitter();
 
-	/**
-	 * @param {Engine} engineRef 
-	 * @param {EngineObjectData} data 
-	 */
-	constructor(engineRef, data = {}) {
+
+	constructor(engineRef: Engine, data: EngineObjectData = {}) {
 		this.engine = engineRef;
 
 		if (typeof data === 'object') {
@@ -83,11 +75,7 @@ export class EngineObject {
 		}
 	}
 
-	/**
-	 * @param {function(EngineObject): void} fn 
-	 * @returns {this}
-	 */
-	ref(fn) {
+	ref(fn: (arg0: EngineObject) => void): this {
 		fn.bind(this)(this);
 
 		return this;
@@ -107,12 +95,7 @@ export class EngineObject {
 		}
 	}
 
-	/**
-	 * 
-	 * @param  {...any} tags 
-	 * @returns {this}
-	 */
-	addTo(...tags) {
+	addTo(...tags: any[]): this {
 		this.events.emit('add');
 
 		if (this.engine instanceof Engine) {
@@ -128,12 +111,7 @@ export class EngineObject {
 		return this.engine.brush;
 	}
 
-	/**
-	 * 
-	 * @param {function (?EngineObject, ?EngineObject): boolean} restriction 
-	 * @returns {boolean}
-	 */
-	collides(restriction = () => false) {
+	collides(restriction: (arg0: EngineObject | null, arg1: EngineObject | null) => boolean = () => false): boolean {
 		for (const otherObj of this.engine.objects.values()) {
 			if (
 				this != otherObj &&
@@ -158,15 +136,11 @@ export class EngineObject {
 }
 
 class createObjectGroup {
+	engine: Engine;
 	isObjGroup = true;
+	#items: Set<EngineObject> = new Set();
 
-	#items = new Set();
-
-	/**
-	 * 
-	 * @param {Engine} engine 
-	 */
-	constructor(engine) {
+	constructor(engine: Engine) {
 		if (engine?._pc_by_orago != 'orago is the coolest lol') {
 			throw 'Cannot Create Tag Set';
 		}
@@ -194,23 +168,20 @@ class createObjectGroup {
 
 export default class Engine {
 	_pc_by_orago = 'orago is the coolest lol';
-	/**
-	 * List of renderable objects
-	 * @type {Set<EngineObject>}
-	 */
-	objects = new Set();
 
-	zoom = 3;
+	/** List of renderable objects */
+	objects: Set<EngineObject> = new Set();
+	offset: Vector2 = new Vector2;
+	zoom: number = 3;
 
-	offset = new Vector2;
+	brush: BrushCanvas;
+	cursor: Cursor;
+	keyboard: Keyboard;
+	ticks: Repeater;
+	frame: number = 0;
 
-	/**
-	 * 
-	 * @param {BrushCanvas} brush 
-	 */
-	constructor(brush) {
+	constructor(brush: BrushCanvas) {
 		this.brush = brush;
-
 
 		if (brush.canvas instanceof HTMLCanvasElement != true) {
 			throw new Error('Cannot use offscreen canvas for engine');
@@ -220,8 +191,8 @@ export default class Engine {
 
 		brush.canvas.setAttribute('tabindex', '1');
 
-		this.cursor = new cursor(brush.canvas);
-		this.keyboard = new keyboard(brush.canvas.parentElement);
+		this.cursor = new Cursor(brush.canvas);
+		this.keyboard = new Keyboard(brush.canvas.parentElement);
 
 		this.ticks = new Repeater(64, () => {
 			this.frame = this?.ticks?.frame;
@@ -259,36 +230,28 @@ export default class Engine {
 	}
 
 	get orderedObjects() {
-		return Array.from(this.objects).toSorted(
-			/**
-			 * @param {EngineObject} a 
-			 * @param {EngineObject} b 
-			 * @returns {number}
-			 */
-			(a, b) =>
+		return Array.from(this.objects).sort(
+			(a: EngineObject, b: EngineObject): number =>
 				a.priority - b.priority
 		);
 	}
 
 	collision = Collision;
 
-	/**
-	 * @param {EngineObjectData} data 
-	 * @param {function (EngineObject): void} ref 
-	 * @returns {EngineObject}
-	 */
-	object = (data, ref) =>
+
+	object = (
+		data: EngineObjectData,
+		ref: (arg0: EngineObject) => void
+	): EngineObject =>
 		new EngineObject(this, data)
 			.ref(ref);
 
-	/**
-	 * @param {Vector2 | RectBody} pos 
-	 * @param {object} options 
-	 * @param {boolean} [options.center]
-	 * @returns {Vector2}
-	 * @this {Engine}
-	 */
-	screenToWorld(pos, options) {
+	screenToWorld(
+		pos: Vector2 | RectBody,
+		options: {
+			center?: boolean;
+		}
+	): Vector2 {
 		const center = options?.center === true ? this.brush.center() : { x: 0, y: 0 };
 
 		pos.x - 5;
@@ -299,14 +262,12 @@ export default class Engine {
 		);
 	}
 
-	/**
-	 * @param {Vector2} pos 
-	 * @param {object} options 
-	 * @param {boolean} [options.center]
-	 * @returns {Vector2}
-	 * @this {Engine}
-	 */
-	worldToScreen(pos, options) {
+	worldToScreen(
+		pos: Vector2,
+		options: {
+			center?: boolean;
+		}
+	): Vector2 {
 		const center = options?.center === true ? this.brush.center() : { x: 0, y: 0 };
 
 		return new Vector2(
@@ -318,31 +279,18 @@ export default class Engine {
 	get objectGroup() {
 		return new createObjectGroup(this);
 	}
-
-	/**
-	 * @param {function (EngineObject): boolean} search 
-	 * @returns {Array<EngineObject>}
-	 */
-	findObjects(search) {
+	
+	findObjects(search: (arg0: EngineObject) => boolean): Array<EngineObject> {
 		return Array.from(this.objects).filter(search);
 	}
 
 	allowZoom() {
 		const eng = this;
 
-		/** @param {WheelEvent} e */
-		this.onZoom = function (e) {
-			if (e.deltaY > 0 && eng.zoom > zoomIncrement) {
-				eng.zoom -= zoomIncrement;
-			} else if (e.deltaY < 0 && eng.zoom < 20) {
-				eng.zoom += zoomIncrement;
-			}
-		};
-
 		this.brush.canvas.addEventListener(
 			'wheel',
-			/** @param {Event} evt */
-			evt => {
+			(			/** @param {Event} evt */
+				evt: Event) => {
 				if (evt instanceof WheelEvent) {
 					if (evt.deltaY > 0 && eng.zoom > zoomIncrement) {
 						eng.zoom -= zoomIncrement;
@@ -354,25 +302,16 @@ export default class Engine {
 			false
 		);
 
-		/** @type {number} */
-		let initialDistance;
+		let initialDistance: number;
+		let pinch_Start_Scale: number | undefined;
+		let engine_Mobile_Zoom: number | undefined;
 
-		/** @type {number | undefined} */
-		let pinch_Start_Scale;
-
-		/** @type {number | undefined} */
-		let engine_Mobile_Zoom;
-
-		/**
-		 * @param {TouchEvent} event 
-		 * @returns {number | undefined}
-		 */
-		function parsePinchScale(event) {
+		function parsePinchScale(event: TouchEvent): number | undefined {
 			if (event.touches.length !== 2) {
 				return;
 			}
 
-			const [touch1, touch2] = event.touches;
+			const [touch1, touch2] = Array.from(event.touches);
 			const distance = Math.sqrt(
 				(touch2.pageX - touch1.pageX) ** 2 + (touch2.pageY - touch1.pageY) ** 2
 			);
@@ -384,8 +323,6 @@ export default class Engine {
 
 			return distance / initialDistance;
 		}
-
-
 
 		this.brush.canvas.addEventListener(
 			'touchstart',
@@ -426,12 +363,7 @@ export default class Engine {
 		return this;
 	}
 
-	/**
-	 * 
-	 * @param {string} url 
-	 * @returns {this}
-	 */
-	setCursor(url) {
+	setCursor(url: string): this {
 		const { canvas } = this.brush;
 
 		if (canvas instanceof HTMLCanvasElement) {

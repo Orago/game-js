@@ -1,33 +1,25 @@
-/**
- * @typedef {CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D} Context2D 
- */
+type Context2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
-/**
- * @typedef {[x?: number, y?: number, w?: number, h?: number]} arrayRect
- */
+type arrayRect = [x?: number, y?: number, w?: number, h?: number];
 
-/**
- * @typedef {object} circleOptions
- * @property {number} x - Horizontal Position
- * @property {number} y - Vertical Position
- * @property {number} radius - Size
- * @property {number} [percent] - Fill Percent
- * @property {string} [stroke] - Stroke Style
- * @property {number} [strokeWidth] - Stroke Size
- */
+interface circleOptions {
+	x: number;
+	y: number;
+	radius: number;
+	percent?: number;
+	stroke?: string;
+	strokeWidth?: number;
+}
 
-
+type renderableImage = HTMLImageElement | HTMLCanvasElement | OffscreenCanvas;
 
 export class CanvasRender {
-	/**
-	 * 
-	 * @param {Context2D} context 
-	 * @param {HTMLImageElement | HTMLCanvasElement | OffscreenCanvas} image 
-	 * @param {arrayRect} [from]
-	 * @param {arrayRect} [to]
-	 * @returns {void}
-	 */
-	static Image(context, image, from = [], to = []) {
+	static Image(
+		context: Context2D,
+		image: renderableImage,
+		from: arrayRect = [],
+		to: arrayRect = []
+	): void {
 		if (
 			(
 				image instanceof HTMLImageElement ||
@@ -67,34 +59,18 @@ export class CanvasRender {
 		}
 		catch (err) { }
 	}
-
-
-	/**
-	 * 
-	 * @param {Context2D} context 
-	 * @param {string} text 
-	 * @param {object} param2
-	 * @param {number} param2.x
-	 * @param {number} param2.y
-	 * @param {number} [param2.w]
-	 * @returns {void}
-	 */
+	
 	static text(
-		context,
-		text,
-		{ x, y, w }
-	) {
+		context: Context2D,
+		text: string,
+		{ x, y, w }: { x: number; y: number; w?: number; }
+	): void {
 		x = x | 0;
 		y = y | 0;
 		context.fillText(text, x, y, w);
 	}
-
-	/**
-	 * 
-	 * @param {Context2D} context 
-	 * @param {circleOptions} values 
-	 */
-	static circle(context, values) {
+	
+	static circle(context: Context2D, values: circleOptions) {
 		let {
 			x = 0,
 			y = 0,

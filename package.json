@@ -1,24 +1,58 @@
 {
 	"name": "@orago/game",
-	"version": "0.0.8",
+	"version": "0.0.9",
 	"description": "Orago's Game library",
 	"type": "module",
 	"scripts": {
+		"install": "npm run build",
+		"build": "npm run build-cjs & npm run build-esm",
+		"build-cjs": "npx tsc --module commonjs --outDir cjs/",
+		"build-esm": "npx tsc --module es2022 --outDir esm/",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"author": "Orago",
 	"license": "ISC",
 	"exports": {
-		"./boxes": "./src/brush/boxes.js",
-		"./brush": "./src/brush/brush.js",
-		"./collision": "./src/collision.js",
-		"./colorImage": "./src/brush/colorImage.js",
-		"./cursor": "./src/input/cursor.js",
-		"./engine": "./src/engine.js",
-		"./keyboard": "./src/input/keyboard.js",
-		"./repeater": "./src/repeater.js",
-		"./shapes": "./src/shapes.js",
-		"./sprites": "./src/sprites.js"
+		"./boxes": {
+			"import": "./esm/brush/boxes.js",
+			"require": "./cjs/brush/boxes.js"
+		},
+		"./brush": {
+			"import": "./esm/brush/brush.js",
+			"require": "./cjs/brush/brush.js"
+		},
+		"./collision": {
+			"import": "./esm/collision.js",
+			"require": "./cjs/collision.js"
+		},
+		"./colorImage": {
+			"import": "./esm/brush/colorImage.js",
+			"require": "./cjs/brush/colorImage.js"
+		},
+		"./cursor": {
+			"import": "./esm/input/cursor.js",
+			"require": "./cjs/input/cursor.js"
+		},
+		"./engine": {
+			"import": "./esm/engine.js",
+			"require": "./cjs/engine.js"
+		},
+		"./keyboard": {
+			"import": "./esm/input/keyboard.js",
+			"require": "./cjs/input/keyboard.js"
+		},
+		"./repeater": {
+			"import": "./esm/repeater.js",
+			"require": "./cjs/repeater.js"
+		},
+		"./shapes": {
+			"import": "./esm/shapes.js",
+			"require": "./cjs/shapes.js"
+		},
+		"./sprites": {
+			"import": "./esm/sprites.js",
+			"require": "./cjs/sprites.js"
+		}
 	},
 	"typesVersions": {
 		"*": {
@@ -28,9 +62,12 @@
 		}
 	},
 	"dependencies": {
-		"@orago/dom": "^0.0.1",
-		"@orago/lib": "^0.0.2",
-		"@orago/vector": "^0.0.3",
+		"@orago/dom": "^0.0.5",
+		"@orago/lib": "^0.0.12",
+		"@orago/vector": "^0.0.4",
 		"typescript": "^5.3.3"
+	},
+	"devDependencies": {
+		"@types/uuid": "^9.0.8"
 	}
 }

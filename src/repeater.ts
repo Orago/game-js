@@ -1,17 +1,11 @@
 export class FPS {
-	value = 0;
-	currentIndex = 0;
+	value: number = 0;
+	currentIndex: number = 0;
+	lastTick: number | undefined = 0;
+	samples: Array<number> = [];
+	sampleSize: number;
 
-	/** @type {number | undefined} */
-	lastTick = 0;
-
-	/** @type {Array<number>} */
-	samples = [];
-
-	/**
-	 * @param {number} [sampleSize]
-	 */
-	constructor(sampleSize) {
+	constructor(sampleSize?: number) {
 		this.sampleSize = sampleSize ?? 60;
 	}
 
@@ -49,52 +43,25 @@ export class FPS {
 }
 
 export class Repeater {
-	/**
-	 * @type {number | undefined}
-	 */
-	time;
+	time: number | undefined;
+	frame: number = -1;
+	paused: boolean = true;
+	RafRef: number | undefined;
+	fpsLimit: number = -1;
+	actualFps: number = -1;
+	delay: number;
+	callback: Function;
+	_fpsHandler: FPS;
+	maxFramesPerSecond?: number;
 
-	/**
-	 * @type {number}
-	 */
-	frame = -1;
-
-	/**
-	 * @type {boolean}
-	 */
-	paused = true;
-
-	/**
-	 * @type {number | undefined}
-	 */
-	RafRef;
-
-	/**
-	 * @type {number}
-	 */
-	fpsLimit = -1;
-
-	/**
-	 * @type {number}
-	 */
-	actualFps = -1;
-
-	/**
-	 * 
-	 * @param {number} fpsLimit 
-	 * @param {Function} callback 
-	 */
-	constructor(fpsLimit, callback) {
+	constructor(fpsLimit: number, callback: Function) {
 		this.fpsLimit = fpsLimit;
 		this.delay = 1000 / fpsLimit;
 		this.callback = callback;
 		this._fpsHandler = new FPS();
 	}
-
-	/**
-	 * @param {number} timestamp 
-	 */
-	loop(timestamp) {
+	
+	loop(timestamp: number) {
 		if (this.paused){
 			return;
 		} else if (this.time == null) {
@@ -119,11 +86,8 @@ export class Repeater {
 	get fps() {
 		return this.actualFps;
 	}
-
-	/**
-	 * @param {number} newFps 
-	 */
-	set fps(newFps) {
+	
+	set fps(newFps: number) {
 		if (arguments.length == 0){
 			return;
 		}
@@ -145,10 +109,9 @@ export class Repeater {
 	}
 
 	/**
-	 * Pauses 
-	 * @param {boolean} paused 
+	 * Pauses
 	 */
-	pause(paused = !this.paused == true) {
+	pause(paused: boolean = !this.paused == true) {
 		this.paused = paused;
 
 		if (this.paused === true) {

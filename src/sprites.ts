@@ -6,13 +6,9 @@ const rerenderCanvas = new BrushCanvas({
 
 const { chainable } = rerenderCanvas;
 
-/** @typedef {HTMLImageElement} ImageType */
+type ImageType = HTMLImageElement;
 
-/**
- * @param {ImageType | HTMLCanvasElement} image 
- * @returns {string}
- */
-export function getDataUrl(image) {
+export function getDataUrl(image: ImageType | HTMLCanvasElement): string {
 	if (image instanceof HTMLImageElement) {
 		return chainable
 			.canvasSize(image.width, image.height)
@@ -29,12 +25,7 @@ export function getDataUrl(image) {
 
 	return '';
 }
-
-/**
- * @param {ImageType} image 
- * @returns {HTMLCanvasElement}
- */
-export function cloneToCanvas(image) {
+export function cloneToCanvas(image: ImageType): HTMLCanvasElement {
 	const rerenderCanvas = new BrushCanvas({
 		inputCanvas: document.createElement('canvas')
 	});
@@ -51,11 +42,7 @@ export function cloneToCanvas(image) {
 		.canvas;
 }
 
-/**
- * @param {ImageType | HTMLCanvasElement} image 
- * @returns {ImageType}
- */
-export function cloneImage(image) {
+export function cloneImage(image: ImageType | HTMLCanvasElement): ImageType {
 	const cloned = new Image();
 
 	if (image instanceof HTMLImageElement) {
@@ -68,11 +55,7 @@ export function cloneImage(image) {
 	return cloned;
 }
 
-/**
- * @param {Response} response
- * @returns {Promise<any>}
- */
-export async function responseToImageUrl(response) {
+export async function responseToImageUrl(response: Response): Promise<any> {
 	if (!response.ok) {
 		throw new Error('Network response was not ok');
 	}
@@ -84,49 +67,34 @@ export async function responseToImageUrl(response) {
 	return URL.createObjectURL(blob);
 }
 
-/**
- * 
- * @param {any} image 
- * @returns {Response}
- */
-export function imageToResponse(image) {
+export function imageToResponse(image: any): Response {
 	const blob = new Blob([image], { type: 'image/jpeg' }); // Adjust the MIME type as needed
 
 	// Create a Response object from the Blob
 	return new Response(blob, { status: 200, statusText: 'OK' });
 }
 
-/**
- * @typedef {{ x: number, y: number, width: number, height: number }} spriteCfg
- */
+type spriteCfg = { x: number; y: number; width: number; height: number; };
 
-/**
- * @typedef {object} SpritesheetConfig
- * @property {string} fileName -
- * @property {{[name: string]: spriteCfg}} sprites -
- */
+interface SpritesheetConfig {
+	fileName: string;
+	sprites: { [name: string]: spriteCfg; };
+}
 
 export class Spritesheet {
-	/** @type {string} */
-	id;
+	id: string;
+	loaded: boolean = false;
+	sprite: HTMLImageElement = new Image();
+	config: SpritesheetConfig;
 
-	/** @type {boolean} */
-	loaded = false;
-
-	/** @type {HTMLImageElement} */
-	sprite = new Image();
-
-	/** @type {SpritesheetConfig} */
-	config;
-
-	/**
-	 * @param {object} options 
-	 * @param {string} options.id
-	 * @param {string} options.url
-	 * @param {true} [options.cache]
-	 * @param {SpritesheetConfig} options.config
-	 */
-	constructor(options) {
+	constructor(
+		options: {
+			id: string;
+			url: string;
+			cache?: true;
+			config: SpritesheetConfig;
+		}
+	) {
 		if (typeof options != 'object') {
 			throw console.log('Bad spritesheet', options);
 		} else if (typeof options?.url !== 'string') {
@@ -173,13 +141,9 @@ export class Spritesheet {
 }
 
 class Sprite {
-	/** @type {ImageType} */
-	img;
+	img: ImageType;
 
-	/**
-	 * @param {ImageType} image 
-	 */
-	constructor(image) {
+	constructor(image: ImageType) {
 		this.img = image;
 	}
 }
@@ -191,20 +155,19 @@ class BlankSprite extends Sprite {
 }
 
 export default class Sprites {
-	/**
-	 * @param {ImageType} image 
-	 * @param {object} bounds
-	 * @param {number} bounds.x
-	 * @param {number} bounds.y 
-	 * @param {number} bounds.width 
-	 * @param {number} bounds.height
-	 * @returns {ImageType}
-	 */
-	static Slice(image, bounds) {
+
+	static Slice(
+		image: ImageType,
+		bounds: {
+			x: number;
+			y: number;
+			width: number;
+			height: number;
+		}
+	): ImageType {
 		const result = new Image();
 
-		/** @type {[number, number, number, number]} */
-		const g = [bounds.x, bounds.y, bounds.width, bounds.height];
+		const g: [number, number, number, number] = [bounds.x, bounds.y, bounds.width, bounds.height];
 
 		result.src =
 			chainable
@@ -222,29 +185,18 @@ export default class Sprites {
 	/**
 	 * Host domain and or path
 	 * it's essentially just a url prefix
-	 * @type {string}
 	 */
-	host = '';
+	host: string = '';
 	sprites = new Map();
 	loading = new Set;
+	cache: Map<string, Sprite> = new Map();
 
-	/** @type {Map<string, Sprite>} */
-	cache = new Map();
-
-	/**
-	 * Seconds 
-	 */
+	/** Seconds */
 	cacheDuration = 3600; /* 1 hour */
 
-	/** @type {Map<string, Spritesheet>} */
-	spriteSheets = new Map();
+	spriteSheets: Map<string, Spritesheet> = new Map();
 
-	/**
-	 * @param {object} options 
-	 * @param {string} [options.host]
-	 * @param {number} [options.cacheDuration]
-	 */
-	constructor(options) {
+	constructor(options: { host?: string; cacheDuration?: number; }) {
 		if (typeof options === 'object') {
 			if (typeof options.host === 'string') {
 				this.host = options.host;
@@ -259,7 +211,7 @@ export default class Sprites {
 	/**
 	 * @param {Spritesheet} spritesheet 
 	 */
-	addSpritesheet(spritesheet) {
+	addSpritesheet(spritesheet: Spritesheet) {
 		if (spritesheet instanceof Spritesheet != true) {
 			console.log(spritesheet);
 			throw new Error('^ Invalid spritesheet');
@@ -268,11 +220,7 @@ export default class Sprites {
 		this.spriteSheets.set(spritesheet.id, spritesheet);
 	}
 
-	/**
-	 * @param {string} url 
-	 * @returns {string}
-	 */
-	parseUrl(url) {
+	parseUrl(url: string): string {
 		if (typeof url == 'string' && url.startsWith('/')) {
 			return this.host + url;
 		}
@@ -280,28 +228,15 @@ export default class Sprites {
 		return url;
 	}
 
-	/**
-	 * @param {string} url 
-	 * @returns {boolean}
-	 */
-	has(url) {
+	has(url: string): boolean {
 		return this.cache.hasOwnProperty(url);
 	}
 
-	/**
-	 * @param {string} url 
-	 * @param {*} options 
-	 * @returns {HTMLImageElement}
-	 */
-	get(url, options) {
+	get(url: string, options: any): HTMLImageElement {
 		url = this.parseUrl(url);
 
 		const cached = this.cache.get(url);
 		const result = cached ? cached.img : this.loadSingle(url, options?.onLoad).img;
-
-		// if (typeof options?.onLoad == 'function' && this.has(url)) {
-		// 	options.onLoad(result);
-		// }
 
 		if (this.has(url)) {
 			result.dispatchEvent(
@@ -312,12 +247,7 @@ export default class Sprites {
 		return result;
 	}
 
-	/**
-	 * @param {string} url 
-	 * @param {Function} [onLoad]
-	 * @returns {Sprite}
-	 */
-	loadSingle(url, onLoad) {
+	loadSingle(url: string, onLoad: Function): Sprite {
 		const res = new BlankSprite();
 
 		if (this.loading.has(url)) {
@@ -346,11 +276,7 @@ export default class Sprites {
 		return res;
 	}
 
-	/**
-	 * @param {string} url 
-	 * @returns {Promise<ImageType>}
-	 */
-	async fromCache(url) {
+	async fromCache(url: string): Promise<ImageType> {
 		if (this.sprites.has(url)) {
 			return this.sprites.get(url);
 		}
@@ -394,11 +320,7 @@ export default class Sprites {
 		return await this.promise(url);
 	}
 
-	/**
-	 * @param {string} url 
-	 * @returns {Promise<Sprite['img']>}
-	 */
-	async loadSinglePromise(url) {
+	async loadSinglePromise(url: string): Promise<Sprite['img']> {
 		const sprite = new BlankSprite();
 
 		sprite.img.crossOrigin = 'anonymous';
@@ -418,11 +340,7 @@ export default class Sprites {
 		});
 	}
 
-	/**
-	 * @param {string} url 
-	 * @returns {Promise<ImageType>}
-	 */
-	async promise(url) {
+	async promise(url: string): Promise<ImageType> {
 		url = this.parseUrl(url);
 
 		const cached = this.cache.get(url);

@@ -2,64 +2,54 @@ import { CanvasRender } from './render.js';
 import { Vector2 } from '@orago/vector';
 import Emitter from '@orago/lib/emitter';
 
-/**
- * @typedef {[x: number, y: number, w: number, h: number]} arrayRect
- */
+type arrayRect = [x: number, y: number, w: number, h: number];
 
-/**
- * @typedef {'clear'
- * | 'copy'
- * | 'destination'
- * | 'source-over'
- * | 'destination-over'
- * | 'source-in'
- * | 'destination-in'
- * | 'source-out'
- * | 'destination-out'
- * | 'source-atop'
- * | 'destination-atop'
- * | 'xor'
- * | 'lighter'
- * | 'normal'
- * | 'multiply'
- * | 'screen'
- * | 'overlay'
- * | 'darken'
- * | 'lighten'
- * | 'color-dodge'
- * | 'color-burn'
- * | 'hard-light'
- * | 'soft-light'
- * | 'difference'
- * | 'exclusion'
- * | 'hue'
- * | 'saturation'
- * | 'color'
- * | 'luminosity'
- * | 'saturate'
- * } GlobalCompositeOperation
- */
+type GlobalCompositeOperation = 'clear' |
+	'copy' |
+	'destination' |
+	'source-over' |
+	'destination-over' |
+	'source-in' |
+	'destination-in' |
+	'source-out' |
+	'destination-out' |
+	'source-atop' |
+	'destination-atop' |
+	'xor' |
+	'lighter' |
+	'normal' |
+	'multiply' |
+	'screen' |
+	'overlay' |
+	'darken' |
+	'lighten' |
+	'color-dodge' |
+	'color-burn' |
+	'hard-light' |
+	'soft-light' |
+	'difference' |
+	'exclusion' |
+	'hue' |
+	'saturation' |
+	'color' |
+	'luminosity' |
+	'saturate';
 
-/**
- * @typedef {object} overrideCircleOptions
- * @property {number} [x] - Horizontal Position
- * @property {number} [y] - Vertical Position
- * @property {number} [radius] - Size
- * @property {number} [percent] - Fill Percent
- * @property {string} [stroke] - Stroke Style
- * @property {number} [strokeWidth] - Stroke Size
- */
+interface overrideCircleOptions {
+	x?: number;
+	y?: number;
+	radius?: number;
+	percent?: number;
+	stroke?: string;
+	strokeWidth?: number;
+}
 
-
-/** @typedef {HTMLCanvasElement | OffscreenCanvas} AnyCanvas */
-/** @typedef {CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D} AnyContext2D */
+type AnyCanvas = HTMLCanvasElement;
+type AnyContext2D = CanvasRenderingContext2D;
 
 class ChainableConfig {
-	/** @type {HTMLCanvasElement | OffscreenCanvas} */
-	canvas = document.createElement('canvas');
-
-	/** @type {CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D} */
-	ctx;
+	canvas: HTMLCanvasElement = document.createElement('canvas');
+	ctx: CanvasRenderingContext2D;
 
 	color = 'black';
 	x = 0;
@@ -67,17 +57,17 @@ class ChainableConfig {
 	w = 0;
 	h = 0;
 
-	/**
-	 * @param {object} data 
-	 * @param {HTMLCanvasElement | OffscreenCanvas} [data.canvas]
-	 * @param {CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D} data.ctx
-	 * @param {string} [data.color]
-	 * @param {number} [data.x]
-	 * @param {number} [data.y]
-	 * @param {number} [data.w]
-	 * @param {number} [data.h]
-	 */
-	constructor(data) {
+	constructor(
+		data: {
+			canvas?: HTMLCanvasElement;
+			ctx: CanvasRenderingContext2D;
+			color?: string;
+			x?: number;
+			y?: number;
+			w?: number;
+			h?: number;
+		}
+	) {
 		this.ctx = data.ctx;
 
 		if (data.canvas != null) {
@@ -108,7 +98,7 @@ class ChainableConfig {
 	/**
 	 * @returns {arrayRect}
 	 */
-	get rect() {
+	get rect(): arrayRect {
 		return [this.x, this.y, this.w, this.h];
 	}
 }
@@ -117,15 +107,14 @@ class ChainableConfig {
  * ! Should not be used on it's own
  */
 export class ChainableCanvas {
-	/** @type {Array<ChainableConfig>} */
-	stack = [];
+	stack: Array<ChainableConfig> = [];
 
-	/**
-	 * @param {object} brush
-	 * @param {AnyCanvas} brush.canvas
-	 * @param {AnyContext2D} brush.ctx
-	 */
-	constructor(brush) {
+	constructor(
+		brush: {
+			canvas: AnyCanvas;
+			ctx: AnyContext2D;
+		}
+	) {
 		this.stack.push(
 			new ChainableConfig({
 				canvas: brush.canvas,
@@ -135,52 +124,31 @@ export class ChainableCanvas {
 	}
 
 	//#region //* Positioning *//
-	/**
-	 * @param {number} x 
-	 * @returns {this}
-	 */
-	x(x) {
+	x(x: number): this {
 		this.recentConfig.x = x;
 
 		return this;
 	}
 
-	/**
-	 * @param {number} y
-	 * @returns {this}
-	 */
-	y(y) {
+	y(y: number): this {
 		this.recentConfig.y = y;
 
 		return this;
-
 	}
-	/**
-	 * @param {number} w 
-	 * @returns {this}
-	 */
-	w(w) {
+
+	w(w: number): this {
 		this.recentConfig.w = w;
 
 		return this;
 	}
 
-	/**
-	 * @param {number} h
-	 * @returns {this}
-	 */
-	h(h) {
+	h(h: number): this {
 		this.recentConfig.h = h;
 
 		return this;
 	}
 
-	/**
-	 * @param {number} x 
-	 * @param {number} y
-	 * @returns {this}
-	 */
-	pos(x, y) {
+	pos(x: number, y: number): this {
 		const config = this.recentConfig;
 
 		if (typeof x == 'number') {
@@ -194,12 +162,7 @@ export class ChainableCanvas {
 		return this;
 	}
 
-	/**
-	 * @param {number} width 
-	 * @param {number} [height]
-	 * @returns {this}
-	 */
-	size(width, height = width) {
+	size(width: number, height: number = width): this {
 		const config = this.recentConfig;
 
 		if (typeof width == 'number') {
@@ -213,30 +176,19 @@ export class ChainableCanvas {
 		return this;
 	}
 	//#endregion //* Positioning *//
-
-	/** @returns {ChainableConfig} */
-	get recentConfig() {
+	get recentConfig(): ChainableConfig {
 		return this.stack[this.stack.length - 1];
 	}
 
-	/** @returns {AnyCanvas} */
 	get canvas() {
 		return this.recentConfig.canvas;
 	}
 
-	/** @returns {AnyContext2D} */
-	get ctx() {
+	get ctx(): AnyContext2D {
 		return this.recentConfig.ctx;
 	}
 
-	/**
-	 * @param {number} rotation 
-	 * @param {object} [center]
-	 * @param {number} center.x
-	 * @param {number} center.y 
-	 * @returns {this}
-	 */
-	rotate(rotation, center) {
+	rotate(rotation: number, center: { x: number; y: number; }): this {
 		const config = this.recentConfig;
 
 		if (typeof center != 'object') {
@@ -264,23 +216,17 @@ export class ChainableCanvas {
 		return this;
 	}
 
-	/**
-	 * @param {number} amount 
-	 * @returns {this}
-	 */
-	opacity(amount) {
+	opacity(amount: number): this {
 		this.ctx.globalAlpha = amount;
 
 		return this;
 	}
 
-	/**
-	 * @param {HTMLImageElement | HTMLCanvasElement} image 
-	 * @param {arrayRect} [fromPos] 
-	 * @param {arrayRect} [toPos]
-	 * @returns {this}
-	 */
-	image(image, fromPos, toPos = this.recentConfig.rect) {
+	image(
+		image: HTMLImageElement | HTMLCanvasElement,
+		fromPos?: arrayRect,
+		toPos: arrayRect = this.recentConfig.rect
+	): this {
 		CanvasRender.Image(
 			this.ctx,
 			image,
@@ -291,12 +237,7 @@ export class ChainableCanvas {
 		return this;
 	}
 
-	/**
-	 * @param {*} image 
-	 * @param {arrayRect} fromPos 
-	 * @returns {this}
-	 */
-	imageFrom(image, fromPos) {
+	imageFrom(image: any, fromPos?: arrayRect): this {
 		CanvasRender.Image(
 			this.ctx,
 			image,
@@ -309,10 +250,8 @@ export class ChainableCanvas {
 
 	/**
 	 * Renders text
-	 * @param {string} text 
-	 * @returns {this}
 	 */
-	text(text) {
+	text(text: string): this {
 		const [x, y] = this.recentConfig.rect;
 
 		CanvasRender.text(
@@ -324,19 +263,11 @@ export class ChainableCanvas {
 		return this;
 	}
 
-	/**
-	 * @param {string} text 
-	 * @returns {number}
-	 */
-	textWidth(text) {
+	textWidth(text: string): number {
 		return this.ctx.measureText(text).width
 	}
 
-	/**
-	 * @param {overrideCircleOptions} [override]
-	 * @returns {this}
-	 */
-	circle(override) {
+	circle(override: overrideCircleOptions): this {
 		const [x, y, w] = this.recentConfig.rect;
 
 		CanvasRender.circle(
@@ -355,10 +286,8 @@ export class ChainableCanvas {
 	/**
 	 * Sets global composite operation
 	 * Default is source-over
-	 * @param {GlobalCompositeOperation} mode 
-	 * @returns {this}
 	 */
-	rendering(mode = 'source-over') {
+	rendering(mode: GlobalCompositeOperation = 'source-over'): this {
 		// @ts-ignore
 		this.ctx.globalCompositeOperation = mode;
 
@@ -367,45 +296,31 @@ export class ChainableCanvas {
 
 	/**
 	 * Sets color
-	 * @param {string} color 
-	 * @returns {this}
 	 */
-	color(color) {
+	color(color: string): this {
 		this.ctx.fillStyle = color;
 
 		return this;
 	}
 
-	/**
-	 * @param {string} newFont 
-	 * @returns {this}
-	 */
-	font(newFont) {
+	font(newFont: string): this {
 		this.ctx.font = newFont;
 
 		return this;
 	}
 
-	/**
-	 * @param {object} param0
-	 * @param {string} [param0.font]
-	 * @param {string} [param0.weight]
-	 * @param {number} [param0.size]
-	 * @returns {this}
-	 */
 	generatedFont({
 		font = 'Arial',
 		weight = 'normal',
 		size = 16
-	} = {}) {
+	}: { font?: string; weight?: string; size?: number; } = {}): this {
 		return this.font(`${weight} ${size}px ${font}`);
 	}
 
 	/**
 	 * Draws a rect to the screen
-	 * @returns {this}
 	 */
-	get rect() {
+	get rect(): this {
 		this.ctx.fillRect(
 			...this.recentConfig.rect
 		);
@@ -415,9 +330,9 @@ export class ChainableCanvas {
 
 	/**
 	 * Creates a sub canvas
-	 * @returns {this}
+	 * @deprecated
 	 */
-	get blank() {
+	get blank(): this {
 		const pre = this.recentConfig;
 
 		this.save;
@@ -440,7 +355,7 @@ export class ChainableCanvas {
 	 * @returns {this}
 	 * @deprecated
 	 */
-	get merge() {
+	get merge(): this {
 		const r = this.recentConfig;
 		const prev = this.stack[this.stack.length - 1];
 
@@ -457,9 +372,8 @@ export class ChainableCanvas {
 
 	/**
 	 * Saves the current canvas state
-	 * @returns {this}
 	 */
-	get save() {
+	get save(): this {
 		this.ctx.save();
 
 		this.stack.push(
@@ -471,9 +385,8 @@ export class ChainableCanvas {
 
 	/**
 	 * Restores the current canvas state
-	 * @returns {this}
 	 */
-	get restore() {
+	get restore(): this {
 		this.ctx.restore();
 
 		this.stack.pop();
@@ -481,11 +394,7 @@ export class ChainableCanvas {
 		return this;
 	}
 
-	/**
-	 * @param {function (ChainableCanvas): void} func
-	 * @returns {this}
-	 */
-	ref(func) {
+	ref(func: (arg0: ChainableCanvas) => void): this {
 		func(this);
 
 		return this;
@@ -494,9 +403,8 @@ export class ChainableCanvas {
 	/**
 	 * Flips rendering on horizontal axis
 	 * ! Mutates
-	 * @returns {this}
 	 */
-	get flipX() {
+	get flipX(): this {
 		const r = this.recentConfig;
 
 		this.ctx.scale(-1, 1);
@@ -510,9 +418,8 @@ export class ChainableCanvas {
 	/**
 	 * Flips Y rendering
 	 * ! Mutates
-	 * @returns {this}
 	 */
-	get flipY() {
+	get flipY(): this {
 		const r = this.recentConfig;
 
 		this.ctx.scale(1, -1);
@@ -524,13 +431,10 @@ export class ChainableCanvas {
 
 	/**
 	 * Sets canvas size
-	 * @param {number} width 
-	 * @param {number} height 
-	 * @returns {this}
 	 */
-	canvasSize(width, height) {
+	canvasSize(width: number, height: number): this {
 		const smoothing = this.ctx.imageSmoothingEnabled;
-		
+
 		this.canvas.width = width;
 		this.canvas.height = height;
 		this.size(width, height);
@@ -541,9 +445,8 @@ export class ChainableCanvas {
 
 	/**
 	 * Clears the canvas
-	 * @returns {this}
 	 */
-	get clear() {
+	get clear(): this {
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
 		return this;
@@ -551,39 +454,37 @@ export class ChainableCanvas {
 
 	/**
 	 * Clears cached rect
-	 * @returns {this}
 	 */
-	clearRect() {
+	clearRect(): this {
 		this.ctx.clearRect(...this.recentConfig.rect);
 
 		return this;
 	}
+
+	get imgUrl(): string {
+		return this.canvas.toDataURL();
+	}
 }
 
 export default class BrushCanvas {
-	resolution = 1;
+	resolution: number = 1;
+	smoothing: boolean = true;
 
-	/** @type {boolean} */
-	smoothing = true;
-
-	/** @type {HTMLCanvasElement} */
 	// @ts-ignore
-	canvas;
+	canvas: HTMLCanvasElement;
 
-	/** @type {CanvasRenderingContext2D} */
 	// @ts-ignore
-	ctx;
+	ctx: CanvasRenderingContext2D;
 
 	events = new Emitter();
 
-	/**
-	 * 
-	 * @param {object} settings
-	 * @param {[width: number, height: number]} [settings.dimensions]
-	 * @param {HTMLCanvasElement} [settings.inputCanvas]
-	 * @param {number} [settings.resolution]
-	 */
-	constructor(settings = {}) {
+	constructor(
+		settings: {
+			dimensions?: [width: number, height: number];
+			inputCanvas?: HTMLCanvasElement;
+			resolution?: number;
+		} = {}
+	) {
 		if (typeof settings != 'object') {
 			settings = {};
 		}
@@ -602,22 +503,13 @@ export default class BrushCanvas {
 		this.updateResolution(resolution);
 	}
 
-	/**
-	 * 
-	 * @param {number} resolution 
-	 */
-	updateResolution(resolution) {
+	updateResolution(resolution: number) {
 		// const amount = ForceType.Number(resolution);
 
 		// this.resolution = clamp(amount, { min: .5, max: 1 });
 	}
 
-	/**
-	 * 
-	 * @param {number} width 
-	 * @param {number} height 
-	 */
-	updateSize(width, height) {
+	updateSize(width: number, height: number) {
 		Object.assign(this.canvas, { width, height });
 
 		this.events.emit('resize', width, height);
@@ -625,18 +517,15 @@ export default class BrushCanvas {
 		this.setSmoothing(this.smoothing);
 	}
 
-	/**
-	 * 
-	 * @param {object} param0 
-	 * @param {HTMLCanvasElement} param0.canvas
-	 * @param {CanvasRenderingContext2D} [param0.ctx]
-	 * @param {[x: number, y: number]} [param0.dimensions]
-	 */
 	swapCanvas(
 		{
 			canvas,
 			ctx,
 			dimensions
+		}: {
+			canvas: HTMLCanvasElement;
+			ctx?: CanvasRenderingContext2D;
+			dimensions?: [x: number, y: number];
 		}
 	) {
 		this.canvas = canvas;
@@ -646,19 +535,18 @@ export default class BrushCanvas {
 		} else if (canvas instanceof HTMLCanvasElement) {
 			const ctx = canvas.getContext('2d');
 
-			if (ctx){
+			if (ctx) {
 				this.ctx = ctx;
 			}
 		}
 
-		if (Array.isArray(dimensions)){
+		if (Array.isArray(dimensions)) {
 			this.updateSize(...dimensions);
 		}
 	}
 
 	//#region //* Functions / Utils *//
-	/** @returns {Vector2} */
-	center() {
+	center(): Vector2 {
 		return new Vector2(
 			this.width / 2,
 			this.height / 2
@@ -671,8 +559,7 @@ export default class BrushCanvas {
 		}
 	}
 
-	/** @returns {{ width: number, height: number }} */
-	dimensions() {
+	dimensions(): { width: number; height: number; } {
 		return {
 			width: this.width,
 			height: this.height
@@ -687,8 +574,7 @@ export default class BrushCanvas {
 		return this.canvas.height;
 	};
 
-	/** @param {{ width: number, height: number }} param0 */
-	forceDimensions({ width, height }) {
+	forceDimensions({ width, height }: { width: number; height: number; }) {
 		if (
 			typeof width == 'number' &&
 			this.canvas.width != width
@@ -704,13 +590,11 @@ export default class BrushCanvas {
 		}
 	};
 
-	/**
-	 * @param {HTMLImageElement | HTMLCanvasElement | OffscreenCanvas} image 
-	 * @param {arrayRect} [from]
-	 * @param {arrayRect} [to]
-	 * @returns {this}
-	 */
-	image(image, from, to) {
+	image(
+		image: HTMLImageElement | HTMLCanvasElement | OffscreenCanvas,
+		from: arrayRect,
+		to: arrayRect
+	): this {
 		CanvasRender.Image(
 			this.ctx,
 			image,
@@ -721,18 +605,17 @@ export default class BrushCanvas {
 		return this;
 	}
 
-	/**
-	 * @param {object} values
-	 * @param {string} values.text
-	 * @param {string} values.color
-	 * @param {number} [values.x]
-	 * @param {number} [values.y]
-	 * @param {string} [values.font]
-	 * @param {string} [values.weight]
-	 * @param {number} [values.size]
-	 * @returns {void}
-	 */
-	text(values) {
+	text(
+		values: {
+			text: string;
+			color: string;
+			x?: number;
+			y?: number;
+			font?: string;
+			weight?: string;
+			size?: number;
+		}
+	): void {
 		if (this.ctx instanceof CanvasRenderingContext2D != true) {
 			return;
 		}
@@ -761,15 +644,15 @@ export default class BrushCanvas {
 			.text(text);
 	}
 
-	/**
-	 * @param {object} values
-	 * @param {number} [values.x]
-	 * @param {number} [values.y]
-	 * @param {number} [values.w]
-	 * @param {number} [values.h]
-	 * @param {string} [values.color]
-	 */
-	shape(values) {
+	shape(
+		values: {
+			x?: number;
+			y?: number;
+			w?: number;
+			h?: number;
+			color?: string;
+		}
+	) {
 		if (this.ctx instanceof CanvasRenderingContext2D != true) {
 			return;
 		}
@@ -795,10 +678,9 @@ export default class BrushCanvas {
 	}
 
 	/**
-	 * @param {*} values
 	 * @deprecated
 	 */
-	circle(values) {
+	circle(values: any) {
 		CanvasRender.circle(this.ctx, values);
 	}
 
@@ -831,18 +713,11 @@ export default class BrushCanvas {
 		ctx.fillRect(x, y, w, h);
 	}
 
-	/**
-	 * @param {object} values
-	 * @param {string} values.text
-	 * @param {string} [values.font]
-	 * @param {number} [values.size]
-	 * @returns {number}
-	 */
-	getTextWidth(values) {
+	getTextWidth(values: { text: string; font?: string; size?: number; }): number {
 		const canvas = document.createElement('canvas');
 		const ctx = canvas.getContext('2d');
 
-		if (ctx){
+		if (ctx) {
 			ctx.font = '';
 		}
 
@@ -869,14 +744,7 @@ export default class BrushCanvas {
 		return this;
 	}
 
-	/**
-	 * @param {number} x 
-	 * @param {number} y 
-	 * @param {number} width 
-	 * @param {number} height 
-	 * @returns {this}
-	 */
-	clearRect(x, y, width, height) {
+	clearRect(x: number, y: number, width: number, height: number): this {
 		this.ctx.clearRect(x, y, width, height);
 
 		return this;
@@ -886,10 +754,8 @@ export default class BrushCanvas {
 	 * Toggles smoothing
 	 * ON - blurred when using low resolution assets and smooth on high resolution
 	 * OFF - Crisp on low resolution assets and jagged on high resolution
-	 * @param {boolean} state 
-	 * @returns {this}
 	 */
-	setSmoothing = (state) => {
+	setSmoothing = (state: boolean): this => {
 		this.ctx.imageSmoothingEnabled =
 			this.smoothing = (state == true);
 

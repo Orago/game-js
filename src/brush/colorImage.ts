@@ -7,27 +7,19 @@ const colorableCanvas = new BrushCanvas({
 
 const colorChain = colorableCanvas.chainable;
 
-
-/**
- * @typedef {[red: number, green: number, blue: number]} rgbArray
- */
+export type rgbArray = [red: number, green: number, blue: number];
 
 /** 
  * Draws an overlay tint to canvas
  * ! WARNING it is extremely slow
- * @param {HTMLCanvasElement | HTMLImageElement} image Image or HTMLCanvasElement reference
- * @param {number} red (Defaults to 0)
- * @param {number} green (Defaults to 0)
- * @param {number} blue (Defaults to 0)
- * @returns {HTMLCanvasElement}
  * @deprecated
  */
 function badlyColorImage(
-	image,
-	red = 0,
-	green = 0,
-	blue = 0
-) { // image is a canvas image
+	image: HTMLCanvasElement | HTMLImageElement,
+	red: number = 0,
+	green: number = 0,
+	blue: number = 0
+): HTMLCanvasElement { // image is a canvas image
 	const canvas = document.createElement('canvas');
 	const ctx = canvas.getContext('2d');
 
@@ -57,28 +49,23 @@ function badlyColorImage(
 /** 
  * Draws an overlay tint to canvas
  * Faster yet slightly different version of badlyColorImage
- * -
- * @param {HTMLCanvasElement | HTMLImageElement} sprite Image or HTMLCanvasElement reference
- * @param {[
- *  red?: number,
- *  green?: number,
- *  blue?: number,
- *  tint?: number
- * ]} param1
- * @returns {sprite}
  */
 export function rgbTintImage(
-	sprite,
+	sprite: HTMLCanvasElement | HTMLImageElement,
 	[
 		red = 0,
 		green = 0,
 		blue = 0,
 		tint = .2
-	]
-) {
+	]: [
+			red?: number,
+			green?: number,
+			blue?: number,
+			tint?: number
+		]
+): typeof sprite {
 	const image = new Image();
 
-	// Pre draw
 	colorChain
 		.canvasSize(sprite.width, sprite.height)
 		.size(sprite.width, sprite.height)
@@ -92,7 +79,7 @@ export function rgbTintImage(
 		.color(`rgb(${[red, green, blue].join(',')})`)
 		.rect.rendering('source-over');
 
-	if (colorChain.canvas instanceof HTMLCanvasElement){
+	if (colorChain.canvas instanceof HTMLCanvasElement) {
 		image.src = colorChain.canvas.toDataURL('image/png');
 	}
 
@@ -102,12 +89,11 @@ export function rgbTintImage(
 
 /**
  * Old default is 100
- * @param {ChainableCanvas} chain
- * @param {number} light  
  */
-function lightenOverlay(chain, light) {
-	if (typeof light != 'number')
+function lightenOverlay(chain: ChainableCanvas, light: number) {
+	if (typeof light != 'number') {
 		return;
+	}
 
 	chain
 		.rendering(light < 100 ? 'color-burn' : 'color-dodge')
@@ -124,10 +110,8 @@ function lightenOverlay(chain, light) {
 /**
  * Saturates the image
  * Old default is 100
- * @param {ChainableCanvas} chain
- * @param {number} saturation 
  */
-function saturateOverlay(chain, saturation) {
+function saturateOverlay(chain: ChainableCanvas, saturation: number) {
 	if (typeof saturation != 'number') {
 		return;
 	}
@@ -140,10 +124,8 @@ function saturateOverlay(chain, saturation) {
 
 /**
  * Quickly Sets canvas size and draws sprite once
- * @param {ChainableCanvas} chain 
- * @param {HTMLCanvasElement|HTMLImageElement} sprite 
  */
-function plainDraw(chain, sprite) {
+function plainDraw(chain: ChainableCanvas, sprite: HTMLCanvasElement | HTMLImageElement) {
 	chain
 		.canvasSize(
 			sprite.width,
@@ -161,10 +143,8 @@ function plainDraw(chain, sprite) {
 
 /**
  * Tints overlay with Hue
- * @param {ChainableCanvas} chain 
- * @param {number} hue 
  */
-function hueOverlay(chain, hue) {
+function hueOverlay(chain: ChainableCanvas, hue: number) {
 	if (typeof hue != 'number') {
 		return;
 	}
@@ -177,34 +157,27 @@ function hueOverlay(chain, hue) {
 
 /**
  * Used to clip over the same image and remove excess pixels quickly
- * @param {ChainableCanvas} chain 
- * @param {HTMLImageElement | HTMLCanvasElement} sprite 
  */
-function clipEditFrom(chain, sprite) {
+function clipEditFrom(chain: ChainableCanvas, sprite: HTMLImageElement | HTMLCanvasElement) {
 	chain
 		.rendering('destination-in')
 		.image(sprite)
 		.rendering('source-over')
 }
 
-/**
- * @typedef {object} hslTintOptions
- * @property {number} [saturation = 100] - Color depth
- * @property {number} [light = 100] - brightness
- * @property {rgbArray} [rgb] - Color Array
- * @property {*} [tint] - Tint
- * @property {number} [hue] - Hue rotate
- */
+interface hslTintOptions {
+	saturation?: number;
+	light?: number;
+	rgb?: rgbArray;
+	tint?: any;
+	hue?: number;
+}
 
 /** 
  * Checks if all items in an array match
  * Best image color manipulation method
- * -
- * @param {HTMLCanvasElement | HTMLImageElement} sprite
- * @param {hslTintOptions} options - Custom options
- * @returns {HTMLImageElement}
  */
-export function hslTintImage(sprite, options) {
+export function hslTintImage(sprite: HTMLCanvasElement | HTMLImageElement, options: hslTintOptions): HTMLImageElement {
 	plainDraw(colorChain, sprite);
 
 	if (typeof options?.light === 'number') {
@@ -237,7 +210,7 @@ export function hslTintImage(sprite, options) {
 
 	const image = new Image();
 
-	if (colorChain.canvas instanceof HTMLCanvasElement){
+	if (colorChain.canvas instanceof HTMLCanvasElement) {
 		image.src = colorChain.canvas.toDataURL('image/png');
 	}
 
