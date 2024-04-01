@@ -271,8 +271,8 @@ export default class Engine {
 		const center = options?.center === true ? this.brush.center() : { x: 0, y: 0 };
 
 		return new Vector2(
-			(pos.x / this.zoom + this.offset.x) - center.x / this.zoom,
-			(pos.y / this.zoom + this.offset.y) - center.y / this.zoom
+			(pos.x / this.zoom - this.offset.x) - center.x / this.zoom,
+			(pos.y / this.zoom - this.offset.y) - center.y / this.zoom
 		);
 	}
 

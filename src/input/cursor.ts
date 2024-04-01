@@ -22,7 +22,7 @@ export default class cursor {
 		this.object = object;
 
 		for (const [method, func] of Object.entries(this.on)) {
-			object.addEventListener(method, () => func.bind(this));
+			object.addEventListener(method, func.bind(this));
 		}
 
 		this.reInit();
@@ -94,17 +94,26 @@ export default class cursor {
 		this.events.emit('release', e, this);
 	}
 
-	on = {
-		click: (e: MouseEvent) => e.preventDefault(),
-		contextmenu: (e: MouseEvent) => e.preventDefault(),
+	on: { [key: string]: (evt: Event) => any } = {
+		click: (e: Event) => e.preventDefault(),
+		contextmenu: (e: Event) => e.preventDefault(),
 
-		mousemove: (e: MouseEvent) => this.events.emit('move', e.clientX, e.clientY),
-		touchmove: (e: TouchEvent) => this.events.emit('move', e.touches[0].clientX, e.touches[0].clientY),
+		mousemove: (e: Event) =>
+			e instanceof MouseEvent &&
+			this.events.emit('move', e.clientX, e.clientY),
 
-		mouseup: (e: MouseEvent) => this.events.emit('end', e),
-		touchend: (e: TouchEvent) => this.events.emit('end', e.changedTouches[0]),
+		touchmove: (e: Event) =>
+			e instanceof TouchEvent &&
+			this.events.emit('move', e.touches[0].clientX, e.touches[0].clientY),
 
-		mousedown: (e: MouseEvent) => this.events.emit('start', e),
-		touchstart: (e: TouchEvent) => this.events.emit('start', e.touches[0]),
+		mouseup: (e: Event) => this.events.emit('end', e),
+		touchend: (e: Event) =>
+			e instanceof TouchEvent &&
+			this.events.emit('end', e.changedTouches[0]),
+
+		mousedown: (e: Event) => this.events.emit('start', e),
+		touchstart: (e: Event) =>
+			e instanceof TouchEvent &&
+			this.events.emit('start', e.touches[0]),
 	}
 }

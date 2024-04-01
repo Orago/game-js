@@ -188,7 +188,7 @@ export class ChainableCanvas {
 		return this.recentConfig.ctx;
 	}
 
-	rotate(rotation: number, center: { x: number; y: number; }): this {
+	rotate(rotation: number, center?: { x: number; y: number; }): this {
 		const config = this.recentConfig;
 
 		if (typeof center != 'object') {
@@ -267,7 +267,7 @@ export class ChainableCanvas {
 		return this.ctx.measureText(text).width
 	}
 
-	circle(override: overrideCircleOptions): this {
+	circle(override?: overrideCircleOptions): this {
 		const [x, y, w] = this.recentConfig.rect;
 
 		CanvasRender.circle(
@@ -532,7 +532,8 @@ export default class BrushCanvas {
 
 		if (ctx instanceof CanvasRenderingContext2D) {
 			this.ctx = ctx;
-		} else if (canvas instanceof HTMLCanvasElement) {
+		}
+		else if (canvas instanceof HTMLCanvasElement) {
 			const ctx = canvas.getContext('2d');
 
 			if (ctx) {
@@ -592,8 +593,8 @@ export default class BrushCanvas {
 
 	image(
 		image: HTMLImageElement | HTMLCanvasElement | OffscreenCanvas,
-		from: arrayRect,
-		to: arrayRect
+		from?: arrayRect,
+		to?: arrayRect
 	): this {
 		CanvasRender.Image(
 			this.ctx,
@@ -680,7 +681,7 @@ export default class BrushCanvas {
 	/**
 	 * @deprecated
 	 */
-	circle(values: any) {
+	circle(values?: any) {
 		CanvasRender.circle(this.ctx, values);
 	}
 

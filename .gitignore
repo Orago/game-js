@@ -1,6 +1,5 @@
 node_modules/
 tests/
 .vscode/
-esm/
-cjs/
+
 js/

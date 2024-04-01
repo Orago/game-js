@@ -232,7 +232,7 @@ export default class Sprites {
 		return this.cache.hasOwnProperty(url);
 	}
 
-	get(url: string, options: any): HTMLImageElement {
+	get(url: string, options?: any): HTMLImageElement {
 		url = this.parseUrl(url);
 
 		const cached = this.cache.get(url);
@@ -247,7 +247,7 @@ export default class Sprites {
 		return result;
 	}
 
-	loadSingle(url: string, onLoad: Function): Sprite {
+	loadSingle(url: string, onLoad?: Function): Sprite {
 		const res = new BlankSprite();
 
 		if (this.loading.has(url)) {
