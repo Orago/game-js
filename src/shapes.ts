@@ -1,7 +1,31 @@
 import { Vector2 } from '@orago/vector';
 
-export class Box {
-	static scaleToFit(containerWidth: number, containerHeight: number, rectWidth: number, rectHeight: number): Box {
+export interface LikeRectangle {
+	width: number;
+	height: number;
+}
+
+export interface RectWithPosition {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}
+
+export type LikeBounds = [
+	x1: number,
+	y1: number,
+	x2: number,
+	y2: number
+]
+
+export class Rectangle {
+	static scaleToFit(
+		containerWidth: number,
+		containerHeight: number,
+		rectWidth: number,
+		rectHeight: number
+	): Rectangle {
 		// Calculate aspect ratios
 		const containerRatio = containerWidth / containerHeight;
 		const rectRatio = rectWidth / rectHeight;
@@ -18,18 +42,18 @@ export class Box {
 		const width = rectWidth * scaleFactor;
 		const height = rectHeight * scaleFactor;
 
-		return new Box(width, height);
+		return new Rectangle(width, height);
 	}
 
-	static scale(width: number, height: number, scale: number): Box {
+	static scale(width: number, height: number, scale: number): Rectangle {
 		width *= scale;
 		height *= scale;
 
-		return new Box(width, height);
+		return new Rectangle(width, height);
 	}
 
-	static FromObj(obj: Box): Box {
-		return new Box(obj.width, obj.height);
+	static FromObj(obj: LikeRectangle): Rectangle {
+		return new Rectangle(obj.width, obj.height);
 	}
 
 	width: number;
@@ -48,10 +72,10 @@ export class Box {
 	/**
 	 * Upscales rectangle by scale factor
 	 * @param {number} scale 
-	 * @returns {Box}
+	 * @returns {Rectangle}
 	 */
-	scaled(scale: number): Box {
-		return new Box(this.width * scale, this.height * scale);
+	scaled(scale: number): Rectangle {
+		return new Rectangle(this.width * scale, this.height * scale);
 	}
 
 	/**
@@ -59,13 +83,10 @@ export class Box {
 	 *  width: number,
 	 *  height: number
 	 * }} param0
-	 * @returns {Box}
+	 * @returns {Rectangle}
 	 */
-	toFit({ width, height }: {
-		width: number;
-		height: number;
-	} = this): Box {
-		const fit = Box.scaleToFit(
+	toFit({ width, height }: LikeRectangle = this): Rectangle {
+		const fit = Rectangle.scaleToFit(
 			width,
 			height,
 			this.width,
@@ -76,23 +97,16 @@ export class Box {
 	}
 }
 
-interface rectWithPosition {
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-}
-
-export class RectBody extends Box {
-	static toBoundingBox(rect: RectBody | Box): Bound | undefined {
+export class RectBody extends Rectangle {
+	static toBoundingBox(rect: RectBody | Rectangle): Bound | undefined {
 		if (rect instanceof RectBody) {
 			return new Bound(rect.x, rect.y, rect.width, rect.height);
-		} else if (rect instanceof Box) {
+		} else if (rect instanceof Rectangle) {
 			return new Bound(0, 0, rect.width, rect.height);
 		}
 	}
 
-	static contains(parent: rectWithPosition, child: rectWithPosition): boolean {
+	static contains(parent: RectWithPosition, child: RectWithPosition): boolean {
 		const parentx2 = parent.x + parent.width;
 		const parenty2 = parent.y + parent.height;
 		const childx2 = child.x + child.width;
@@ -101,7 +115,7 @@ export class RectBody extends Box {
 		return parent.x <= child.x && parentx2 >= childx2 && parent.y <= child.y && parenty2 >= childy2;
 	}
 
-	static centered(parent: RectBody, child: RectBody | Box): RectBody {
+	static centered(parent: RectBody, child: LikeRectangle): RectBody {
 		return new RectBody(
 			parent.x + (parent.width - child.width) / 2,
 			parent.y + (parent.height - child.height) / 2
@@ -168,12 +182,7 @@ export class Bound {
 		return new RectBody(x, y, w, h);
 	}
 
-	positions: [
-		x1: number,
-		y1: number,
-		x2: number,
-		y2: number
-	] = [0, 0, 0, 0];
+	positions: LikeBounds = [0, 0, 0, 0];
 
 	constructor(
 		x1: number = 0, y1: number = 0,
@@ -185,6 +194,7 @@ export class Bound {
 	clear() {
 		this.positions = [0, 0, 0, 0];
 	}
+
 	set(...items: Array<[
 		x1: number,
 		x2: number,
@@ -197,9 +207,11 @@ export class Bound {
 
 		this.clear();
 
-		items.slice(0, 4).map((n, index) => {
-			this.positions[index] = typeof n === 'number' ? n : 0;
-		})
+		items
+			.slice(0, 4)
+			.map((n, index) => {
+				this.positions[index] = typeof n === 'number' ? n : 0;
+			});
 	}
 
 	toRect() {

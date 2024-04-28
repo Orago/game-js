@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Bound = exports.RectBody = exports.Box = void 0;
+exports.Bound = exports.RectBody = exports.Rectangle = void 0;
 const vector_1 = require("@orago/vector");
-class Box {
+class Rectangle {
     static scaleToFit(containerWidth, containerHeight, rectWidth, rectHeight) {
         const containerRatio = containerWidth / containerHeight;
         const rectRatio = rectWidth / rectHeight;
@@ -13,15 +13,15 @@ class Box {
             scaleFactor = containerHeight / rectHeight;
         const width = rectWidth * scaleFactor;
         const height = rectHeight * scaleFactor;
-        return new Box(width, height);
+        return new Rectangle(width, height);
     }
     static scale(width, height, scale) {
         width *= scale;
         height *= scale;
-        return new Box(width, height);
+        return new Rectangle(width, height);
     }
     static FromObj(obj) {
-        return new Box(obj.width, obj.height);
+        return new Rectangle(obj.width, obj.height);
     }
     constructor(width, height) {
         this.width = width;
@@ -32,20 +32,20 @@ class Box {
         yield this.height;
     }
     scaled(scale) {
-        return new Box(this.width * scale, this.height * scale);
+        return new Rectangle(this.width * scale, this.height * scale);
     }
     toFit({ width, height } = this) {
-        const fit = Box.scaleToFit(width, height, this.width, this.height);
+        const fit = Rectangle.scaleToFit(width, height, this.width, this.height);
         return fit;
     }
 }
-exports.Box = Box;
-class RectBody extends Box {
+exports.Rectangle = Rectangle;
+class RectBody extends Rectangle {
     static toBoundingBox(rect) {
         if (rect instanceof RectBody) {
             return new Bound(rect.x, rect.y, rect.width, rect.height);
         }
-        else if (rect instanceof Box) {
+        else if (rect instanceof Rectangle) {
             return new Bound(0, 0, rect.width, rect.height);
         }
     }
@@ -109,7 +109,9 @@ class Bound {
             return;
         }
         this.clear();
-        items.slice(0, 4).map((n, index) => {
+        items
+            .slice(0, 4)
+            .map((n, index) => {
             this.positions[index] = typeof n === 'number' ? n : 0;
         });
     }

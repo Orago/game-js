@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const emitter_1 = __importDefault(require("@orago/lib/emitter"));
 const vector_1 = require("@orago/vector");
 const holdTime = 500;
-class cursor {
+class Cursor {
     constructor(object = document.body) {
         this.events = new emitter_1.default();
         this.pos = new vector_1.Vector2();
@@ -101,4 +101,4 @@ class cursor {
         this.events.emit('release', e, this);
     }
 }
-exports.default = cursor;
+exports.default = Cursor;

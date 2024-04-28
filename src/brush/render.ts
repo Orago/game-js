@@ -1,5 +1,5 @@
+type renderableImage = HTMLImageElement | HTMLCanvasElement | OffscreenCanvas;
 type Context2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
-
 type arrayRect = [x?: number, y?: number, w?: number, h?: number];
 
 interface circleOptions {
@@ -11,7 +11,6 @@ interface circleOptions {
 	strokeWidth?: number;
 }
 
-type renderableImage = HTMLImageElement | HTMLCanvasElement | OffscreenCanvas;
 
 export class CanvasRender {
 	static Image(

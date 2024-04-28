@@ -1,7 +1,7 @@
 import Emitter from '@orago/lib/emitter';
 import { Vector2 } from '@orago/vector';
 type cursorInput = Touch | MouseEvent;
-export default class cursor {
+export default class Cursor {
     events: Emitter;
     object: HTMLElement;
     pos: Vector2;

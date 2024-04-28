@@ -5,7 +5,7 @@ const holdTime = 500;
 
 type cursorInput = Touch | MouseEvent;
 
-export default class cursor {
+export default class Cursor {
 	events: Emitter = new Emitter();
 	object: HTMLElement;
 	pos: Vector2 = new Vector2();

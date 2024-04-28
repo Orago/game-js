@@ -1,10 +1,10 @@
 {
 	"name": "@orago/game",
-	"version": "0.0.15",
+	"version": "0.0.16",
 	"description": "Orago's Game library",
 	"type": "module",
 	"scripts": {
-		"pre-publish": "npm run build-cjs & npm run build-esm",
+		"build": "npm run build-cjs & npm run build-esm",
 		"build-cjs": "npx tsc --module commonjs --outDir cjs/",
 		"build-esm": "npx tsc --module es2022 --outDir esm/",
 		"test": "echo \"Error: no test specified\" && exit 1"

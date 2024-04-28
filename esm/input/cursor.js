@@ -1,7 +1,7 @@
 import Emitter from '@orago/lib/emitter';
 import { Vector2 } from '@orago/vector';
 const holdTime = 500;
-export default class cursor {
+export default class Cursor {
     constructor(object = document.body) {
         this.events = new Emitter();
         this.pos = new Vector2();

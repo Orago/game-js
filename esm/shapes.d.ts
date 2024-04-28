@@ -1,28 +1,35 @@
 import { Vector2 } from '@orago/vector';
-export declare class Box {
-    static scaleToFit(containerWidth: number, containerHeight: number, rectWidth: number, rectHeight: number): Box;
-    static scale(width: number, height: number, scale: number): Box;
-    static FromObj(obj: Box): Box;
+export interface LikeRectangle {
     width: number;
     height: number;
-    constructor(width: number, height: number);
-    [Symbol.iterator](): Generator<number, void, unknown>;
-    scaled(scale: number): Box;
-    toFit({ width, height }?: {
-        width: number;
-        height: number;
-    }): Box;
 }
-interface rectWithPosition {
+export interface RectWithPosition {
     x: number;
     y: number;
     width: number;
     height: number;
 }
-export declare class RectBody extends Box {
-    static toBoundingBox(rect: RectBody | Box): Bound | undefined;
-    static contains(parent: rectWithPosition, child: rectWithPosition): boolean;
-    static centered(parent: RectBody, child: RectBody | Box): RectBody;
+export type LikeBounds = [
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number
+];
+export declare class Rectangle {
+    static scaleToFit(containerWidth: number, containerHeight: number, rectWidth: number, rectHeight: number): Rectangle;
+    static scale(width: number, height: number, scale: number): Rectangle;
+    static FromObj(obj: LikeRectangle): Rectangle;
+    width: number;
+    height: number;
+    constructor(width: number, height: number);
+    [Symbol.iterator](): Generator<number, void, unknown>;
+    scaled(scale: number): Rectangle;
+    toFit({ width, height }?: LikeRectangle): Rectangle;
+}
+export declare class RectBody extends Rectangle {
+    static toBoundingBox(rect: RectBody | Rectangle): Bound | undefined;
+    static contains(parent: RectWithPosition, child: RectWithPosition): boolean;
+    static centered(parent: RectBody, child: LikeRectangle): RectBody;
     x: number;
     y: number;
     constructor(x: number, y: number, width?: number, height?: number);
@@ -33,12 +40,7 @@ export declare class RectBody extends Box {
 }
 export declare class Bound {
     static toPositionalRect(bound: Bound): RectBody;
-    positions: [
-        x1: number,
-        y1: number,
-        x2: number,
-        y2: number
-    ];
+    positions: LikeBounds;
     constructor(x1?: number, y1?: number, x2?: number, y2?: number);
     clear(): void;
     set(...items: Array<[
@@ -51,4 +53,3 @@ export declare class Bound {
     get valid(): boolean;
     [Symbol.iterator](): Generator<number, void, unknown>;
 }
-export {};

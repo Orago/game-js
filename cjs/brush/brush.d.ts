@@ -1,7 +1,9 @@
 import { Vector2 } from '@orago/vector';
 import Emitter from '@orago/lib/emitter';
-type arrayRect = [x: number, y: number, w: number, h: number];
+type ArrayRect = [x: number, y: number, w: number, h: number];
 type GlobalCompositeOperation = 'clear' | 'copy' | 'destination' | 'source-over' | 'destination-over' | 'source-in' | 'destination-in' | 'source-out' | 'destination-out' | 'source-atop' | 'destination-atop' | 'xor' | 'lighter' | 'normal' | 'multiply' | 'screen' | 'overlay' | 'darken' | 'lighten' | 'color-dodge' | 'color-burn' | 'hard-light' | 'soft-light' | 'difference' | 'exclusion' | 'hue' | 'saturation' | 'color' | 'luminosity' | 'saturate';
+type AnyCanvas = HTMLCanvasElement;
+type AnyContext2D = CanvasRenderingContext2D;
 interface overrideCircleOptions {
     x?: number;
     y?: number;
@@ -10,8 +12,6 @@ interface overrideCircleOptions {
     stroke?: string;
     strokeWidth?: number;
 }
-type AnyCanvas = HTMLCanvasElement;
-type AnyContext2D = CanvasRenderingContext2D;
 declare class ChainableConfig {
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
@@ -29,7 +29,7 @@ declare class ChainableConfig {
         w?: number;
         h?: number;
     });
-    get rect(): arrayRect;
+    get rect(): ArrayRect;
 }
 export declare class ChainableCanvas {
     stack: Array<ChainableConfig>;
@@ -51,8 +51,8 @@ export declare class ChainableCanvas {
         y: number;
     }): this;
     opacity(amount: number): this;
-    image(image: HTMLImageElement | HTMLCanvasElement, fromPos?: arrayRect, toPos?: arrayRect): this;
-    imageFrom(image: any, fromPos?: arrayRect): this;
+    image(image: HTMLImageElement | HTMLCanvasElement, fromPos?: ArrayRect, toPos?: ArrayRect): this;
+    imageFrom(image: any, fromPos?: ArrayRect): this;
     text(text: string): this;
     textWidth(text: string): number;
     circle(override?: overrideCircleOptions): this;
@@ -107,7 +107,7 @@ export default class BrushCanvas {
         width: number;
         height: number;
     }): void;
-    image(image: HTMLImageElement | HTMLCanvasElement | OffscreenCanvas, from?: arrayRect, to?: arrayRect): this;
+    image(image: HTMLImageElement | HTMLCanvasElement | OffscreenCanvas, from?: ArrayRect, to?: ArrayRect): this;
     text(values: {
         text: string;
         color: string;

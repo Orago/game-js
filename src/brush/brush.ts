@@ -2,7 +2,7 @@ import { CanvasRender } from './render.js';
 import { Vector2 } from '@orago/vector';
 import Emitter from '@orago/lib/emitter';
 
-type arrayRect = [x: number, y: number, w: number, h: number];
+type ArrayRect = [x: number, y: number, w: number, h: number];
 
 type GlobalCompositeOperation = 'clear' |
 	'copy' |
@@ -35,6 +35,9 @@ type GlobalCompositeOperation = 'clear' |
 	'luminosity' |
 	'saturate';
 
+type AnyCanvas = HTMLCanvasElement;
+type AnyContext2D = CanvasRenderingContext2D;
+
 interface overrideCircleOptions {
 	x?: number;
 	y?: number;
@@ -44,8 +47,6 @@ interface overrideCircleOptions {
 	strokeWidth?: number;
 }
 
-type AnyCanvas = HTMLCanvasElement;
-type AnyContext2D = CanvasRenderingContext2D;
 
 class ChainableConfig {
 	canvas: HTMLCanvasElement = document.createElement('canvas');
@@ -69,36 +70,16 @@ class ChainableConfig {
 		}
 	) {
 		this.ctx = data.ctx;
-
-		if (data.canvas != null) {
-			this.canvas = data.canvas;
-		}
-
-		if (typeof data.color === 'string') {
-			this.color = data.color;
-		}
-
-		if (typeof data.x === 'number') {
-			this.x = data.x;
-		}
-
-		if (typeof data.y === 'number') {
-			this.y = data.y;
-		}
-
-		if (typeof data.w === 'number') {
-			this.w = data.w;
-		}
-
-		if (typeof data.h === 'number') {
-			this.h = data.h;
-		}
-
+		
+		if (data.canvas != null)            this.canvas = data.canvas;
+		if (typeof data.color === 'string') this.color = data.color;
+		if (typeof data.x === 'number')     this.x = data.x;
+		if (typeof data.y === 'number')     this.y = data.y;
+		if (typeof data.w === 'number')     this.w = data.w;
+		if (typeof data.h === 'number')     this.h = data.h;
 	}
-	/**
-	 * @returns {arrayRect}
-	 */
-	get rect(): arrayRect {
+
+	get rect(): ArrayRect {
 		return [this.x, this.y, this.w, this.h];
 	}
 }
@@ -224,8 +205,8 @@ export class ChainableCanvas {
 
 	image(
 		image: HTMLImageElement | HTMLCanvasElement,
-		fromPos?: arrayRect,
-		toPos: arrayRect = this.recentConfig.rect
+		fromPos?: ArrayRect,
+		toPos: ArrayRect = this.recentConfig.rect
 	): this {
 		CanvasRender.Image(
 			this.ctx,
@@ -237,7 +218,7 @@ export class ChainableCanvas {
 		return this;
 	}
 
-	imageFrom(image: any, fromPos?: arrayRect): this {
+	imageFrom(image: any, fromPos?: ArrayRect): this {
 		CanvasRender.Image(
 			this.ctx,
 			image,
@@ -593,8 +574,8 @@ export default class BrushCanvas {
 
 	image(
 		image: HTMLImageElement | HTMLCanvasElement | OffscreenCanvas,
-		from?: arrayRect,
-		to?: arrayRect
+		from?: ArrayRect,
+		to?: ArrayRect
 	): this {
 		CanvasRender.Image(
 			this.ctx,

@@ -15,9 +15,9 @@ export declare class Repeater {
     fpsLimit: number;
     actualFps: number;
     delay: number;
-    callback: Function;
-    _fpsHandler: FPS;
     maxFramesPerSecond?: number;
+    _fpsHandler: FPS;
+    callback: Function;
     constructor(fpsLimit: number, callback: Function);
     loop(timestamp: number): void;
     get setFps(): number;

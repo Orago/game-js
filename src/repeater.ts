@@ -50,9 +50,11 @@ export class Repeater {
 	fpsLimit: number = -1;
 	actualFps: number = -1;
 	delay: number;
-	callback: Function;
-	_fpsHandler: FPS;
 	maxFramesPerSecond?: number;
+	
+	_fpsHandler: FPS;
+	
+	callback: Function;
 
 	constructor(fpsLimit: number, callback: Function) {
 		this.fpsLimit = fpsLimit;

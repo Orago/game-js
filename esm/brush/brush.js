@@ -10,24 +10,18 @@ class ChainableConfig {
         this.w = 0;
         this.h = 0;
         this.ctx = data.ctx;
-        if (data.canvas != null) {
+        if (data.canvas != null)
             this.canvas = data.canvas;
-        }
-        if (typeof data.color === 'string') {
+        if (typeof data.color === 'string')
             this.color = data.color;
-        }
-        if (typeof data.x === 'number') {
+        if (typeof data.x === 'number')
             this.x = data.x;
-        }
-        if (typeof data.y === 'number') {
+        if (typeof data.y === 'number')
             this.y = data.y;
-        }
-        if (typeof data.w === 'number') {
+        if (typeof data.w === 'number')
             this.w = data.w;
-        }
-        if (typeof data.h === 'number') {
+        if (typeof data.h === 'number')
             this.h = data.h;
-        }
     }
     get rect() {
         return [this.x, this.y, this.w, this.h];

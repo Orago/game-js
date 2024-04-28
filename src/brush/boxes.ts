@@ -1,4 +1,4 @@
-import { Box } from '../shapes.js';
+import { Rectangle } from '../shapes.js';
 
 export function gridFrame(obj: { x: number; y: number; }, frames: number, fps: number): number {
 	const time = performance.now() / 1000;
@@ -6,7 +6,7 @@ export function gridFrame(obj: { x: number; y: number; }, frames: number, fps: n
 	return (Math.floor(time / (1 / fps)) + obj.x + obj.y) % Math.max(frames, 1);
 }
 
-export function getFrameCount(rect: Box, gridSize: Box): number {
+export function getFrameCount(rect: Rectangle, gridSize: Rectangle): number {
 	return (
 		(rect.width == gridSize.width ? 0 : rect.width) / gridSize.width +
 		(rect.height == gridSize.height ? 0 : rect.height) / gridSize.height
