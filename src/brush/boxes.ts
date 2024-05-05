@@ -1,4 +1,4 @@
-import { Rectangle } from '../shapes.js';
+import { LikeRectangle, Rectangle } from '../shapes.js';
 
 export function gridFrame(obj: { x: number; y: number; }, frames: number, fps: number): number {
 	const time = performance.now() / 1000;
@@ -6,7 +6,7 @@ export function gridFrame(obj: { x: number; y: number; }, frames: number, fps: n
 	return (Math.floor(time / (1 / fps)) + obj.x + obj.y) % Math.max(frames, 1);
 }
 
-export function getFrameCount(rect: Rectangle, gridSize: Rectangle): number {
+export function getFrameCount(rect: LikeRectangle, gridSize: LikeRectangle): number {
 	return (
 		(rect.width == gridSize.width ? 0 : rect.width) / gridSize.width +
 		(rect.height == gridSize.height ? 0 : rect.height) / gridSize.height
@@ -25,7 +25,11 @@ export function gridsheetAnimation(frames: number, currentTime: number, endTime:
 /**
  * Returns an offset vector
  */
-export function calculateGridWrapOffset(rect: { width: number; height: number; }, gridSize: { width: number; height: number; }, frame: number): [x: number, y: number] {
+export function calculateGridWrapOffset(
+	rect: LikeRectangle,
+	gridSize: LikeRectangle,
+	frame: number
+): [x: number, y: number] {
 	const gridWidth = gridSize?.width ?? 0;
 	const gridHeight = gridSize?.height ?? 0;
 

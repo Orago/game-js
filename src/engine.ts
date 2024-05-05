@@ -1,5 +1,5 @@
 import Emitter from '@orago/lib/emitter';
-import { Vector2 } from '@orago/vector';
+import { Vector2, position2D } from '@orago/vector';
 import { v4 as uuidV4 } from 'uuid';
 import { Collision } from './collision.js';
 import BrushCanvas from './brush/brush.js';
@@ -17,6 +17,11 @@ interface EngineObjectData {
 	height?: number;
 	priority?: number;
 	lifetime?: number;
+}
+
+export interface Position {
+	x: number;
+	y: number;
 }
 
 /**
@@ -247,8 +252,8 @@ export default class Engine {
 			.ref(ref);
 
 	screenToWorld(
-		pos: Vector2 | RectBody,
-		options: {
+		pos: position2D,
+		options?: {
 			center?: boolean;
 		}
 	): Vector2 {
@@ -263,16 +268,16 @@ export default class Engine {
 	}
 
 	worldToScreen(
-		pos: Vector2,
-		options: {
+		pos: position2D,
+		options?: {
 			center?: boolean;
 		}
 	): Vector2 {
 		const center = options?.center === true ? this.brush.center() : { x: 0, y: 0 };
 
 		return new Vector2(
-			(pos.x / this.zoom - this.offset.x) - center.x / this.zoom,
-			(pos.y / this.zoom - this.offset.y) - center.y / this.zoom
+			(pos.x / this.zoom + this.offset.x) - center.x / this.zoom,
+			(pos.y / this.zoom + this.offset.y) - center.y / this.zoom
 		);
 	}
 
