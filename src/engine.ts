@@ -1,28 +1,63 @@
 import Emitter from '@orago/lib/emitter';
-import { Vector2, position2D } from '@orago/vector';
+import { Vector2, Position2D } from '@orago/vector';
 import { v4 as uuidV4 } from 'uuid';
 import { Collision } from './collision.js';
 import BrushCanvas from './brush/brush.js';
 import Cursor from './input/cursor.js';
 import Keyboard from './input/keyboard.js';
 import { Repeater } from './repeater.js';
-import { RectBody } from './shapes.js';
 
 const zoomIncrement = .2;
 
-interface EngineObjectData {
+export interface EngineObjectData {
 	x?: number;
 	y?: number;
 	width?: number;
 	height?: number;
 	priority?: number;
 	lifetime?: number;
+	// options?: {
+	// 	zoom?: boolean;
+	// 	offset?: boolean;
+	// }
 }
 
-export interface Position {
-	x: number;
-	y: number;
+export function screenToWorld(
+	pos: Position2D,
+	options?: {
+		center?: Position2D;
+		offset?: Position2D;
+		zoom?: number
+	}
+): Vector2 {
+	const center = options?.center ?? { x: 0, y: 0 };
+	const offset = options?.offset ?? { x: 0, y: 0 };
+	const zoom = options?.zoom ?? 1;
+
+	return new Vector2(
+		(pos.x - offset.x) * zoom + center.x,
+		(pos.y - offset.y) * zoom + center.y
+	);
 }
+
+export function worldToScreen(
+	pos: Position2D,
+	options?: {
+		center?: Position2D;
+		offset?: Position2D;
+		zoom?: number
+	}
+): Vector2 {
+	const center = options?.center ?? { x: 0, y: 0 };
+	const offset = options?.offset ?? { x: 0, y: 0 };
+	const zoom = options?.zoom ?? 1;
+
+	return new Vector2(
+		(pos.x + offset.x) * zoom + (center.x / zoom),
+		(pos.y + offset.y) * zoom + (center.y / zoom)
+	);
+}
+
 
 /**
  * Engine Object
@@ -40,33 +75,25 @@ export class EngineObject {
 	enabled = true;
 	visible = true;
 	engine: Engine;
+	// options: {
+	// 	zoom: boolean;
+	// 	offset: boolean;
+	// } = {
+	// 		zoom: false,
+	// 		offset: false,
+	// 	};
 
 	events = new Emitter();
-
 
 	constructor(engineRef: Engine, data: EngineObjectData = {}) {
 		this.engine = engineRef;
 
 		if (typeof data === 'object') {
-			if (typeof data.x === 'number') {
-				this.x = data.x;
-			}
-
-			if (typeof data.y === 'number') {
-				this.y = data.y;
-			}
-
-			if (typeof data.width === 'number') {
-				this.width = data.width;
-			}
-
-			if (typeof data.height === 'number') {
-				this.height = data.height;
-			}
-
-			if (typeof data.priority === 'number') {
-				this.priority = data.priority;
-			}
+			if (typeof data.x === 'number') this.x = data.x;
+			if (typeof data.y === 'number') this.y = data.y;
+			if (typeof data.width === 'number') this.width = data.width;
+			if (typeof data.height === 'number') this.height = data.height;
+			if (typeof data.priority === 'number') this.priority = data.priority;
 
 			if (typeof data.lifetime === 'number') {
 				const endAt = Date.now() + data.lifetime;
@@ -80,7 +107,7 @@ export class EngineObject {
 		}
 	}
 
-	ref(fn: (arg0: EngineObject) => void): this {
+	ref(fn: (arg0: this) => void): this {
 		fn.bind(this)(this);
 
 		return this;
@@ -110,6 +137,17 @@ export class EngineObject {
 		tags.forEach(tag => tag?.isObjGroup == true && tag.add(this));
 
 		return this;
+	}
+
+	toScreen() {
+		const pos = this.engine.worldToScreen({ x: this.x, y: this.y });
+
+		return {
+			x: pos.x,
+			y: pos.y,
+			width: this.width * this.engine.zoom,
+			height: this.height * this.engine.zoom
+		}
 	}
 
 	get canvas() {
@@ -185,6 +223,8 @@ export default class Engine {
 	ticks: Repeater;
 	frame: number = 0;
 
+	// objectEvents = new WeakMap<EngineObject, Emitter>;
+
 	constructor(brush: BrushCanvas) {
 		this.brush = brush;
 
@@ -211,12 +251,14 @@ export default class Engine {
 
 		this.cursor.events.on('click', () => {
 			for (const obj of this.orderedObjects) {
+				const screenObj = obj.toScreen();
+
 				const clicked = this.collision.rectContains(
 					{
-						x: obj.x,
-						y: obj.y,
-						w: obj.width,
-						h: obj.height
+						x: screenObj.x,
+						y: screenObj.y,
+						w: screenObj.width,
+						h: screenObj.height
 					},
 					this.cursor.pos
 				);
@@ -252,39 +294,41 @@ export default class Engine {
 			.ref(ref);
 
 	screenToWorld(
-		pos: position2D,
+		pos: Position2D,
 		options?: {
 			center?: boolean;
 		}
 	): Vector2 {
-		const center = options?.center === true ? this.brush.center() : { x: 0, y: 0 };
-
-		pos.x - 5;
-
-		return new Vector2(
-			(pos.x - this.offset.x) * this.zoom + center.x,
-			(pos.y - this.offset.y) * this.zoom + center.y
-		);
+		return screenToWorld(
+			pos,
+			{
+				center: options?.center === true ? this.brush.center() : { x: 0, y: 0 },
+				offset: this.offset,
+				zoom: this.zoom
+			}
+		)
 	}
 
 	worldToScreen(
-		pos: position2D,
+		pos: Position2D,
 		options?: {
 			center?: boolean;
 		}
 	): Vector2 {
-		const center = options?.center === true ? this.brush.center() : { x: 0, y: 0 };
-
-		return new Vector2(
-			(pos.x / this.zoom + this.offset.x) - center.x / this.zoom,
-			(pos.y / this.zoom + this.offset.y) - center.y / this.zoom
+		return worldToScreen(
+			pos,
+			{
+				center: options?.center === true ? this.brush.center() : { x: 0, y: 0 },
+				offset: this.offset,
+				zoom: this.zoom
+			}
 		);
 	}
 
 	get objectGroup() {
 		return new createObjectGroup(this);
 	}
-	
+
 	findObjects(search: (arg0: EngineObject) => boolean): Array<EngineObject> {
 		return Array.from(this.objects).filter(search);
 	}
@@ -294,14 +338,12 @@ export default class Engine {
 
 		this.brush.canvas.addEventListener(
 			'wheel',
-			(			/** @param {Event} evt */
-				evt: Event) => {
+			(evt: Event) => {
 				if (evt instanceof WheelEvent) {
-					if (evt.deltaY > 0 && eng.zoom > zoomIncrement) {
+					if (evt.deltaY > 0 && eng.zoom > zoomIncrement)
 						eng.zoom -= zoomIncrement;
-					} else if (evt.deltaY < 0 && eng.zoom < 20) {
+					else if (evt.deltaY < 0 && eng.zoom < 20)
 						eng.zoom += zoomIncrement;
-					}
 				}
 			},
 			false
@@ -312,9 +354,8 @@ export default class Engine {
 		let engine_Mobile_Zoom: number | undefined;
 
 		function parsePinchScale(event: TouchEvent): number | undefined {
-			if (event.touches.length !== 2) {
+			if (event.touches.length !== 2)
 				return;
-			}
 
 			const [touch1, touch2] = Array.from(event.touches);
 			const distance = Math.sqrt(
@@ -348,7 +389,13 @@ export default class Engine {
 
 				if (event instanceof TouchEvent) {
 					const scale = parsePinchScale(event);
-					if (scale == null || pinch_Start_Scale == null || engine_Mobile_Zoom == null) return;
+
+					if (
+						scale == null ||
+						pinch_Start_Scale == null ||
+						engine_Mobile_Zoom == null
+					)
+						return;
 
 					eng.zoom = Math.floor(engine_Mobile_Zoom + (scale - pinch_Start_Scale));
 				}
@@ -371,9 +418,9 @@ export default class Engine {
 	setCursor(url: string): this {
 		const { canvas } = this.brush;
 
-		if (canvas instanceof HTMLCanvasElement) {
+		if (canvas instanceof HTMLCanvasElement)
 			canvas.style.cursor = `url(${url}), pointer`;
-		}
+
 
 		return this;
 	}
@@ -382,8 +429,7 @@ export default class Engine {
 		this.keyboard.events.all.clear();
 		this.cursor.reInit();
 
-		for (const object of Array.from(this.objects)) {
+		for (const object of Array.from(this.objects))
 			object.removeType();
-		}
 	}
 }

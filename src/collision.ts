@@ -1,4 +1,4 @@
-interface rect {
+interface Rect {
 	x: number;
 	y: number;
 	w: number;
@@ -6,7 +6,7 @@ interface rect {
 }
 
 export class Collision {
-	static rect(rect1: rect, rect2: rect): boolean {
+	static rect(rect1: Rect, rect2: Rect): boolean {
 		return (
 			rect1.x + rect1.w > rect2.x &&
 			rect1.x < rect2.x + rect2.w &&
@@ -16,7 +16,7 @@ export class Collision {
 	}
 
 	static rectContains(
-		p: rect,
+		p: Rect,
 		c: {
 			x: number;
 			y: number;

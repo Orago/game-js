@@ -11,9 +11,8 @@ export default class Keyboard {
         this.object = new ProxyNode(element);
     }
     init() {
-        if (this.alive !== false) {
+        if (this.alive !== false)
             return;
-        }
         this.alive = true;
         this.object.addListener({
             kbEvents: {
@@ -46,12 +45,10 @@ export default class Keyboard {
     }
     applyKeys(keys) {
         for (const [key, value] of Object.entries(keys)) {
-            if (value === true) {
+            if (value === true)
                 this.simulateKeyDown(key);
-            }
-            else {
+            else
                 this.simulateKeyUp(key);
-            }
         }
     }
 }

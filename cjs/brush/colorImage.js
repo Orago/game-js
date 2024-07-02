@@ -49,9 +49,8 @@ function rgbTintImage(sprite, [red = 0, green = 0, blue = 0, tint = .2]) {
 }
 exports.rgbTintImage = rgbTintImage;
 function lightenOverlay(chain, light) {
-    if (typeof light != 'number') {
+    if (typeof light != 'number')
         return;
-    }
     chain
         .rendering(light < 100 ? 'color-burn' : 'color-dodge');
     light = light >= 100 ? light - 100 : 100 - (100 - light);
@@ -60,9 +59,8 @@ function lightenOverlay(chain, light) {
         .rect;
 }
 function saturateOverlay(chain, saturation) {
-    if (typeof saturation != 'number') {
+    if (typeof saturation != 'number')
         return;
-    }
     chain
         .rendering('saturation')
         .color(`hsl(0,${saturation}%, 50%)`)
@@ -94,21 +92,16 @@ function clipEditFrom(chain, sprite) {
 }
 function hslTintImage(sprite, options) {
     plainDraw(colorChain, sprite);
-    if (typeof (options === null || options === void 0 ? void 0 : options.light) === 'number') {
+    if (typeof (options === null || options === void 0 ? void 0 : options.light) === 'number')
         lightenOverlay(colorChain, options.light);
-    }
-    if (typeof (options === null || options === void 0 ? void 0 : options.saturation) === 'number') {
+    if (typeof (options === null || options === void 0 ? void 0 : options.saturation) === 'number')
         saturateOverlay(colorChain, options.saturation);
-    }
-    if ((options === null || options === void 0 ? void 0 : options.rgb) != null) {
+    if ((options === null || options === void 0 ? void 0 : options.rgb) != null)
         hueOverlay(colorChain, (0, colors_1.rgbToHue)(...(0, colors_1.forceRgb)(options.rgb)));
-    }
-    else if ((options === null || options === void 0 ? void 0 : options.tint) != null) {
+    else if ((options === null || options === void 0 ? void 0 : options.tint) != null)
         hueOverlay(colorChain, (0, colors_1.rgbToHue)(...(0, colors_1.forceRgb)(options.tint)));
-    }
-    else if (typeof (options === null || options === void 0 ? void 0 : options.hue) === 'number') {
+    else if (typeof (options === null || options === void 0 ? void 0 : options.hue) === 'number')
         hueOverlay(colorChain, options.hue);
-    }
     clipEditFrom(colorChain, sprite);
     const image = new Image();
     if (colorChain.canvas instanceof HTMLCanvasElement) {

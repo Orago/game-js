@@ -51,9 +51,9 @@ export class Repeater {
 	actualFps: number = -1;
 	delay: number;
 	maxFramesPerSecond?: number;
-	
+
 	_fpsHandler: FPS;
-	
+
 	callback: Function;
 
 	constructor(fpsLimit: number, callback: Function) {
@@ -62,13 +62,13 @@ export class Repeater {
 		this.callback = callback;
 		this._fpsHandler = new FPS();
 	}
-	
+
 	loop(timestamp: number) {
-		if (this.paused){
+		if (this.paused)
 			return;
-		} else if (this.time == null) {
+
+		else if (this.time == null)
 			this.time = timestamp;
-		}
 
 		const seg = Math.floor((timestamp - this.time) / this.delay);
 
@@ -88,11 +88,10 @@ export class Repeater {
 	get fps() {
 		return this.actualFps;
 	}
-	
+
 	set fps(newFps: number) {
-		if (arguments.length == 0){
+		if (arguments.length == 0)
 			return;
-		}
 
 		this.maxFramesPerSecond = newFps;
 		this.delay = 1000;
@@ -117,15 +116,14 @@ export class Repeater {
 		this.paused = paused;
 
 		if (this.paused === true) {
-			if (typeof this.RafRef === 'number'){
+			if (typeof this.RafRef === 'number')
 				cancelAnimationFrame(this.RafRef);
-			}
 
 			this.time = undefined;
 			this.frame = -1;
-		} else {
-			this.start();
 		}
+		else
+			this.start();
 	}
 }
 

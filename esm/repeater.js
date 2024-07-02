@@ -41,12 +41,10 @@ export class Repeater {
         this._fpsHandler = new FPS();
     }
     loop(timestamp) {
-        if (this.paused) {
+        if (this.paused)
             return;
-        }
-        else if (this.time == null) {
+        else if (this.time == null)
             this.time = timestamp;
-        }
         const seg = Math.floor((timestamp - this.time) / this.delay);
         if (seg > this.frame) {
             this.frame = seg;
@@ -62,9 +60,8 @@ export class Repeater {
         return this.actualFps;
     }
     set fps(newFps) {
-        if (arguments.length == 0) {
+        if (arguments.length == 0)
             return;
-        }
         this.maxFramesPerSecond = newFps;
         this.delay = 1000;
         this.frame = -1;
@@ -79,15 +76,13 @@ export class Repeater {
     pause(paused = !this.paused == true) {
         this.paused = paused;
         if (this.paused === true) {
-            if (typeof this.RafRef === 'number') {
+            if (typeof this.RafRef === 'number')
                 cancelAnimationFrame(this.RafRef);
-            }
             this.time = undefined;
             this.frame = -1;
         }
-        else {
+        else
             this.start();
-        }
     }
 }
 export default Repeater;

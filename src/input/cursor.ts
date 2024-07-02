@@ -31,9 +31,12 @@ export default class Cursor {
 	reInit() {
 		this.events.all.clear();
 
-		this.events.on('move', (x: number, y: number) => {
-			this.pos = this.getPos(x, y);
-		});
+		this.events.on(
+			'move',
+			(x: number, y: number) => {
+				this.pos = this.getPos(x, y);
+			}
+		);
 
 		this.events.on('start', (e: cursorInput) => this.onStart(e));
 		this.events.on('end', (e: cursorInput) => this.onEnd(e));
@@ -54,11 +57,10 @@ export default class Cursor {
 
 		setTimeout(() => {
 			if (window.TouchEvent && e instanceof Touch) {
-				if (this.down == true) {
+				if (this.down == true)
 					this.events.emit('context');
-				} else {
+				else
 					this.events.emit('click', e, this);
-				}
 			}
 		}, holdTime);
 

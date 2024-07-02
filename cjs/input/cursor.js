@@ -55,12 +55,10 @@ class Cursor {
         this.startTime = performance.now();
         setTimeout(() => {
             if (window.TouchEvent && e instanceof Touch) {
-                if (this.down == true) {
+                if (this.down == true)
                     this.events.emit('context');
-                }
-                else {
+                else
                     this.events.emit('click', e, this);
-                }
             }
         }, holdTime);
         if (e instanceof Touch != true) {

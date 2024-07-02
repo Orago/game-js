@@ -1,12 +1,11 @@
 import Emitter from '@orago/lib/emitter';
-import { Vector2 } from '@orago/vector';
+import { Vector2, Position2D } from '@orago/vector';
 import { Collision } from './collision.js';
 import BrushCanvas from './brush/brush.js';
 import Cursor from './input/cursor.js';
 import Keyboard from './input/keyboard.js';
 import { Repeater } from './repeater.js';
-import { RectBody } from './shapes.js';
-interface EngineObjectData {
+export interface EngineObjectData {
     x?: number;
     y?: number;
     width?: number;
@@ -14,6 +13,16 @@ interface EngineObjectData {
     priority?: number;
     lifetime?: number;
 }
+export declare function screenToWorld(pos: Position2D, options?: {
+    center?: Position2D;
+    offset?: Position2D;
+    zoom?: number;
+}): Vector2;
+export declare function worldToScreen(pos: Position2D, options?: {
+    center?: Position2D;
+    offset?: Position2D;
+    zoom?: number;
+}): Vector2;
 export declare class EngineObject {
     id: string;
     x: number;
@@ -26,10 +35,16 @@ export declare class EngineObject {
     engine: Engine;
     events: Emitter;
     constructor(engineRef: Engine, data?: EngineObjectData);
-    ref(fn: (arg0: EngineObject) => void): this;
+    ref(fn: (arg0: this) => void): this;
     tick(): void;
     removeType(): void;
     addTo(...tags: any[]): this;
+    toScreen(): {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    };
     get canvas(): BrushCanvas;
     collides(restriction?: (arg0: EngineObject | null, arg1: EngineObject | null) => boolean): boolean;
     enable(): void;
@@ -58,10 +73,10 @@ export default class Engine {
     get orderedObjects(): EngineObject[];
     collision: typeof Collision;
     object: (data: EngineObjectData, ref: (arg0: EngineObject) => void) => EngineObject;
-    screenToWorld(pos: Vector2 | RectBody, options: {
+    screenToWorld(pos: Position2D, options?: {
         center?: boolean;
     }): Vector2;
-    worldToScreen(pos: Vector2, options: {
+    worldToScreen(pos: Position2D, options?: {
         center?: boolean;
     }): Vector2;
     get objectGroup(): createObjectGroup;

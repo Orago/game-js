@@ -38,12 +38,10 @@ export class Rectangle {
 }
 export class RectBody extends Rectangle {
     static toBoundingBox(rect) {
-        if (rect instanceof RectBody) {
+        if (rect instanceof RectBody)
             return new Bound(rect.x, rect.y, rect.width, rect.height);
-        }
-        else if (rect instanceof Rectangle) {
+        else if (rect instanceof Rectangle)
             return new Bound(0, 0, rect.width, rect.height);
-        }
     }
     static contains(parent, child) {
         const parentx2 = parent.x + parent.width;

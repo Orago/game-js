@@ -9,7 +9,7 @@ const { chainable } = rerenderCanvas;
 type ImageType = HTMLImageElement;
 
 export function getDataUrl(image: ImageType | HTMLCanvasElement): string {
-	if (image instanceof HTMLImageElement) {
+	if (image instanceof HTMLImageElement)
 		return chainable
 			.canvasSize(image.width, image.height)
 			.size(image.width, image.height)
@@ -19,11 +19,10 @@ export function getDataUrl(image: ImageType | HTMLCanvasElement): string {
 			.image(image)
 			.canvas
 			.toDataURL();
-	} else if (image instanceof HTMLCanvasElement) {
+	else if (image instanceof HTMLCanvasElement)
 		return image.toDataURL();
-	}
-
-	return '';
+	else
+		return '';
 }
 export function cloneToCanvas(image: ImageType): HTMLCanvasElement {
 	const rerenderCanvas = new BrushCanvas({
@@ -48,15 +47,16 @@ export function cloneImage(image: ImageType | HTMLCanvasElement): ImageType {
 	if (image instanceof HTMLImageElement) {
 		cloned.crossOrigin = image.crossOrigin ?? 'anonymous';
 		cloned.src = image.src;
-	} else if (image instanceof HTMLCanvasElement) {
-		cloned.src = image.toDataURL();
 	}
+
+	else if (image instanceof HTMLCanvasElement)
+		cloned.src = image.toDataURL();
 
 	return cloned;
 }
 
 export async function responseToImageUrl(response: Response): Promise<any> {
-	if (!response.ok) {
+	if (response.ok != true) {
 		throw new Error('Network response was not ok');
 	}
 
@@ -95,29 +95,34 @@ export class Spritesheet {
 			config: SpritesheetConfig;
 		}
 	) {
-		if (typeof options != 'object') {
+		if (typeof options != 'object')
 			throw console.log('Bad spritesheet', options);
-		} else if (typeof options?.url !== 'string') {
+
+		else if (typeof options?.url !== 'string')
 			throw console.log('Bad spritesheet url', options);
-		} else if (typeof options?.url !== 'string') {
+
+		else if (typeof options?.url !== 'string')
 			throw console.log('Bad spritesheet url', options);
-		} else if (typeof options?.config !== 'object') {
+
+		else if (typeof options?.config !== 'object')
 			throw console.log('Bad config', options);
-		} else if (typeof options.config?.fileName !== 'string') {
+
+		else if (typeof options.config?.fileName !== 'string')
 			throw console.log('[spritesheet.config] Invalid fileName', options);
-		} else if (typeof options.config?.sprites !== 'object') {
+
+		else if (typeof options.config?.sprites !== 'object')
 			throw console.log('[spritesheet.config] Invalid sprites type', options);
-		}
+
 		let index = 0;
 
 		for (const [spriteUrl, spriteCfg] of Object.entries(options.config.sprites)) {
 			let i = index++;
 
-			if (typeof spriteUrl !== 'string') {
+			if (typeof spriteUrl !== 'string')
 				throw console.log(`[spritesheet.sprites]: I:(${i}) Bad sprite url`, [spriteUrl, spriteCfg]);
-			} else if (typeof spriteCfg !== 'object') {
+
+			else if (typeof spriteCfg !== 'object')
 				throw console.log(`[spritesheet.sprites]: I:(${i}) Bad sprite config`, [spriteUrl, spriteCfg]);
-			}
 		}
 
 		if (options.cache === true) {
@@ -198,13 +203,11 @@ export default class Sprites {
 
 	constructor(options: { host?: string; cacheDuration?: number; }) {
 		if (typeof options === 'object') {
-			if (typeof options.host === 'string') {
+			if (typeof options.host === 'string')
 				this.host = options.host;
-			}
 
-			if (typeof options.cacheDuration === 'number') {
+			if (typeof options.cacheDuration === 'number')
 				this.cacheDuration = options.cacheDuration;
-			}
 		}
 	}
 
@@ -221,11 +224,10 @@ export default class Sprites {
 	}
 
 	parseUrl(url: string): string {
-		if (typeof url == 'string' && url.startsWith('/')) {
+		if (typeof url == 'string' && url.startsWith('/'))
 			return this.host + url;
-		}
-
-		return url;
+		else
+			return url;
 	}
 
 	has(url: string): boolean {
@@ -250,9 +252,8 @@ export default class Sprites {
 	loadSingle(url: string, onLoad?: Function): Sprite {
 		const res = new BlankSprite();
 
-		if (this.loading.has(url)) {
+		if (this.loading.has(url))
 			return res;
-		}
 
 		this.loading.add(url);
 
@@ -277,15 +278,15 @@ export default class Sprites {
 	}
 
 	async fromCache(url: string): Promise<ImageType> {
-		if (this.sprites.has(url)) {
+		if (this.sprites.has(url))
 			return this.sprites.get(url);
-		}
 
 		/** From spritesheet */
 		for (const sheet of Array.from(this.spriteSheets.values())) {
-			if (sheet.config.sprites.hasOwnProperty(url) != true) {
+			if (sheet.config.sprites.hasOwnProperty(url) != true)
 				continue;
-			} else if (sheet.loaded === true) {
+
+			else if (sheet.loaded === true) {
 				const opts = sheet.config.sprites[url];
 				const img = Sprites.Slice(sheet.sprite, opts);
 				const cached = this.cache.get(url);
@@ -299,10 +300,11 @@ export default class Sprites {
 					);
 
 					return sprite.img;
-				} else {
-					return cached.img;
 				}
-			} else {
+				else
+					return cached.img;
+			}
+			else {
 				await new Promise((resolve) => setTimeout(resolve, 500));
 
 				return await this.fromCache(url);

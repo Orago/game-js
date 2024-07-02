@@ -4,7 +4,7 @@ import { ProxyNode } from '@orago/dom';
 export default class Keyboard {
 	object;
 	alive = false;
-	pressed: {[key: string]: boolean} = {};
+	pressed: { [key: string]: boolean } = {};
 	events = new Emitter();
 	anyEvents = {};
 
@@ -13,9 +13,8 @@ export default class Keyboard {
 	}
 
 	init() {
-		if (this.alive !== false) {
+		if (this.alive !== false)
 			return;
-		}
 
 		this.alive = true;
 
@@ -29,7 +28,8 @@ export default class Keyboard {
 
 	get stop() { return this.dispose; }
 	dispose() {
-		if (this.alive !== true) return;
+		if (this.alive !== true)
+			return;
 
 		this.alive = false;
 
@@ -68,11 +68,10 @@ export default class Keyboard {
 
 	applyKeys(keys: { [key: string]: boolean; }) {
 		for (const [key, value] of Object.entries(keys)) {
-			if (value === true) {
+			if (value === true)
 				this.simulateKeyDown(key);
-			} else {
+			else
 				this.simulateKeyUp(key);
-			}
 		}
 	}
 }

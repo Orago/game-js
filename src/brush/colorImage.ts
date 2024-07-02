@@ -90,10 +90,9 @@ export function rgbTintImage(
 /**
  * Old default is 100
  */
-function lightenOverlay(chain: ChainableCanvas, light: number) {
-	if (typeof light != 'number') {
+export function lightenOverlay(chain: ChainableCanvas, light: number) {
+	if (typeof light != 'number')
 		return;
-	}
 
 	chain
 		.rendering(light < 100 ? 'color-burn' : 'color-dodge')
@@ -111,10 +110,9 @@ function lightenOverlay(chain: ChainableCanvas, light: number) {
  * Saturates the image
  * Old default is 100
  */
-function saturateOverlay(chain: ChainableCanvas, saturation: number) {
-	if (typeof saturation != 'number') {
+export function saturateOverlay(chain: ChainableCanvas, saturation: number) {
+	if (typeof saturation != 'number')
 		return;
-	}
 
 	chain
 		.rendering('saturation')
@@ -125,7 +123,7 @@ function saturateOverlay(chain: ChainableCanvas, saturation: number) {
 /**
  * Quickly Sets canvas size and draws sprite once
  */
-function plainDraw(chain: ChainableCanvas, sprite: HTMLCanvasElement | HTMLImageElement) {
+export function plainDraw(chain: ChainableCanvas, sprite: HTMLCanvasElement | HTMLImageElement) {
 	chain
 		.canvasSize(
 			sprite.width,
@@ -144,10 +142,9 @@ function plainDraw(chain: ChainableCanvas, sprite: HTMLCanvasElement | HTMLImage
 /**
  * Tints overlay with Hue
  */
-function hueOverlay(chain: ChainableCanvas, hue: number) {
-	if (typeof hue != 'number') {
+export function hueOverlay(chain: ChainableCanvas, hue: number) {
+	if (typeof hue != 'number')
 		return;
-	}
 
 	chain
 		.rendering('hue')
@@ -180,30 +177,27 @@ interface hslTintOptions {
 export function hslTintImage(sprite: HTMLCanvasElement | HTMLImageElement, options: hslTintOptions): HTMLImageElement {
 	plainDraw(colorChain, sprite);
 
-	if (typeof options?.light === 'number') {
+	if (typeof options?.light === 'number')
 		lightenOverlay(colorChain, options.light);
-	}
 
-	if (typeof options?.saturation === 'number') {
+	if (typeof options?.saturation === 'number')
 		saturateOverlay(colorChain, options.saturation)
-	}
 
-	if (options?.rgb != null) {
+	if (options?.rgb != null)
 		hueOverlay(
 			colorChain,
 			rgbToHue(...forceRgb(options.rgb))
 		);
-	} else if (options?.tint != null) {
+	else if (options?.tint != null)
 		hueOverlay(
 			colorChain,
 			rgbToHue(...forceRgb(options.tint))
 		);
-	} else if (typeof options?.hue === 'number') {
+	else if (typeof options?.hue === 'number')
 		hueOverlay(
 			colorChain,
 			options.hue
 		);
-	}
 
 	// Clipping
 	clipEditFrom(colorChain, sprite);

@@ -99,11 +99,11 @@ export class Rectangle {
 
 export class RectBody extends Rectangle {
 	static toBoundingBox(rect: RectBody | Rectangle): Bound | undefined {
-		if (rect instanceof RectBody) {
+		if (rect instanceof RectBody)
 			return new Bound(rect.x, rect.y, rect.width, rect.height);
-		} else if (rect instanceof Rectangle) {
+
+		else if (rect instanceof Rectangle)
 			return new Bound(0, 0, rect.width, rect.height);
-		}
 	}
 
 	static contains(parent: RectWithPosition, child: RectWithPosition): boolean {

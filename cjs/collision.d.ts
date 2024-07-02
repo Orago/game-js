@@ -1,12 +1,12 @@
-interface rect {
+interface Rect {
     x: number;
     y: number;
     w: number;
     h: number;
 }
 export declare class Collision {
-    static rect(rect1: rect, rect2: rect): boolean;
-    static rectContains(p: rect, c: {
+    static rect(rect1: Rect, rect2: Rect): boolean;
+    static rectContains(p: Rect, c: {
         x: number;
         y: number;
         w?: number;
