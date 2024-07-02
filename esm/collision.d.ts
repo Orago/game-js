@@ -1,25 +1,12 @@
-interface Rect {
+import { RectWithPosition, RectOrPosition } from './shapes';
+interface Circle {
+    r: number;
     x: number;
     y: number;
-    w: number;
-    h: number;
 }
 export declare class Collision {
-    static rect(rect1: Rect, rect2: Rect): boolean;
-    static rectContains(p: Rect, c: {
-        x: number;
-        y: number;
-        w?: number;
-        h?: number;
-    }): boolean;
-    static circle(a: {
-        r: number;
-        x: number;
-        y: number;
-    }, b: {
-        r: number;
-        x: number;
-        y: number;
-    }): boolean;
+    static rect(rect1: RectWithPosition, rect2: RectWithPosition): boolean;
+    static rectContains(p: RectWithPosition, c: RectOrPosition): boolean;
+    static circle(a: Circle, b: Circle): boolean;
 }
 export {};

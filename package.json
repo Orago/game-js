@@ -1,6 +1,6 @@
 {
 	"name": "@orago/game",
-	"version": "0.0.20",
+	"version": "0.0.21",
 	"description": "Orago's Game library",
 	"type": "module",
 	"scripts": {

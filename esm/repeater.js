@@ -43,7 +43,7 @@ export class Repeater {
     loop(timestamp) {
         if (this.paused)
             return;
-        else if (this.time == null)
+        if (this.time == null)
             this.time = timestamp;
         const seg = Math.floor((timestamp - this.time) / this.delay);
         if (seg > this.frame) {

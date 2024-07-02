@@ -294,9 +294,8 @@ class BrushCanvas {
         return this;
     }
     text(values) {
-        if (this.ctx instanceof CanvasRenderingContext2D != true) {
+        if (this.ctx instanceof CanvasRenderingContext2D != true)
             return;
-        }
         let { text, color, x = 0, y = 0, font, weight, size } = values;
         x = x | 0;
         y = y | 0;
@@ -311,9 +310,8 @@ class BrushCanvas {
             .text(text);
     }
     shape(values) {
-        if (this.ctx instanceof CanvasRenderingContext2D != true) {
+        if (this.ctx instanceof CanvasRenderingContext2D != true)
             return;
-        }
         let { color = 'pink', x = 0, y = 0, w = 0, h = 0 } = values;
         x = x | 0;
         y = y | 0;
@@ -335,12 +333,10 @@ class BrushCanvas {
         const { ctx } = this;
         const [gx, gy] = [(x + w * percentW), (y + h * percentH)];
         let gradient;
-        if (shape == 'radial') {
+        if (shape == 'radial')
             gradient = ctx.createRadialGradient(gx, gy, 0, gx, gy, w * radius);
-        }
-        else {
+        else
             gradient = ctx.createLinearGradient(gx, gy, x + w, y + h);
-        }
         gradient.addColorStop(0, colorStart);
         gradient.addColorStop(1, colorEnd);
         ctx.fillStyle = gradient;

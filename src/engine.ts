@@ -228,11 +228,11 @@ export default class Engine {
 	constructor(brush: BrushCanvas) {
 		this.brush = brush;
 
-		if (brush.canvas instanceof HTMLCanvasElement != true) {
+		if (brush.canvas instanceof HTMLCanvasElement != true)
 			throw new Error('Cannot use offscreen canvas for engine');
-		} else if (brush.canvas.parentElement == null) {
+
+		else if (brush.canvas.parentElement == null)
 			throw new Error('Cannot assign container');
-		}
 
 		brush.canvas.setAttribute('tabindex', '1');
 
@@ -251,15 +251,13 @@ export default class Engine {
 
 		this.cursor.events.on('click', () => {
 			for (const obj of this.orderedObjects) {
+				if (obj.events.all.has('click') != true)
+					continue;
+
 				const screenObj = obj.toScreen();
 
 				const clicked = this.collision.rectContains(
-					{
-						x: screenObj.x,
-						y: screenObj.y,
-						w: screenObj.width,
-						h: screenObj.height
-					},
+					screenObj,
 					this.cursor.pos
 				);
 
@@ -330,7 +328,9 @@ export default class Engine {
 	}
 
 	findObjects(search: (arg0: EngineObject) => boolean): Array<EngineObject> {
-		return Array.from(this.objects).filter(search);
+		return Array
+			.from(this.objects)
+			.filter(search);
 	}
 
 	allowZoom() {
@@ -339,12 +339,14 @@ export default class Engine {
 		this.brush.canvas.addEventListener(
 			'wheel',
 			(evt: Event) => {
-				if (evt instanceof WheelEvent) {
-					if (evt.deltaY > 0 && eng.zoom > zoomIncrement)
-						eng.zoom -= zoomIncrement;
-					else if (evt.deltaY < 0 && eng.zoom < 20)
-						eng.zoom += zoomIncrement;
-				}
+				if (evt instanceof WheelEvent != true)
+					return;
+
+				if (evt.deltaY > 0 && eng.zoom > zoomIncrement)
+					eng.zoom -= zoomIncrement;
+
+				else if (evt.deltaY < 0 && eng.zoom < 20)
+					eng.zoom += zoomIncrement;
 			},
 			false
 		);
@@ -387,18 +389,20 @@ export default class Engine {
 			function handlePinch(event) {
 				event.preventDefault();
 
-				if (event instanceof TouchEvent) {
-					const scale = parsePinchScale(event);
+				if (event instanceof TouchEvent != true)
 
-					if (
-						scale == null ||
-						pinch_Start_Scale == null ||
-						engine_Mobile_Zoom == null
-					)
-						return;
+					return;
 
-					eng.zoom = Math.floor(engine_Mobile_Zoom + (scale - pinch_Start_Scale));
-				}
+				const scale = parsePinchScale(event);
+
+				if (
+					scale == null ||
+					pinch_Start_Scale == null ||
+					engine_Mobile_Zoom == null
+				) return;
+
+				eng.zoom = Math.floor(engine_Mobile_Zoom + (scale - pinch_Start_Scale));
+
 			}
 		);
 
@@ -420,7 +424,6 @@ export default class Engine {
 
 		if (canvas instanceof HTMLCanvasElement)
 			canvas.style.cursor = `url(${url}), pointer`;
-
 
 		return this;
 	}

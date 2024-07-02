@@ -6,7 +6,6 @@ export default class Keyboard {
 	alive = false;
 	pressed: { [key: string]: boolean } = {};
 	events = new Emitter();
-	anyEvents = {};
 
 	constructor(element = document.body) {
 		this.object = new ProxyNode(element);
@@ -54,7 +53,6 @@ export default class Keyboard {
 
 	isPressed = (key: string): boolean =>
 		this.pressed[key.toLowerCase()] == true;
-
 
 	intPressed = (key: string): 0 | 1 => this.isPressed(key) ? 1 : 0;
 

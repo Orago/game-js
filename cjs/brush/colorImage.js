@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hslTintImage = exports.rgbTintImage = void 0;
+exports.hslTintImage = exports.hueOverlay = exports.plainDraw = exports.saturateOverlay = exports.lightenOverlay = exports.rgbTintImage = void 0;
 const colors_1 = require("@orago/lib/colors");
 const brush_js_1 = __importDefault(require("./brush.js"));
 const colorableCanvas = new brush_js_1.default({
@@ -58,6 +58,7 @@ function lightenOverlay(chain, light) {
         .color(`hsl(0, 50%, ${light}%)`)
         .rect;
 }
+exports.lightenOverlay = lightenOverlay;
 function saturateOverlay(chain, saturation) {
     if (typeof saturation != 'number')
         return;
@@ -66,6 +67,7 @@ function saturateOverlay(chain, saturation) {
         .color(`hsl(0,${saturation}%, 50%)`)
         .rect;
 }
+exports.saturateOverlay = saturateOverlay;
 function plainDraw(chain, sprite) {
     chain
         .canvasSize(sprite.width, sprite.height)
@@ -75,15 +77,16 @@ function plainDraw(chain, sprite) {
         .rendering('source-over')
         .image(sprite);
 }
+exports.plainDraw = plainDraw;
 function hueOverlay(chain, hue) {
-    if (typeof hue != 'number') {
+    if (typeof hue != 'number')
         return;
-    }
     chain
         .rendering('hue')
         .color(`hsl(${hue},10%, 50%)`)
         .rect;
 }
+exports.hueOverlay = hueOverlay;
 function clipEditFrom(chain, sprite) {
     chain
         .rendering('destination-in')

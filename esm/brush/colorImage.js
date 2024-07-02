@@ -41,7 +41,7 @@ export function rgbTintImage(sprite, [red = 0, green = 0, blue = 0, tint = .2]) 
     }
     return sprite;
 }
-function lightenOverlay(chain, light) {
+export function lightenOverlay(chain, light) {
     if (typeof light != 'number')
         return;
     chain
@@ -51,7 +51,7 @@ function lightenOverlay(chain, light) {
         .color(`hsl(0, 50%, ${light}%)`)
         .rect;
 }
-function saturateOverlay(chain, saturation) {
+export function saturateOverlay(chain, saturation) {
     if (typeof saturation != 'number')
         return;
     chain
@@ -59,7 +59,7 @@ function saturateOverlay(chain, saturation) {
         .color(`hsl(0,${saturation}%, 50%)`)
         .rect;
 }
-function plainDraw(chain, sprite) {
+export function plainDraw(chain, sprite) {
     chain
         .canvasSize(sprite.width, sprite.height)
         .size(sprite.width, sprite.height)
@@ -68,10 +68,9 @@ function plainDraw(chain, sprite) {
         .rendering('source-over')
         .image(sprite);
 }
-function hueOverlay(chain, hue) {
-    if (typeof hue != 'number') {
+export function hueOverlay(chain, hue) {
+    if (typeof hue != 'number')
         return;
-    }
     chain
         .rendering('hue')
         .color(`hsl(${hue},10%, 50%)`)

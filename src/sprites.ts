@@ -19,10 +19,11 @@ export function getDataUrl(image: ImageType | HTMLCanvasElement): string {
 			.image(image)
 			.canvas
 			.toDataURL();
-	else if (image instanceof HTMLCanvasElement)
+
+	if (image instanceof HTMLCanvasElement)
 		return image.toDataURL();
-	else
-		return '';
+
+	return '';
 }
 export function cloneToCanvas(image: ImageType): HTMLCanvasElement {
 	const rerenderCanvas = new BrushCanvas({
@@ -56,9 +57,9 @@ export function cloneImage(image: ImageType | HTMLCanvasElement): ImageType {
 }
 
 export async function responseToImageUrl(response: Response): Promise<any> {
-	if (response.ok != true) {
+	if (response.ok != true)
 		throw new Error('Network response was not ok');
-	}
+
 
 	/** Read the response as a Blob */
 	const blob = await response.blob();
@@ -224,10 +225,13 @@ export default class Sprites {
 	}
 
 	parseUrl(url: string): string {
-		if (typeof url == 'string' && url.startsWith('/'))
+		if (
+			typeof url == 'string' &&
+			url.startsWith('/')
+		)
 			return this.host + url;
-		else
-			return url;
+
+		return url;
 	}
 
 	has(url: string): boolean {
@@ -286,29 +290,24 @@ export default class Sprites {
 			if (sheet.config.sprites.hasOwnProperty(url) != true)
 				continue;
 
-			else if (sheet.loaded === true) {
-				const opts = sheet.config.sprites[url];
-				const img = Sprites.Slice(sheet.sprite, opts);
-				const cached = this.cache.get(url);
-
-				if (cached == null) {
-					const sprite = new Sprite(img);
-
-					this.cache.set(
-						url,
-						sprite
-					);
-
-					return sprite.img;
-				}
-				else
-					return cached.img;
-			}
-			else {
+			if (sheet.loaded !== true) {
 				await new Promise((resolve) => setTimeout(resolve, 500));
 
 				return await this.fromCache(url);
 			}
+
+			const cached = this.cache.get(url);
+
+			if (cached != null)
+				return cached.img;
+
+			const opts = sheet.config.sprites[url];
+			const img = Sprites.Slice(sheet.sprite, opts);
+			const sprite = new Sprite(img);
+
+			this.cache.set(url, sprite);
+
+			return sprite.img;
 		}
 
 		/** Return promise loop if in queue */

@@ -7,7 +7,6 @@ export default class Keyboard {
         [key: string]: boolean;
     };
     events: Emitter;
-    anyEvents: {};
     constructor(element?: HTMLElement);
     init(): void;
     get stop(): () => void;

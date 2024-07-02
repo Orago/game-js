@@ -12,12 +12,19 @@ export interface RectWithPosition {
 	height: number;
 }
 
+export interface RectOrPosition {
+	x: number;
+	y: number;
+	width?: number;
+	height?: number;
+}
+
 export type LikeBounds = [
 	x1: number,
 	y1: number,
 	x2: number,
 	y2: number
-]
+];
 
 export class Rectangle {
 	static scaleToFit(
@@ -85,10 +92,10 @@ export class Rectangle {
 	 * }} param0
 	 * @returns {Rectangle}
 	 */
-	toFit({ width, height }: LikeRectangle = this): Rectangle {
+	toFit(_: LikeRectangle = this): Rectangle {
 		const fit = Rectangle.scaleToFit(
-			width,
-			height,
+			_.width,
+			_.height,
 			this.width,
 			this.height
 		);
@@ -102,7 +109,7 @@ export class RectBody extends Rectangle {
 		if (rect instanceof RectBody)
 			return new Bound(rect.x, rect.y, rect.width, rect.height);
 
-		else if (rect instanceof Rectangle)
+		if (rect instanceof Rectangle)
 			return new Bound(0, 0, rect.width, rect.height);
 	}
 
@@ -161,7 +168,8 @@ export class RectBody extends Rectangle {
 		if (input instanceof Vector2) {
 			this.x += input.x;
 			this.y += input.y;
-		} else if (typeof x === 'number' && typeof y === 'number') {
+		} 
+		else if (typeof x === 'number' && typeof y === 'number') {
 			this.x += x;
 			this.y += y;
 		}
@@ -219,7 +227,7 @@ export class Bound {
 	}
 
 	get valid() {
-		return this.positions.some(n => typeof n !== 'number') != true
+		return this.positions.some(n => typeof n !== 'number') != true;
 	}
 
 	*[Symbol.iterator]() {

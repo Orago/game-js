@@ -47,7 +47,6 @@ interface overrideCircleOptions {
 	strokeWidth?: number;
 }
 
-
 class ChainableConfig {
 	canvas: HTMLCanvasElement = document.createElement('canvas');
 	ctx: CanvasRenderingContext2D;
@@ -70,13 +69,13 @@ class ChainableConfig {
 		}
 	) {
 		this.ctx = data.ctx;
-		
-		if (data.canvas != null)            this.canvas = data.canvas;
+
+		if (data.canvas != null) this.canvas = data.canvas;
 		if (typeof data.color === 'string') this.color = data.color;
-		if (typeof data.x === 'number')     this.x = data.x;
-		if (typeof data.y === 'number')     this.y = data.y;
-		if (typeof data.w === 'number')     this.w = data.w;
-		if (typeof data.h === 'number')     this.h = data.h;
+		if (typeof data.x === 'number') this.x = data.x;
+		if (typeof data.y === 'number') this.y = data.y;
+		if (typeof data.w === 'number') this.w = data.w;
+		if (typeof data.h === 'number') this.h = data.h;
 	}
 
 	get rect(): ArrayRect {
@@ -275,9 +274,7 @@ export class ChainableCanvas {
 		return this;
 	}
 
-	/**
-	 * Sets color
-	 */
+	/** Sets color */
 	color(color: string): this {
 		this.ctx.fillStyle = color;
 
@@ -298,9 +295,7 @@ export class ChainableCanvas {
 		return this.font(`${weight} ${size}px ${font}`);
 	}
 
-	/**
-	 * Draws a rect to the screen
-	 */
+	/** Draws a rect to the screen */
 	get rect(): this {
 		this.ctx.fillRect(
 			...this.recentConfig.rect
@@ -323,6 +318,7 @@ export class ChainableCanvas {
 
 		config.canvas.width = pre.canvas.width;
 		config.canvas.height = pre.canvas.height;
+
 		const gotten = config.canvas.getContext('2d');
 
 		if (gotten != null) {
@@ -351,9 +347,7 @@ export class ChainableCanvas {
 		return this.restore;
 	}
 
-	/**
-	 * Saves the current canvas state
-	 */
+	/** Saves the current canvas state */
 	get save(): this {
 		this.ctx.save();
 
@@ -364,9 +358,7 @@ export class ChainableCanvas {
 		return this;
 	}
 
-	/**
-	 * Restores the current canvas state
-	 */
+	/** Restores the current canvas state */
 	get restore(): this {
 		this.ctx.restore();
 
@@ -410,9 +402,7 @@ export class ChainableCanvas {
 		return this;
 	}
 
-	/**
-	 * Sets canvas size
-	 */
+	/** Sets canvas size */
 	canvasSize(width: number, height: number): this {
 		const smoothing = this.ctx.imageSmoothingEnabled;
 
@@ -424,18 +414,14 @@ export class ChainableCanvas {
 		return this;
 	}
 
-	/**
-	 * Clears the canvas
-	 */
+	/** Clears the canvas */
 	get clear(): this {
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
 		return this;
 	}
 
-	/**
-	 * Clears cached rect
-	 */
+	/** Clears cached rect */
 	clearRect(): this {
 		this.ctx.clearRect(...this.recentConfig.rect);
 
@@ -598,9 +584,8 @@ export default class BrushCanvas {
 			size?: number;
 		}
 	): void {
-		if (this.ctx instanceof CanvasRenderingContext2D != true) {
+		if (this.ctx instanceof CanvasRenderingContext2D != true)
 			return;
-		}
 
 		let {
 			text,
@@ -635,9 +620,8 @@ export default class BrushCanvas {
 			color?: string;
 		}
 	) {
-		if (this.ctx instanceof CanvasRenderingContext2D != true) {
+		if (this.ctx instanceof CanvasRenderingContext2D != true)
 			return;
-		}
 
 		let {
 			color = 'pink',
@@ -682,11 +666,11 @@ export default class BrushCanvas {
 
 		let gradient
 
-		if (shape == 'radial') {
+		if (shape == 'radial')
 			gradient = ctx.createRadialGradient(gx, gy, 0, gx, gy, w * radius);
-		} else {
+
+		else
 			gradient = ctx.createLinearGradient(gx, gy, x + w, y + h);
-		}
 
 		gradient.addColorStop(0, colorStart);
 		gradient.addColorStop(1, colorEnd);

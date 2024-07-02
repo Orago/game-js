@@ -9,6 +9,12 @@ export interface RectWithPosition {
     width: number;
     height: number;
 }
+export interface RectOrPosition {
+    x: number;
+    y: number;
+    width?: number;
+    height?: number;
+}
 export type LikeBounds = [
     x1: number,
     y1: number,
@@ -24,7 +30,7 @@ export declare class Rectangle {
     constructor(width: number, height: number);
     [Symbol.iterator](): Generator<number, void, unknown>;
     scaled(scale: number): Rectangle;
-    toFit({ width, height }?: LikeRectangle): Rectangle;
+    toFit(_?: LikeRectangle): Rectangle;
 }
 export declare class RectBody extends Rectangle {
     static toBoundingBox(rect: RectBody | Rectangle): Bound | undefined;

@@ -58,7 +58,7 @@ export class CanvasRender {
 		}
 		catch (err) { }
 	}
-	
+
 	static text(
 		context: Context2D,
 		text: string,
@@ -68,7 +68,7 @@ export class CanvasRender {
 		y = y | 0;
 		context.fillText(text, x, y, w);
 	}
-	
+
 	static circle(context: Context2D, values: circleOptions) {
 		let {
 			x = 0,
@@ -102,7 +102,8 @@ export class CanvasRender {
 			context.stroke();
 
 			context.restore();
-		} else {
+		}
+		else {
 			context.save();
 			context.beginPath();
 			context.arc(x, y, radius, 0, 2 * Math.PI, false);

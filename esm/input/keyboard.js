@@ -5,7 +5,6 @@ export default class Keyboard {
         this.alive = false;
         this.pressed = {};
         this.events = new Emitter();
-        this.anyEvents = {};
         this.isPressed = (key) => this.pressed[key.toLowerCase()] == true;
         this.intPressed = (key) => this.isPressed(key) ? 1 : 0;
         this.object = new ProxyNode(element);

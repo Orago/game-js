@@ -188,11 +188,13 @@ export function hslTintImage(sprite: HTMLCanvasElement | HTMLImageElement, optio
 			colorChain,
 			rgbToHue(...forceRgb(options.rgb))
 		);
+		
 	else if (options?.tint != null)
 		hueOverlay(
 			colorChain,
 			rgbToHue(...forceRgb(options.tint))
 		);
+		
 	else if (typeof options?.hue === 'number')
 		hueOverlay(
 			colorChain,

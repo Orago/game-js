@@ -29,10 +29,9 @@ function getDataUrl(image) {
             .image(image)
             .canvas
             .toDataURL();
-    else if (image instanceof HTMLCanvasElement)
+    if (image instanceof HTMLCanvasElement)
         return image.toDataURL();
-    else
-        return '';
+    return '';
 }
 exports.getDataUrl = getDataUrl;
 function cloneToCanvas(image) {
@@ -64,9 +63,8 @@ function cloneImage(image) {
 exports.cloneImage = cloneImage;
 function responseToImageUrl(response) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (response.ok != true) {
+        if (response.ok != true)
             throw new Error('Network response was not ok');
-        }
         const blob = yield response.blob();
         return URL.createObjectURL(blob);
     });
@@ -165,10 +163,10 @@ class Sprites {
         this.spriteSheets.set(spritesheet.id, spritesheet);
     }
     parseUrl(url) {
-        if (typeof url == 'string' && url.startsWith('/'))
+        if (typeof url == 'string' &&
+            url.startsWith('/'))
             return this.host + url;
-        else
-            return url;
+        return url;
     }
     has(url) {
         return this.cache.hasOwnProperty(url);
@@ -208,22 +206,18 @@ class Sprites {
             for (const sheet of Array.from(this.spriteSheets.values())) {
                 if (sheet.config.sprites.hasOwnProperty(url) != true)
                     continue;
-                else if (sheet.loaded === true) {
-                    const opts = sheet.config.sprites[url];
-                    const img = Sprites.Slice(sheet.sprite, opts);
-                    const cached = this.cache.get(url);
-                    if (cached == null) {
-                        const sprite = new Sprite(img);
-                        this.cache.set(url, sprite);
-                        return sprite.img;
-                    }
-                    else
-                        return cached.img;
-                }
-                else {
+                if (sheet.loaded !== true) {
                     yield new Promise((resolve) => setTimeout(resolve, 500));
                     return yield this.fromCache(url);
                 }
+                const cached = this.cache.get(url);
+                if (cached != null)
+                    return cached.img;
+                const opts = sheet.config.sprites[url];
+                const img = Sprites.Slice(sheet.sprite, opts);
+                const sprite = new Sprite(img);
+                this.cache.set(url, sprite);
+                return sprite.img;
             }
             if (this.loading.has(url)) {
                 yield new Promise((resolve) => setTimeout(resolve, 500));

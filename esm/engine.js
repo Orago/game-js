@@ -144,12 +144,10 @@ export default class Engine {
         this.object = (data, ref) => new EngineObject(this, data)
             .ref(ref);
         this.brush = brush;
-        if (brush.canvas instanceof HTMLCanvasElement != true) {
+        if (brush.canvas instanceof HTMLCanvasElement != true)
             throw new Error('Cannot use offscreen canvas for engine');
-        }
-        else if (brush.canvas.parentElement == null) {
+        else if (brush.canvas.parentElement == null)
             throw new Error('Cannot assign container');
-        }
         brush.canvas.setAttribute('tabindex', '1');
         this.cursor = new Cursor(brush.canvas);
         this.keyboard = new Keyboard(brush.canvas.parentElement);
@@ -163,13 +161,10 @@ export default class Engine {
         this.ticks.start();
         this.cursor.events.on('click', () => {
             for (const obj of this.orderedObjects) {
+                if (obj.events.all.has('click') != true)
+                    continue;
                 const screenObj = obj.toScreen();
-                const clicked = this.collision.rectContains({
-                    x: screenObj.x,
-                    y: screenObj.y,
-                    w: screenObj.width,
-                    h: screenObj.height
-                }, this.cursor.pos);
+                const clicked = this.collision.rectContains(screenObj, this.cursor.pos);
                 if (clicked == true && obj.enabled) {
                     obj.events.emit('click', this.cursor.pos);
                 }
@@ -197,17 +192,19 @@ export default class Engine {
         return new createObjectGroup(this);
     }
     findObjects(search) {
-        return Array.from(this.objects).filter(search);
+        return Array
+            .from(this.objects)
+            .filter(search);
     }
     allowZoom() {
         const eng = this;
         this.brush.canvas.addEventListener('wheel', (evt) => {
-            if (evt instanceof WheelEvent) {
-                if (evt.deltaY > 0 && eng.zoom > zoomIncrement)
-                    eng.zoom -= zoomIncrement;
-                else if (evt.deltaY < 0 && eng.zoom < 20)
-                    eng.zoom += zoomIncrement;
-            }
+            if (evt instanceof WheelEvent != true)
+                return;
+            if (evt.deltaY > 0 && eng.zoom > zoomIncrement)
+                eng.zoom -= zoomIncrement;
+            else if (evt.deltaY < 0 && eng.zoom < 20)
+                eng.zoom += zoomIncrement;
         }, false);
         let initialDistance;
         let pinch_Start_Scale;
@@ -232,14 +229,14 @@ export default class Engine {
         });
         this.brush.canvas.addEventListener('touchmove', function handlePinch(event) {
             event.preventDefault();
-            if (event instanceof TouchEvent) {
-                const scale = parsePinchScale(event);
-                if (scale == null ||
-                    pinch_Start_Scale == null ||
-                    engine_Mobile_Zoom == null)
-                    return;
-                eng.zoom = Math.floor(engine_Mobile_Zoom + (scale - pinch_Start_Scale));
-            }
+            if (event instanceof TouchEvent != true)
+                return;
+            const scale = parsePinchScale(event);
+            if (scale == null ||
+                pinch_Start_Scale == null ||
+                engine_Mobile_Zoom == null)
+                return;
+            eng.zoom = Math.floor(engine_Mobile_Zoom + (scale - pinch_Start_Scale));
         });
         this.brush.canvas.addEventListener('touchend', function handlePinch(event) {
             event.preventDefault();

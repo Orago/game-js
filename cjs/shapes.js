@@ -34,8 +34,8 @@ class Rectangle {
     scaled(scale) {
         return new Rectangle(this.width * scale, this.height * scale);
     }
-    toFit({ width, height } = this) {
-        const fit = Rectangle.scaleToFit(width, height, this.width, this.height);
+    toFit(_ = this) {
+        const fit = Rectangle.scaleToFit(_.width, _.height, this.width, this.height);
         return fit;
     }
 }
@@ -44,7 +44,7 @@ class RectBody extends Rectangle {
     static toBoundingBox(rect) {
         if (rect instanceof RectBody)
             return new Bound(rect.x, rect.y, rect.width, rect.height);
-        else if (rect instanceof Rectangle)
+        if (rect instanceof Rectangle)
             return new Bound(0, 0, rect.width, rect.height);
     }
     static contains(parent, child) {

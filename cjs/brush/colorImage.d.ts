@@ -1,3 +1,4 @@
+import { ChainableCanvas } from './brush.js';
 export type rgbArray = [red: number, green: number, blue: number];
 export declare function rgbTintImage(sprite: HTMLCanvasElement | HTMLImageElement, [red, green, blue, tint]: [
     red?: number,
@@ -5,6 +6,10 @@ export declare function rgbTintImage(sprite: HTMLCanvasElement | HTMLImageElemen
     blue?: number,
     tint?: number
 ]): typeof sprite;
+export declare function lightenOverlay(chain: ChainableCanvas, light: number): void;
+export declare function saturateOverlay(chain: ChainableCanvas, saturation: number): void;
+export declare function plainDraw(chain: ChainableCanvas, sprite: HTMLCanvasElement | HTMLImageElement): void;
+export declare function hueOverlay(chain: ChainableCanvas, hue: number): void;
 interface hslTintOptions {
     saturation?: number;
     light?: number;
