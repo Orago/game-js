@@ -1,8 +1,8 @@
 import Emitter from '@orago/lib/emitter';
-import { Vector2, Position2D } from '@orago/vector';
+import { Point, Vector2 } from '@orago/vector';
 import { v4 as uuidV4 } from 'uuid';
-import { Collision } from './collision.js';
 import BrushCanvas from './brush/brush.js';
+import { Collision } from './collision.js';
 import Cursor from './input/cursor.js';
 import Keyboard from './input/keyboard.js';
 import { Repeater } from './repeater.js';
@@ -23,10 +23,10 @@ export interface EngineObjectData {
 }
 
 export function screenToWorld(
-	pos: Position2D,
+	screen: Point,
 	options?: {
-		center?: Position2D;
-		offset?: Position2D;
+		center?: Point;
+		offset?: Point;
 		zoom?: number
 	}
 ): Vector2 {
@@ -35,16 +35,16 @@ export function screenToWorld(
 	const zoom = options?.zoom ?? 1;
 
 	return new Vector2(
-		(pos.x - offset.x) * zoom + center.x,
-		(pos.y - offset.y) * zoom + center.y
+		(screen.x - offset.x) * zoom + center.x,
+		(screen.y - offset.y) * zoom + center.y
 	);
 }
 
 export function worldToScreen(
-	pos: Position2D,
+	world: Point,
 	options?: {
-		center?: Position2D;
-		offset?: Position2D;
+		center?: Point;
+		offset?: Point;
 		zoom?: number
 	}
 ): Vector2 {
@@ -53,8 +53,8 @@ export function worldToScreen(
 	const zoom = options?.zoom ?? 1;
 
 	return new Vector2(
-		(pos.x + offset.x) * zoom + (center.x / zoom),
-		(pos.y + offset.y) * zoom + (center.y / zoom)
+		(world.x + offset.x) * zoom + (center.x / zoom),
+		(world.y + offset.y) * zoom + (center.y / zoom)
 	);
 }
 
@@ -74,7 +74,7 @@ export class EngineObject {
 	priority = 1;
 	enabled = true;
 	visible = true;
-	engine: Engine;
+	engine: World;
 	// options: {
 	// 	zoom: boolean;
 	// 	offset: boolean;
@@ -85,7 +85,7 @@ export class EngineObject {
 
 	events = new Emitter();
 
-	constructor(engineRef: Engine, data: EngineObjectData = {}) {
+	constructor(engineRef: World, data: EngineObjectData = {}) {
 		this.engine = engineRef;
 
 		if (typeof data === 'object') {
@@ -122,7 +122,7 @@ export class EngineObject {
 		this.events.emit('remove');
 		this.events.all.clear();
 
-		if (this.engine instanceof Engine) {
+		if (this.engine instanceof World) {
 			this.engine.objects.delete(this);
 		}
 	}
@@ -130,7 +130,7 @@ export class EngineObject {
 	addTo(...tags: any[]): this {
 		this.events.emit('add');
 
-		if (this.engine instanceof Engine) {
+		if (this.engine instanceof World) {
 			this.engine.objects.add(this);
 		}
 
@@ -179,15 +179,11 @@ export class EngineObject {
 }
 
 class createObjectGroup {
-	engine: Engine;
+	engine: World;
 	isObjGroup = true;
 	#items: Set<EngineObject> = new Set();
 
-	constructor(engine: Engine) {
-		if (engine?._pc_by_orago != 'orago is the coolest lol') {
-			throw 'Cannot Create Tag Set';
-		}
-
+	constructor(engine: World) {
 		this.engine = engine;
 	}
 
@@ -209,9 +205,7 @@ class createObjectGroup {
 	}
 }
 
-export default class Engine {
-	_pc_by_orago = 'orago is the coolest lol';
-
+export default class World {
 	/** List of renderable objects */
 	objects: Set<EngineObject> = new Set();
 	offset: Vector2 = new Vector2;
@@ -223,15 +217,13 @@ export default class Engine {
 	ticks: Repeater;
 	frame: number = 0;
 
-	// objectEvents = new WeakMap<EngineObject, Emitter>;
-
 	constructor(brush: BrushCanvas) {
 		this.brush = brush;
 
 		if (brush.canvas instanceof HTMLCanvasElement != true)
 			throw new Error('Cannot use offscreen canvas for engine');
 
-		else if (brush.canvas.parentElement == null)
+		if (brush.canvas.parentElement == null)
 			throw new Error('Cannot assign container');
 
 		brush.canvas.setAttribute('tabindex', '1');
@@ -283,7 +275,6 @@ export default class Engine {
 
 	collision = Collision;
 
-
 	object = (
 		data: EngineObjectData,
 		ref: (arg0: EngineObject) => void
@@ -292,13 +283,13 @@ export default class Engine {
 			.ref(ref);
 
 	screenToWorld(
-		pos: Position2D,
+		point: Point,
 		options?: {
 			center?: boolean;
 		}
 	): Vector2 {
 		return screenToWorld(
-			pos,
+			point,
 			{
 				center: options?.center === true ? this.brush.center() : { x: 0, y: 0 },
 				offset: this.offset,
@@ -308,13 +299,13 @@ export default class Engine {
 	}
 
 	worldToScreen(
-		pos: Position2D,
+		point: Point,
 		options?: {
 			center?: boolean;
 		}
 	): Vector2 {
 		return worldToScreen(
-			pos,
+			point,
 			{
 				center: options?.center === true ? this.brush.center() : { x: 0, y: 0 },
 				offset: this.offset,

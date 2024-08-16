@@ -21,9 +21,8 @@ export default class Cursor {
 	constructor(object: HTMLElement = document.body) {
 		this.object = object;
 
-		for (const [method, func] of Object.entries(this.on)) {
+		for (const [method, func] of Object.entries(this.on))
 			object.addEventListener(method, func.bind(this));
-		}
 
 		this.reInit();
 	}

@@ -60,7 +60,6 @@ export async function responseToImageUrl(response: Response): Promise<any> {
 	if (response.ok != true)
 		throw new Error('Network response was not ok');
 
-
 	/** Read the response as a Blob */
 	const blob = await response.blob();
 
@@ -99,19 +98,19 @@ export class Spritesheet {
 		if (typeof options != 'object')
 			throw console.log('Bad spritesheet', options);
 
-		else if (typeof options?.url !== 'string')
+		if (typeof options?.url !== 'string')
 			throw console.log('Bad spritesheet url', options);
 
-		else if (typeof options?.url !== 'string')
+		if (typeof options?.url !== 'string')
 			throw console.log('Bad spritesheet url', options);
 
-		else if (typeof options?.config !== 'object')
+		if (typeof options?.config !== 'object')
 			throw console.log('Bad config', options);
 
-		else if (typeof options.config?.fileName !== 'string')
+		if (typeof options.config?.fileName !== 'string')
 			throw console.log('[spritesheet.config] Invalid fileName', options);
 
-		else if (typeof options.config?.sprites !== 'object')
+		if (typeof options.config?.sprites !== 'object')
 			throw console.log('[spritesheet.config] Invalid sprites type', options);
 
 		let index = 0;
@@ -122,7 +121,7 @@ export class Spritesheet {
 			if (typeof spriteUrl !== 'string')
 				throw console.log(`[spritesheet.sprites]: I:(${i}) Bad sprite url`, [spriteUrl, spriteCfg]);
 
-			else if (typeof spriteCfg !== 'object')
+			if (typeof spriteCfg !== 'object')
 				throw console.log(`[spritesheet.sprites]: I:(${i}) Bad sprite config`, [spriteUrl, spriteCfg]);
 		}
 

@@ -112,18 +112,18 @@ export class Repeater {
 	/**
 	 * Pauses
 	 */
-	pause(paused: boolean = !this.paused == true) {
+	pause(paused: boolean = !this.paused == true): void {
 		this.paused = paused;
 
-		if (this.paused === true) {
-			if (typeof this.RafRef === 'number')
-				cancelAnimationFrame(this.RafRef);
+		if (this.paused !== true)
+			return this.start(),
+				void 0;
 
-			this.time = undefined;
-			this.frame = -1;
-		}
-		else
-			this.start();
+		if (typeof this.RafRef === 'number')
+			cancelAnimationFrame(this.RafRef);
+
+		this.time = undefined;
+		this.frame = -1;
 	}
 }
 
