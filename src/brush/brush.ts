@@ -1,6 +1,6 @@
 import { CanvasRender } from './render.js';
-import { Vector2 } from '@orago/vector';
 import Emitter from '@orago/lib/emitter';
+import type { Point } from '@orago/lib/vector';
 
 type ArrayRect = [x: number, y: number, w: number, h: number];
 
@@ -514,17 +514,16 @@ export default class BrushCanvas {
 	}
 
 	//#region //* Functions / Utils *//
-	center(): Vector2 {
-		return new Vector2(
-			this.width / 2,
-			this.height / 2
-		);
+	center(): Point {
+		return {
+			x: this.width / 2,
+			y: this.height / 2
+		};
 	}
 
 	focus() {
-		if (this.canvas instanceof HTMLCanvasElement) {
+		if (this.canvas instanceof HTMLCanvasElement)
 			this.canvas.focus();
-		}
 	}
 
 	dimensions(): { width: number; height: number; } {
@@ -657,9 +656,8 @@ export default class BrushCanvas {
 		x = 0, y = 0, w = 0, h = 0,
 		radius = .5
 	} = {}) {
-		if (this.ctx instanceof CanvasRenderingContext2D != true) {
+		if (this.ctx instanceof CanvasRenderingContext2D != true)
 			return;
-		}
 
 		const { ctx } = this;
 		const [gx, gy] = [(x + w * percentW), (y + h * percentH)];
@@ -758,9 +756,7 @@ export default class BrushCanvas {
 		return this;
 	}
 
-	get get() {
-		return this;
-	}
+	get get() { return this; }
 
 	get chainable() {
 		return new ChainableCanvas(this);

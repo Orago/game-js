@@ -1,6 +1,6 @@
 {
 	"name": "@orago/game",
-	"version": "0.0.23",
+	"version": "0.0.31",
 	"description": "Orago's Game library",
 	"type": "module",
 	"scripts": {
@@ -12,6 +12,16 @@
 	"author": "Orago",
 	"license": "ISC",
 	"exports": {
+		"./*": {
+
+		},
+		"./dist/*": {
+			"import": "./esm/*",
+			"require": "./cjs/*"
+		},
+		"./src/*": {
+			"import": "./src/*"
+		},
 		"./boxes": {
 			"import": "./esm/brush/boxes.js",
 			"require": "./cjs/brush/boxes.js"
@@ -51,6 +61,18 @@
 		"./sprites": {
 			"import": "./esm/sprites.js",
 			"require": "./cjs/sprites.js"
+		},
+		"./system": {
+			"import": "./esm/ecs/system.js",
+			"require": "./cjs/ecs/system.js"
+		},
+		"./entity": {
+			"import": "./esm/ecs/entity.js",
+			"require": "./cjs/ecs/entity.js"
+		},
+		"./ecs": {
+			"import": "./esm/ecs/ecs.js",
+			"require": "./cjs/ecs/ecs.js"
 		}
 	},
 	"typesVersions": {
@@ -62,7 +84,8 @@
 	},
 	"dependencies": {
 		"@orago/dom": "^0.0.6",
-		"@orago/lib": "^0.0.12",
+		"@orago/ecs": "^0.0.2",
+		"@orago/lib": "^0.0.20",
 		"@orago/vector": "^0.0.6"
 	},
 	"devDependencies": {

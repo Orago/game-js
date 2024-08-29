@@ -1,5 +1,4 @@
 import { CanvasRender } from './render.js';
-import { Vector2 } from '@orago/vector';
 import Emitter from '@orago/lib/emitter';
 class ChainableConfig {
     constructor(data) {
@@ -27,6 +26,9 @@ class ChainableConfig {
         return [this.x, this.y, this.w, this.h];
     }
 }
+/**
+ * ! Should not be used on it's own
+ */
 export class ChainableCanvas {
     constructor(brush) {
         this.stack = [];
@@ -35,6 +37,7 @@ export class ChainableCanvas {
             ctx: brush.ctx
         }));
     }
+    //#region //* Positioning *//
     x(x) {
         this.recentConfig.x = x;
         return this;
@@ -71,6 +74,7 @@ export class ChainableCanvas {
         }
         return this;
     }
+    //#endregion //* Positioning *//
     get recentConfig() {
         return this.stack[this.stack.length - 1];
     }
@@ -109,6 +113,9 @@ export class ChainableCanvas {
         CanvasRender.Image(this.ctx, image, this.recentConfig.rect, fromPos);
         return this;
     }
+    /**
+     * Renders text
+     */
     text(text) {
         const [x, y] = this.recentConfig.rect;
         CanvasRender.text(this.ctx, text, { x, y });
@@ -123,10 +130,16 @@ export class ChainableCanvas {
             y, radius: w }, override));
         return this;
     }
+    /**
+     * Sets global composite operation
+     * Default is source-over
+     */
     rendering(mode = 'source-over') {
+        // @ts-ignore
         this.ctx.globalCompositeOperation = mode;
         return this;
     }
+    /** Sets color */
     color(color) {
         this.ctx.fillStyle = color;
         return this;
@@ -138,10 +151,15 @@ export class ChainableCanvas {
     generatedFont({ font = 'Arial', weight = 'normal', size = 16 } = {}) {
         return this.font(`${weight} ${size}px ${font}`);
     }
+    /** Draws a rect to the screen */
     get rect() {
         this.ctx.fillRect(...this.recentConfig.rect);
         return this;
     }
+    /**
+     * Creates a sub canvas
+     * @deprecated
+     */
     get blank() {
         const pre = this.recentConfig;
         this.save;
@@ -155,17 +173,25 @@ export class ChainableCanvas {
         }
         return this;
     }
+    /**
+     * @returns {this}
+     * @deprecated
+     */
     get merge() {
         const r = this.recentConfig;
         const prev = this.stack[this.stack.length - 1];
-        CanvasRender.Image(prev.ctx, r.canvas, undefined, prev.rect);
+        CanvasRender.Image(prev.ctx, r.canvas, 
+        // prev.rect,
+        undefined, prev.rect);
         return this.restore;
     }
+    /** Saves the current canvas state */
     get save() {
         this.ctx.save();
         this.stack.push(new ChainableConfig(this.recentConfig));
         return this;
     }
+    /** Restores the current canvas state */
     get restore() {
         this.ctx.restore();
         this.stack.pop();
@@ -175,18 +201,27 @@ export class ChainableCanvas {
         func(this);
         return this;
     }
+    /**
+     * Flips rendering on horizontal axis
+     * ! Mutates
+     */
     get flipX() {
         const r = this.recentConfig;
         this.ctx.scale(-1, 1);
         r.x = r.x * -1 - r.w;
         return this;
     }
+    /**
+     * Flips Y rendering
+     * ! Mutates
+     */
     get flipY() {
         const r = this.recentConfig;
         this.ctx.scale(1, -1);
         r.y = r.y * -1 - r.h;
         return this;
     }
+    /** Sets canvas size */
     canvasSize(width, height) {
         const smoothing = this.ctx.imageSmoothingEnabled;
         this.canvas.width = width;
@@ -195,10 +230,12 @@ export class ChainableCanvas {
         this.ctx.imageSmoothingEnabled = smoothing;
         return this;
     }
+    /** Clears the canvas */
     get clear() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         return this;
     }
+    /** Clears cached rect */
     clearRect() {
         this.ctx.clearRect(...this.recentConfig.rect);
         return this;
@@ -212,6 +249,11 @@ export default class BrushCanvas {
         this.resolution = 1;
         this.smoothing = true;
         this.events = new Emitter();
+        /**
+         * Toggles smoothing
+         * ON - blurred when using low resolution assets and smooth on high resolution
+         * OFF - Crisp on low resolution assets and jagged on high resolution
+         */
         this.setSmoothing = (state) => {
             this.ctx.imageSmoothingEnabled =
                 this.smoothing = (state == true);
@@ -228,6 +270,8 @@ export default class BrushCanvas {
         this.updateResolution(resolution);
     }
     updateResolution(resolution) {
+        // const amount = ForceType.Number(resolution);
+        // this.resolution = clamp(amount, { min: .5, max: 1 });
     }
     updateSize(width, height) {
         Object.assign(this.canvas, { width, height });
@@ -249,13 +293,16 @@ export default class BrushCanvas {
             this.updateSize(...dimensions);
         }
     }
+    //#region //* Functions / Utils *//
     center() {
-        return new Vector2(this.width / 2, this.height / 2);
+        return {
+            x: this.width / 2,
+            y: this.height / 2
+        };
     }
     focus() {
-        if (this.canvas instanceof HTMLCanvasElement) {
+        if (this.canvas instanceof HTMLCanvasElement)
             this.canvas.focus();
-        }
     }
     dimensions() {
         return {
@@ -316,13 +363,15 @@ export default class BrushCanvas {
             .pos(x, y)
             .rect;
     }
+    /**
+     * @deprecated
+     */
     circle(values) {
         CanvasRender.circle(this.ctx, values);
     }
     gradient({ shape = 'square', percent: { w: percentW = 0, h: percentH = 0 } = {}, colorStart = 'black', colorEnd = 'white', x = 0, y = 0, w = 0, h = 0, radius = .5 } = {}) {
-        if (this.ctx instanceof CanvasRenderingContext2D != true) {
+        if (this.ctx instanceof CanvasRenderingContext2D != true)
             return;
-        }
         const { ctx } = this;
         const [gx, gy] = [(x + w * percentW), (y + h * percentH)];
         let gradient;
@@ -383,9 +432,7 @@ export default class BrushCanvas {
         resize();
         return this;
     }
-    get get() {
-        return this;
-    }
+    get get() { return this; }
     get chainable() {
         return new ChainableCanvas(this);
     }

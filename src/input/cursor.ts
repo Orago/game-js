@@ -1,21 +1,32 @@
 import Emitter from '@orago/lib/emitter';
-import { Vector2 } from '@orago/vector';
+import type { Point } from '@orago/lib/vector';
 
 const holdTime = 500;
 
 type cursorInput = Touch | MouseEvent;
 
+function isTouchEvent(input: any): input is TouchEvent {
+	const __TouchEvent = typeof TouchEvent != 'undefined' ? TouchEvent : window.TouchEvent;
+
+	return typeof input === 'object' && input instanceof __TouchEvent;
+}
+
+function isTouch(input: any): input is Touch {
+	const __Touch = typeof Touch != 'undefined' ? Touch : window.Touch;
+
+	return typeof input === 'object' && input instanceof __Touch;
+}
+
 export default class Cursor {
-	events: Emitter = new Emitter();
 	object: HTMLElement;
-	pos: Vector2 = new Vector2();
+	events: Emitter = new Emitter();
+
+	pos: Point = { x: 0, y: 0 };
+	start: Point = { x: 0, y: 0 };
+	end: Point = { x: 0, y: 0 };
+
 	down: boolean = false;
 	button: number = -1;
-	context = {};
-	release = {};
-	click = {};
-	start = { x: 0, y: 0 };
-	end = { x: 0, y: 0 };
 	startTime: number = 0;
 
 	constructor(object: HTMLElement = document.body) {
@@ -30,72 +41,72 @@ export default class Cursor {
 	reInit() {
 		this.events.all.clear();
 
-		this.events.on(
-			'move',
-			(x: number, y: number) => {
-				this.pos = this.getPos(x, y);
-			}
-		);
-
-		this.events.on('start', (e: cursorInput) => this.onStart(e));
-		this.events.on('end', (e: cursorInput) => this.onEnd(e));
+		this
+			.events
+			.on('move', (x: number, y: number) => this.setPos(x, y))
+			.on('start', (e: cursorInput) => this.onStart(e))
+			.on('end', (e: cursorInput) => this.onEnd(e));
 	}
 
-	getPos(x: number, y: number): Vector2 {
+	setPos(x: number, y: number): void {
+		this.pos = this.getPos(x, y);
+	}
+
+	getPos(x: number, y: number): Point {
 		const { object } = this;
-		const { top, bottom, left, right, width, height } = object.getBoundingClientRect();
+		const b = object.getBoundingClientRect();
 
-		return new Vector2(
-			Math.floor(((x - left) / (right - left)) * width),
-			Math.floor(((y - top) / (bottom - top)) * height)
-		);
+		return {
+			x: Math.floor(((x - b.left) / (b.right - b.left)) * b.width),
+			y: Math.floor(((y - b.top) / (b.bottom - b.top)) * b.height)
+		}
 	}
 
-	onStart(e: cursorInput) {
+	onStart(event: cursorInput): void {
 		this.startTime = performance.now();
 
 		setTimeout(() => {
-			if (window.TouchEvent && e instanceof Touch) {
+			if (isTouch(event)) {
 				if (this.down == true)
 					this.events.emit('context');
 				else
-					this.events.emit('click', e, this);
+					this.events.emit('click', event, this);
 			}
 		}, holdTime);
 
-		if (e instanceof Touch != true) {
-			switch (e.button) {
-				case 0: this.events.emit('click', e, this); break;
-				case 1: this.events.emit('middle', e, this); break;
-				case 2: this.events.emit('context', e, this); break;
+		if (isTouch(event) != true) {
+			switch (event.button) {
+				case 0: this.events.emit('click', event, this); break;
+				case 1: this.events.emit('middle', event, this); break;
+				case 2: this.events.emit('context', event, this); break;
 			}
 
-			this.button = e.button;
+			this.button = event.button;
 		}
 
-		this.pos = this.getPos(e.clientX, e.clientY);
-		this.start = this.getPos(e.clientX, e.clientY);
+		this.pos = this.getPos(event.clientX, event.clientY);
+		this.start = this.getPos(event.clientX, event.clientY);
 		this.down = true;
 
-		this.events.emit('touch', e, this);
+		this.events.emit('touch', event, this);
 	}
 
-	onEnd(e: cursorInput) {
-		if (e instanceof Touch != true) {
-			switch (e.button) {
-				case 0: this.events.emit('click-release', e, this); break;
-				case 1: this.events.emit('middle-release', e, this); break;
-				case 2: this.events.emit('context-release', e, this); break;
+	onEnd(event: cursorInput) {
+		if (isTouch(event) != true) {
+			switch (event.button) {
+				case 0: this.events.emit('click-release', event, this); break;
+				case 1: this.events.emit('middle-release', event, this); break;
+				case 2: this.events.emit('context-release', event, this); break;
 			}
 		}
 
-		this.end = this.getPos(e.clientX, e.clientY);
+		this.end = this.getPos(event.clientX, event.clientY);
 		this.down = false;
 
-		this.events.emit('release', e, this);
+		this.events.emit('release', event, this);
 	}
 
-	on: { [key: string]: (evt: Event) => any } = {
+	on: Record<string, (evt: Event) => any> = {
 		click: (e: Event) => e.preventDefault(),
 		contextmenu: (e: Event) => e.preventDefault(),
 
@@ -104,17 +115,17 @@ export default class Cursor {
 			this.events.emit('move', e.clientX, e.clientY),
 
 		touchmove: (e: Event) =>
-			e instanceof TouchEvent &&
+			isTouchEvent(e) &&
 			this.events.emit('move', e.touches[0].clientX, e.touches[0].clientY),
 
 		mouseup: (e: Event) => this.events.emit('end', e),
 		touchend: (e: Event) =>
-			e instanceof TouchEvent &&
+			isTouchEvent(e) &&
 			this.events.emit('end', e.changedTouches[0]),
 
 		mousedown: (e: Event) => this.events.emit('start', e),
 		touchstart: (e: Event) =>
-			e instanceof TouchEvent &&
+			isTouchEvent(e) &&
 			this.events.emit('start', e.touches[0]),
 	}
 }

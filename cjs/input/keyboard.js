@@ -7,9 +7,10 @@ const emitter_1 = __importDefault(require("@orago/lib/emitter"));
 const dom_1 = require("@orago/dom");
 class Keyboard {
     constructor(element = document.body) {
-        this.alive = false;
-        this.pressed = {};
         this.events = new emitter_1.default();
+        /* Keys pressed */
+        this.pressed = {};
+        this.alive = false;
         this.isPressed = (key) => this.pressed[key.toLowerCase()] == true;
         this.intPressed = (key) => this.isPressed(key) ? 1 : 0;
         this.object = new dom_1.ProxyNode(element);

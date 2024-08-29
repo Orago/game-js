@@ -1,27 +1,29 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Bound = exports.RectBody = exports.Rectangle = void 0;
-const vector_1 = require("@orago/vector");
-class Rectangle {
+exports.Bound = exports.RectBody = exports.RectangleUtil = void 0;
+class RectangleUtil {
     static scaleToFit(containerWidth, containerHeight, rectWidth, rectHeight) {
+        // Calculate aspect ratios
         const containerRatio = containerWidth / containerHeight;
         const rectRatio = rectWidth / rectHeight;
         let scaleFactor = 1;
+        // Scale the rectangle to fit within the container
         if (rectRatio > containerRatio)
             scaleFactor = containerWidth / rectWidth;
         else
             scaleFactor = containerHeight / rectHeight;
+        // Calculate the scaled dimensions
         const width = rectWidth * scaleFactor;
         const height = rectHeight * scaleFactor;
-        return new Rectangle(width, height);
+        return new RectangleUtil(width, height);
     }
     static scale(width, height, scale) {
         width *= scale;
         height *= scale;
-        return new Rectangle(width, height);
+        return new RectangleUtil(width, height);
     }
     static FromObj(obj) {
-        return new Rectangle(obj.width, obj.height);
+        return new RectangleUtil(obj.width, obj.height);
     }
     constructor(width, height) {
         this.width = width;
@@ -31,20 +33,25 @@ class Rectangle {
         yield this.width;
         yield this.height;
     }
+    /**
+     * Upscales rectangle by scale factor
+     * @param {number} scale
+     * @returns {RectangleUtil}
+     */
     scaled(scale) {
-        return new Rectangle(this.width * scale, this.height * scale);
+        return new RectangleUtil(this.width * scale, this.height * scale);
     }
     toFit(_ = this) {
-        const fit = Rectangle.scaleToFit(_.width, _.height, this.width, this.height);
+        const fit = RectangleUtil.scaleToFit(_.width, _.height, this.width, this.height);
         return fit;
     }
 }
-exports.Rectangle = Rectangle;
-class RectBody extends Rectangle {
+exports.RectangleUtil = RectangleUtil;
+class RectBody extends RectangleUtil {
     static toBoundingBox(rect) {
         if (rect instanceof RectBody)
             return new Bound(rect.x, rect.y, rect.width, rect.height);
-        if (rect instanceof Rectangle)
+        if (rect instanceof RectangleUtil)
             return new Bound(0, 0, rect.width, rect.height);
     }
     static contains(parent, child) {
@@ -63,7 +70,10 @@ class RectBody extends Rectangle {
         this.y = y;
     }
     get pos() {
-        return new vector_1.Vector2(this.x, this.y);
+        return {
+            x: this.x,
+            y: this.y
+        };
     }
     set pos(vector2) {
         this.x = vector2.x;
@@ -72,15 +82,14 @@ class RectBody extends Rectangle {
     copy() {
         return new RectBody(this.x, this.y, this.width, this.height);
     }
-    move(x, y) {
-        let input = x;
-        if (input instanceof vector_1.Vector2) {
-            this.x += input.x;
-            this.y += input.y;
+    move(...args) {
+        if (typeof args[0] == 'object') {
+            this.x += args[0].x;
+            this.y += args[0].y;
         }
-        else if (typeof x === 'number' && typeof y === 'number') {
-            this.x += x;
-            this.y += y;
+        else if (typeof args[0] === 'number' && typeof args[1] === 'number') {
+            this.x += args[0];
+            this.y += args[1];
         }
         return this;
     }
@@ -89,10 +98,10 @@ exports.RectBody = RectBody;
 class Bound {
     static toPositionalRect(bound) {
         const [x1, y1, x2, y2] = bound;
-        const x = Math.min(x1, x2);
-        const y = Math.min(y1, y2);
-        const w = Math.abs(x2 - x1);
-        const h = Math.abs(y2 - y1);
+        const x = Math.min(x1, x2); // Get the minimum x-coordinate as the top-left corner x
+        const y = Math.min(y1, y2); // Get the minimum y-coordinate as the top-left corner y
+        const w = Math.abs(x2 - x1); // Calculate the width as the absolute difference between x2 and x1
+        const h = Math.abs(y2 - y1); // Calculate the height as the absolute difference between y2 and y1
         return new RectBody(x, y, w, h);
     }
     constructor(x1 = 0, y1 = 0, x2 = 0, y2 = 0) {

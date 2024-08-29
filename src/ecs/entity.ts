@@ -1,5 +1,5 @@
 import { Component } from './component.js';
-import { ECS } from './driver.js';
+import type { ECS } from './ecs.js';
 
 /**
  * This type is so functions like the ComponentContainer's get(...) will
@@ -46,11 +46,9 @@ export class ComponentContainer {
 	}
 
 	public hasAll(componentClasses: Iterable<Function>): boolean {
-		for (let cls of componentClasses) {
-			if (!this.map.has(cls)) {
+		for (let cls of componentClasses)
+			if (!this.map.has(cls))
 				return false;
-			}
-		}
 
 		return true;
 	}
@@ -68,9 +66,36 @@ export abstract class Entity {
 	public readonly components = new ComponentContainer();
 
 	constructor(
-		private readonly ecs: ECS
+		protected readonly ecs: ECS
 	) {
 		this.id = Entity.count++;
 		this.ecs = ecs;
+	}
+
+	public add(): void { this.ecs.addEntity(this); }
+
+	public remove(): void { this.ecs.removeEntity(this); }
+
+	public addComponent(component: Component): void {
+		this.components.add(component);
+
+		// Let Component signal ECS when it gets dirty.
+		component.signal = () =>
+			this.ecs.__componentDirty(this, component);
+
+		this.ecs.__checkE(this);
+
+		// Initial dirty signal to broadcast to interested Systems so
+		// that it gets a first update.
+		component.signal();
+	}
+
+	public removeComponent(componentClass: Function | Component): void {
+		if (componentClass instanceof Component)
+			this.components.delete(Component.constructor);
+		else
+			this.components.delete(componentClass);
+
+		this.ecs.__checkE(this);
 	}
 }

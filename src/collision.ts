@@ -7,12 +7,12 @@ interface Circle {
 }
 
 export class Collision {
-	static rect(rect1: RectWithPosition, rect2: RectWithPosition): boolean {
+	static rect(a: RectWithPosition, b: RectWithPosition): boolean {
 		return (
-			rect1.x + rect1.width > rect2.x &&
-			rect1.x < rect2.x + rect2.width &&
-			rect1.y + rect1.height > rect2.y &&
-			rect1.y < rect2.y + rect2.height
+			a.x + a.width > b.x &&
+			a.x < b.x + b.width &&
+			a.y + a.height > b.y &&
+			a.y < b.y + b.height
 		);
 	}
 

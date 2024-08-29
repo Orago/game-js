@@ -27,7 +27,7 @@ export class CanvasRender {
             if (amt > 2) {
                 amt = amt - 2;
             }
-            context.arc(x, y, radius, amt * Math.PI, 1.5 * Math.PI, false);
+            context.arc(x, y, radius, amt * Math.PI, 1.5 * Math.PI, false); //25%
             context.fillStyle = 'transparent';
             context.fill();
             context.lineWidth = strokeWidth !== null && strokeWidth !== void 0 ? strokeWidth : (radius - .3) * 2;

@@ -2,11 +2,9 @@ import Emitter from '@orago/lib/emitter';
 import { ProxyNode } from '@orago/dom';
 export default class Keyboard {
     object: ProxyNode;
-    alive: boolean;
-    pressed: {
-        [key: string]: boolean;
-    };
     events: Emitter;
+    pressed: Record<string, boolean>;
+    alive: boolean;
     constructor(element?: HTMLElement);
     init(): void;
     get stop(): () => void;

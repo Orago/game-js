@@ -23,7 +23,13 @@ export declare class Repeater {
     get setFps(): number;
     get fps(): number;
     set fps(newFps: number);
+    /**
+     * Restarts the repeater if it's not already running
+     */
     start(): void;
+    /**
+     * Pauses
+     */
     pause(paused?: boolean): void;
 }
 export default Repeater;

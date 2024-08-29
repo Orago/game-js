@@ -40,16 +40,24 @@ export default class Sprites {
         height: number;
     }): ImageType;
     canvas: import("./brush/brush.js").ChainableCanvas;
+    /**
+     * Host domain and or path
+     * it's essentially just a url prefix
+     */
     host: string;
     sprites: Map<any, any>;
     loading: Set<unknown>;
     cache: Map<string, Sprite>;
+    /** Seconds */
     cacheDuration: number;
     spriteSheets: Map<string, Spritesheet>;
     constructor(options: {
         host?: string;
         cacheDuration?: number;
     });
+    /**
+     * @param {Spritesheet} spritesheet
+     */
     addSpritesheet(spritesheet: Spritesheet): void;
     parseUrl(url: string): string;
     has(url: string): boolean;

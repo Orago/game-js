@@ -1,10 +1,11 @@
-import Emitter from '@orago/lib/emitter';
-import { Vector2, Position2D } from '@orago/vector';
-import { Collision } from './collision.js';
+import type { Point } from '@orago/vector';
 import BrushCanvas from './brush/brush.js';
+import { Collision } from './collision.js';
 import Cursor from './input/cursor.js';
 import Keyboard from './input/keyboard.js';
 import { Repeater } from './repeater.js';
+import { ECS } from './ecs/ecs.js';
+import { LegacyEntity, LegacySystem } from './plugins/legacy.js';
 export interface EngineObjectData {
     x?: number;
     y?: number;
@@ -13,28 +14,30 @@ export interface EngineObjectData {
     priority?: number;
     lifetime?: number;
 }
-export declare function screenToWorld(pos: Position2D, options?: {
-    center?: Position2D;
-    offset?: Position2D;
+export declare function screenToWorld(screen: Point, options?: {
+    center?: Point;
+    offset?: Point;
     zoom?: number;
-}): Vector2;
-export declare function worldToScreen(pos: Position2D, options?: {
-    center?: Position2D;
-    offset?: Position2D;
+}): Point;
+export declare function worldToScreen(world: Point, options?: {
+    center?: Point;
+    offset?: Point;
     zoom?: number;
-}): Vector2;
-export declare class EngineObject {
-    id: string;
+}): Point;
+/**
+ * Engine Object
+ * ! SHOULD NOT BE USED ON IT'S OWN
+ * @class
+ */
+export declare class EngineObject extends LegacyEntity {
     x: number;
     y: number;
     width: number;
     height: number;
-    priority: number;
     enabled: boolean;
     visible: boolean;
-    engine: Engine;
-    events: Emitter;
-    constructor(engineRef: Engine, data?: EngineObjectData);
+    engine: World;
+    constructor(engineRef: World, data?: EngineObjectData);
     ref(fn: (arg0: this) => void): this;
     tick(): void;
     removeType(): void;
@@ -52,17 +55,20 @@ export declare class EngineObject {
 }
 declare class createObjectGroup {
     #private;
-    engine: Engine;
+    engine: World;
     isObjGroup: boolean;
-    constructor(engine: Engine);
+    constructor(engine: World);
     add(): void;
     kill(): void;
     get items(): EngineObject[];
 }
-export default class Engine {
-    _pc_by_orago: string;
+export default class World {
+    static ECS: typeof ECS;
+    ecs: ECS;
+    legacy: LegacySystem;
+    /** List of renderable objects */
     objects: Set<EngineObject>;
-    offset: Vector2;
+    offset: Point;
     zoom: number;
     brush: BrushCanvas;
     cursor: Cursor;
@@ -70,17 +76,25 @@ export default class Engine {
     ticks: Repeater;
     frame: number;
     constructor(brush: BrushCanvas);
-    get orderedObjects(): EngineObject[];
     collision: typeof Collision;
-    object: (data: EngineObjectData, ref: (arg0: EngineObject) => void) => EngineObject;
-    screenToWorld(pos: Position2D, options?: {
+    object: (data: EngineObjectData, ref: (arg0: LegacyEntity) => void) => LegacyEntity;
+    screenToWorld(point: Point, options?: {
         center?: boolean;
-    }): Vector2;
-    worldToScreen(pos: Position2D, options?: {
+    }): Point;
+    worldToScreen(point: Point, options?: {
         center?: boolean;
-    }): Vector2;
+    }): Point;
+    /**
+     * @deprecated
+     */
     get objectGroup(): createObjectGroup;
+    /**
+     * @deprecated
+     */
     findObjects(search: (arg0: EngineObject) => boolean): Array<EngineObject>;
+    /**
+     * @deprecated
+     */
     allowZoom(): this;
     setCursor(url: string): this;
     destroy(): void;

@@ -10,6 +10,11 @@ const colorableCanvas = new brush_js_1.default({
     inputCanvas: document.createElement('canvas')
 });
 const colorChain = colorableCanvas.chainable;
+/**
+ * Draws an overlay tint to canvas
+ * ! WARNING it is extremely slow
+ * @deprecated
+ */
 function badlyColorImage(image, red = 0, green = 0, blue = 0) {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -29,6 +34,10 @@ function badlyColorImage(image, red = 0, green = 0, blue = 0) {
     }
     return canvas;
 }
+/**
+ * Draws an overlay tint to canvas
+ * Faster yet slightly different version of badlyColorImage
+ */
 function rgbTintImage(sprite, [red = 0, green = 0, blue = 0, tint = .2]) {
     const image = new Image();
     colorChain
@@ -48,17 +57,26 @@ function rgbTintImage(sprite, [red = 0, green = 0, blue = 0, tint = .2]) {
     return sprite;
 }
 exports.rgbTintImage = rgbTintImage;
+/**
+ * Old default is 100
+ */
 function lightenOverlay(chain, light) {
     if (typeof light != 'number')
         return;
     chain
         .rendering(light < 100 ? 'color-burn' : 'color-dodge');
+    // Modify future light after color-effect
     light = light >= 100 ? light - 100 : 100 - (100 - light);
+    // light
     chain
         .color(`hsl(0, 50%, ${light}%)`)
         .rect;
 }
 exports.lightenOverlay = lightenOverlay;
+/**
+ * Saturates the image
+ * Old default is 100
+ */
 function saturateOverlay(chain, saturation) {
     if (typeof saturation != 'number')
         return;
@@ -68,6 +86,9 @@ function saturateOverlay(chain, saturation) {
         .rect;
 }
 exports.saturateOverlay = saturateOverlay;
+/**
+ * Quickly Sets canvas size and draws sprite once
+ */
 function plainDraw(chain, sprite) {
     chain
         .canvasSize(sprite.width, sprite.height)
@@ -78,6 +99,9 @@ function plainDraw(chain, sprite) {
         .image(sprite);
 }
 exports.plainDraw = plainDraw;
+/**
+ * Tints overlay with Hue
+ */
 function hueOverlay(chain, hue) {
     if (typeof hue != 'number')
         return;
@@ -87,12 +111,19 @@ function hueOverlay(chain, hue) {
         .rect;
 }
 exports.hueOverlay = hueOverlay;
+/**
+ * Used to clip over the same image and remove excess pixels quickly
+ */
 function clipEditFrom(chain, sprite) {
     chain
         .rendering('destination-in')
         .image(sprite)
         .rendering('source-over');
 }
+/**
+ * Checks if all items in an array match
+ * Best image color manipulation method
+ */
 function hslTintImage(sprite, options) {
     plainDraw(colorChain, sprite);
     if (typeof (options === null || options === void 0 ? void 0 : options.light) === 'number')
@@ -105,6 +136,7 @@ function hslTintImage(sprite, options) {
         hueOverlay(colorChain, (0, colors_1.rgbToHue)(...(0, colors_1.forceRgb)(options.tint)));
     else if (typeof (options === null || options === void 0 ? void 0 : options.hue) === 'number')
         hueOverlay(colorChain, options.hue);
+    // Clipping
     clipEditFrom(colorChain, sprite);
     const image = new Image();
     if (colorChain.canvas instanceof HTMLCanvasElement) {

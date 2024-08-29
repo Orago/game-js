@@ -1,17 +1,23 @@
-import { Vector2 } from '@orago/vector';
+import { type Point } from '@orago/lib/vector';
+// import { Vector2 } from '@orago/vector';
 
-export interface LikeRectangle {
+export interface Rectangle {
 	width: number;
 	height: number;
 }
 
-export interface RectWithPosition {
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-}
+export type PositionedRectangle = Rectangle & Point;
 
+/**
+ * @deprecated
+ * @see {PositionedRectangle}
+ */
+export type RectWithPosition = PositionedRectangle;
+
+
+/**
+ * @deprecated
+ */
 export interface RectOrPosition {
 	x: number;
 	y: number;
@@ -26,13 +32,13 @@ export type LikeBounds = [
 	y2: number
 ];
 
-export class Rectangle {
+export class RectangleUtil {
 	static scaleToFit(
 		containerWidth: number,
 		containerHeight: number,
 		rectWidth: number,
 		rectHeight: number
-	): Rectangle {
+	): RectangleUtil {
 		// Calculate aspect ratios
 		const containerRatio = containerWidth / containerHeight;
 		const rectRatio = rectWidth / rectHeight;
@@ -49,18 +55,18 @@ export class Rectangle {
 		const width = rectWidth * scaleFactor;
 		const height = rectHeight * scaleFactor;
 
-		return new Rectangle(width, height);
+		return new RectangleUtil(width, height);
 	}
 
-	static scale(width: number, height: number, scale: number): Rectangle {
+	static scale(width: number, height: number, scale: number): RectangleUtil {
 		width *= scale;
 		height *= scale;
 
-		return new Rectangle(width, height);
+		return new RectangleUtil(width, height);
 	}
 
-	static FromObj(obj: LikeRectangle): Rectangle {
-		return new Rectangle(obj.width, obj.height);
+	static FromObj(obj: Rectangle): RectangleUtil {
+		return new RectangleUtil(obj.width, obj.height);
 	}
 
 	width: number;
@@ -79,21 +85,15 @@ export class Rectangle {
 	/**
 	 * Upscales rectangle by scale factor
 	 * @param {number} scale 
-	 * @returns {Rectangle}
+	 * @returns {RectangleUtil}
 	 */
-	scaled(scale: number): Rectangle {
-		return new Rectangle(this.width * scale, this.height * scale);
+	scaled(scale: number): RectangleUtil {
+		return new RectangleUtil(this.width * scale, this.height * scale);
 	}
 
-	/**
-	 * @param {{
-	 *  width: number,
-	 *  height: number
-	 * }} param0
-	 * @returns {Rectangle}
-	 */
-	toFit(_: LikeRectangle = this): Rectangle {
-		const fit = Rectangle.scaleToFit(
+
+	toFit(_: Rectangle = this): RectangleUtil {
+		const fit = RectangleUtil.scaleToFit(
 			_.width,
 			_.height,
 			this.width,
@@ -104,12 +104,12 @@ export class Rectangle {
 	}
 }
 
-export class RectBody extends Rectangle {
-	static toBoundingBox(rect: RectBody | Rectangle): Bound | undefined {
+export class RectBody extends RectangleUtil {
+	static toBoundingBox(rect: RectBody | RectangleUtil): Bound | undefined {
 		if (rect instanceof RectBody)
 			return new Bound(rect.x, rect.y, rect.width, rect.height);
 
-		if (rect instanceof Rectangle)
+		if (rect instanceof RectangleUtil)
 			return new Bound(0, 0, rect.width, rect.height);
 	}
 
@@ -122,7 +122,7 @@ export class RectBody extends Rectangle {
 		return parent.x <= child.x && parentx2 >= childx2 && parent.y <= child.y && parenty2 >= childy2;
 	}
 
-	static centered(parent: RectBody, child: LikeRectangle): RectBody {
+	static centered(parent: RectBody, child: Rectangle): RectBody {
 		return new RectBody(
 			parent.x + (parent.width - child.width) / 2,
 			parent.y + (parent.height - child.height) / 2
@@ -144,8 +144,11 @@ export class RectBody extends Rectangle {
 		this.y = y;
 	}
 
-	get pos(): Vector2 {
-		return new Vector2(this.x, this.y);
+	get pos(): Point {
+		return {
+			x: this.x,
+			y: this.y
+		}
 	}
 
 	set pos(vector2) {
@@ -162,16 +165,16 @@ export class RectBody extends Rectangle {
 		);
 	}
 
-	move(x: number | Vector2, y: number): RectBody {
-		let input = x;
-
-		if (input instanceof Vector2) {
-			this.x += input.x;
-			this.y += input.y;
-		} 
-		else if (typeof x === 'number' && typeof y === 'number') {
-			this.x += x;
-			this.y += y;
+	move(input: Point): RectBody;
+	move(x: number, y: number): RectBody;
+	move(...args: any[]): RectBody {
+		if (typeof args[0] == 'object') {
+			this.x += args[0].x;
+			this.y += args[0].y;
+		}
+		else if (typeof args[0] === 'number' && typeof args[1] === 'number') {
+			this.x += args[0];
+			this.y += args[1];
 		}
 
 		return this;

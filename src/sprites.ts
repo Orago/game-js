@@ -160,7 +160,6 @@ class BlankSprite extends Sprite {
 }
 
 export default class Sprites {
-
 	static Slice(
 		image: ImageType,
 		bounds: {
@@ -227,8 +226,7 @@ export default class Sprites {
 		if (
 			typeof url == 'string' &&
 			url.startsWith('/')
-		)
-			return this.host + url;
+		) return this.host + url;
 
 		return url;
 	}
@@ -269,9 +267,8 @@ export default class Sprites {
 			if (typeof onLoad === 'function') {
 				const result = onLoad(res.img);
 
-				if (result) {
+				if (result)
 					res.img = result;
-				}
 			}
 		});
 

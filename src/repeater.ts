@@ -24,9 +24,8 @@ export class FPS {
 
 		let total = 0;
 
-		for (let i = 0; i < this.samples.length; i++) {
+		for (let i = 0; i < this.samples.length; i++)
 			total += this.samples[i];
-		}
 
 		const average = Math.round(total / this.samples.length);
 

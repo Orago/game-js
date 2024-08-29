@@ -4,39 +4,56 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _createObjectGroup_items;
-import Emitter from '@orago/lib/emitter';
-import { Vector2 } from '@orago/vector';
-import { v4 as uuidV4 } from 'uuid';
 import { Collision } from './collision.js';
 import Cursor from './input/cursor.js';
 import Keyboard from './input/keyboard.js';
 import { Repeater } from './repeater.js';
+import { ECS } from './ecs/ecs.js';
+import { LegacyEntity, LegacySystem } from './plugins/legacy.js';
 const zoomIncrement = .2;
-export function screenToWorld(pos, options) {
+export function screenToWorld(screen, options) {
     var _a, _b, _c;
     const center = (_a = options === null || options === void 0 ? void 0 : options.center) !== null && _a !== void 0 ? _a : { x: 0, y: 0 };
     const offset = (_b = options === null || options === void 0 ? void 0 : options.offset) !== null && _b !== void 0 ? _b : { x: 0, y: 0 };
     const zoom = (_c = options === null || options === void 0 ? void 0 : options.zoom) !== null && _c !== void 0 ? _c : 1;
-    return new Vector2((pos.x - offset.x) * zoom + center.x, (pos.y - offset.y) * zoom + center.y);
+    return {
+        x: (screen.x - center.x) / zoom + offset.x,
+        y: (screen.y - center.y) / zoom + offset.y
+    };
 }
-export function worldToScreen(pos, options) {
+export function worldToScreen(world, options) {
     var _a, _b, _c;
     const center = (_a = options === null || options === void 0 ? void 0 : options.center) !== null && _a !== void 0 ? _a : { x: 0, y: 0 };
     const offset = (_b = options === null || options === void 0 ? void 0 : options.offset) !== null && _b !== void 0 ? _b : { x: 0, y: 0 };
     const zoom = (_c = options === null || options === void 0 ? void 0 : options.zoom) !== null && _c !== void 0 ? _c : 1;
-    return new Vector2((pos.x + offset.x) * zoom + (center.x / zoom), (pos.y + offset.y) * zoom + (center.y / zoom));
+    return {
+        x: (world.x - offset.x) * zoom + center.x,
+        y: (world.y - offset.y) * zoom + center.y
+    };
 }
-export class EngineObject {
+/**
+ * Engine Object
+ * ! SHOULD NOT BE USED ON IT'S OWN
+ * @class
+ */
+export class EngineObject extends LegacyEntity {
+    // options: {
+    // 	zoom: boolean;
+    // 	offset: boolean;
+    // } = {
+    // 		zoom: false,
+    // 		offset: false,
+    // 	};
+    // events = new Emitter();
     constructor(engineRef, data = {}) {
-        this.id = uuidV4();
+        super(engineRef.ecs);
+        // id = uuidV4();
         this.x = 0;
         this.y = 0;
         this.width = 0;
         this.height = 0;
-        this.priority = 1;
         this.enabled = true;
         this.visible = true;
-        this.events = new Emitter();
         this.engine = engineRef;
         if (typeof data === 'object') {
             if (typeof data.x === 'number')
@@ -66,16 +83,16 @@ export class EngineObject {
     removeType() {
         this.events.emit('remove');
         this.events.all.clear();
-        if (this.engine instanceof Engine) {
+        if (this.engine instanceof World) {
             this.engine.objects.delete(this);
         }
     }
     addTo(...tags) {
-        this.events.emit('add');
-        if (this.engine instanceof Engine) {
-            this.engine.objects.add(this);
-        }
-        tags.forEach(tag => (tag === null || tag === void 0 ? void 0 : tag.isObjGroup) == true && tag.add(this));
+        // this.events.emit('add');
+        // if (this.engine instanceof World) {
+        // 	this.engine.objects.add(this);
+        // }
+        // tags.forEach(tag => tag?.isObjGroup == true && tag.add(this));
         return this;
     }
     toScreen() {
@@ -112,9 +129,6 @@ class createObjectGroup {
     constructor(engine) {
         this.isObjGroup = true;
         _createObjectGroup_items.set(this, new Set());
-        if ((engine === null || engine === void 0 ? void 0 : engine._pc_by_orago) != 'orago is the coolest lol') {
-            throw 'Cannot Create Tag Set';
-        }
         this.engine = engine;
     }
     add() {
@@ -133,69 +147,97 @@ class createObjectGroup {
     }
 }
 _createObjectGroup_items = new WeakMap();
-export default class Engine {
+class World {
     constructor(brush) {
-        this._pc_by_orago = 'orago is the coolest lol';
+        this.ecs = new ECS();
+        this.legacy = new LegacySystem(this.ecs, this);
+        /** List of renderable objects */
         this.objects = new Set();
-        this.offset = new Vector2;
+        this.offset = { x: 0, y: 0 };
         this.zoom = 3;
         this.frame = 0;
+        // get orderedObjects() {
+        // 	return Array.from(this.objects).sort(
+        // 		(a: LegacyEntity, b: LegacyEntity): number =>
+        // 			a.priority - b.priority
+        // 	);
+        // }
         this.collision = Collision;
-        this.object = (data, ref) => new EngineObject(this, data)
-            .ref(ref);
+        this.object = (data, ref) => {
+            const entity = new LegacyEntity(this.ecs);
+            if (data.priority != null)
+                entity.priority = data.priority;
+            ref(entity);
+            return entity;
+        };
         this.brush = brush;
+        this.ecs.addSystem(this.legacy);
         if (brush.canvas instanceof HTMLCanvasElement != true)
             throw new Error('Cannot use offscreen canvas for engine');
-        else if (brush.canvas.parentElement == null)
+        if (brush.canvas.parentElement == null)
             throw new Error('Cannot assign container');
         brush.canvas.setAttribute('tabindex', '1');
         this.cursor = new Cursor(brush.canvas);
         this.keyboard = new Keyboard(brush.canvas.parentElement);
         this.ticks = new Repeater(64, () => {
             var _a;
+            this.ecs.update();
             this.frame = (_a = this === null || this === void 0 ? void 0 : this.ticks) === null || _a === void 0 ? void 0 : _a.frame;
-            for (const item of this.orderedObjects) {
-                item.tick();
-            }
+            // for (const item of this.orderedObjects) {
+            // 	item.tick();
+            // }
         });
         this.ticks.start();
-        this.cursor.events.on('click', () => {
-            for (const obj of this.orderedObjects) {
-                if (obj.events.all.has('click') != true)
-                    continue;
-                const screenObj = obj.toScreen();
-                const clicked = this.collision.rectContains(screenObj, this.cursor.pos);
-                if (clicked == true && obj.enabled) {
-                    obj.events.emit('click', this.cursor.pos);
-                }
-            }
-        });
+        // this.cursor.events.on('click', () => {
+        // 	for (const obj of this.orderedObjects) {
+        // 		if (obj.events.all.has('click') != true)
+        // 			continue;
+        // 		const screenObj = obj.toScreen();
+        // 		const clicked = this.collision.rectContains(
+        // 			screenObj,
+        // 			this.cursor.pos
+        // 		);
+        // 		if (clicked == true && obj.enabled) {
+        // 			obj.events.emit('click', this.cursor.pos);
+        // 			// if (typeof obj.whileClick == 'function')
+        // 			//   while (this.cursor.down == true)
+        // 			//     obj.whileClick(this.cursor.pos);
+        // 			// if (obj.button == true) break;
+        // 		}
+        // 	}
+        // });
     }
-    get orderedObjects() {
-        return Array.from(this.objects).sort((a, b) => a.priority - b.priority);
-    }
-    screenToWorld(pos, options) {
-        return screenToWorld(pos, {
+    screenToWorld(point, options) {
+        return screenToWorld(point, {
             center: (options === null || options === void 0 ? void 0 : options.center) === true ? this.brush.center() : { x: 0, y: 0 },
             offset: this.offset,
             zoom: this.zoom
         });
     }
-    worldToScreen(pos, options) {
-        return worldToScreen(pos, {
+    worldToScreen(point, options) {
+        return worldToScreen(point, {
             center: (options === null || options === void 0 ? void 0 : options.center) === true ? this.brush.center() : { x: 0, y: 0 },
             offset: this.offset,
             zoom: this.zoom
         });
     }
+    /**
+     * @deprecated
+     */
     get objectGroup() {
         return new createObjectGroup(this);
     }
+    /**
+     * @deprecated
+     */
     findObjects(search) {
         return Array
             .from(this.objects)
             .filter(search);
     }
+    /**
+     * @deprecated
+     */
     allowZoom() {
         const eng = this;
         this.brush.canvas.addEventListener('wheel', (evt) => {
@@ -254,7 +296,15 @@ export default class Engine {
     destroy() {
         this.keyboard.events.all.clear();
         this.cursor.reInit();
+        /* Queue for deletion */
+        this.ecs.killEntities();
+        /* Do final run / deletion */
+        this.ecs.update();
+        /* Wipe the canvas */
+        this.brush.clear();
         for (const object of Array.from(this.objects))
             object.removeType();
     }
 }
+World.ECS = ECS;
+export default World;

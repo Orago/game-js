@@ -19,9 +19,8 @@ class FPS {
         const currentFPS = 1 / delta;
         this.samples[this.currentIndex] = Math.round(currentFPS);
         let total = 0;
-        for (let i = 0; i < this.samples.length; i++) {
+        for (let i = 0; i < this.samples.length; i++)
             total += this.samples[i];
-        }
         const average = Math.round(total / this.samples.length);
         this.value = average;
         this.lastTick = now;
@@ -71,22 +70,27 @@ class Repeater {
         this.frame = -1;
         this.time = undefined;
     }
+    /**
+     * Restarts the repeater if it's not already running
+     */
     start() {
         if (this.paused == true) {
             this.paused = false;
             this.RafRef = requestAnimationFrame(this.loop.bind(this));
         }
     }
+    /**
+     * Pauses
+     */
     pause(paused = !this.paused == true) {
         this.paused = paused;
-        if (this.paused === true) {
-            if (typeof this.RafRef === 'number')
-                cancelAnimationFrame(this.RafRef);
-            this.time = undefined;
-            this.frame = -1;
-        }
-        else
-            this.start();
+        if (this.paused !== true)
+            return this.start(),
+                void 0;
+        if (typeof this.RafRef === 'number')
+            cancelAnimationFrame(this.RafRef);
+        this.time = undefined;
+        this.frame = -1;
     }
 }
 exports.Repeater = Repeater;

@@ -1,14 +1,17 @@
-import { Vector2 } from '@orago/vector';
-export interface LikeRectangle {
+import { type Point } from '@orago/lib/vector';
+export interface Rectangle {
     width: number;
     height: number;
 }
-export interface RectWithPosition {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}
+export type PositionedRectangle = Rectangle & Point;
+/**
+ * @deprecated
+ * @see {PositionedRectangle}
+ */
+export type RectWithPosition = PositionedRectangle;
+/**
+ * @deprecated
+ */
 export interface RectOrPosition {
     x: number;
     y: number;
@@ -21,28 +24,34 @@ export type LikeBounds = [
     x2: number,
     y2: number
 ];
-export declare class Rectangle {
-    static scaleToFit(containerWidth: number, containerHeight: number, rectWidth: number, rectHeight: number): Rectangle;
-    static scale(width: number, height: number, scale: number): Rectangle;
-    static FromObj(obj: LikeRectangle): Rectangle;
+export declare class RectangleUtil {
+    static scaleToFit(containerWidth: number, containerHeight: number, rectWidth: number, rectHeight: number): RectangleUtil;
+    static scale(width: number, height: number, scale: number): RectangleUtil;
+    static FromObj(obj: Rectangle): RectangleUtil;
     width: number;
     height: number;
     constructor(width: number, height: number);
     [Symbol.iterator](): Generator<number, void, unknown>;
-    scaled(scale: number): Rectangle;
-    toFit(_?: LikeRectangle): Rectangle;
+    /**
+     * Upscales rectangle by scale factor
+     * @param {number} scale
+     * @returns {RectangleUtil}
+     */
+    scaled(scale: number): RectangleUtil;
+    toFit(_?: Rectangle): RectangleUtil;
 }
-export declare class RectBody extends Rectangle {
-    static toBoundingBox(rect: RectBody | Rectangle): Bound | undefined;
+export declare class RectBody extends RectangleUtil {
+    static toBoundingBox(rect: RectBody | RectangleUtil): Bound | undefined;
     static contains(parent: RectWithPosition, child: RectWithPosition): boolean;
-    static centered(parent: RectBody, child: LikeRectangle): RectBody;
+    static centered(parent: RectBody, child: Rectangle): RectBody;
     x: number;
     y: number;
     constructor(x: number, y: number, width?: number, height?: number);
-    get pos(): Vector2;
-    set pos(vector2: Vector2);
+    get pos(): Point;
+    set pos(vector2: Point);
     copy(): RectBody;
-    move(x: number | Vector2, y: number): RectBody;
+    move(input: Point): RectBody;
+    move(x: number, y: number): RectBody;
 }
 export declare class Bound {
     static toPositionalRect(bound: Bound): RectBody;

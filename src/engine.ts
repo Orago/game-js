@@ -1,11 +1,14 @@
 import Emitter from '@orago/lib/emitter';
-import { Point, Vector2 } from '@orago/vector';
+import { Vector2 } from '@orago/vector';
+import type { Point } from '@orago/vector';
 import { v4 as uuidV4 } from 'uuid';
 import BrushCanvas from './brush/brush.js';
 import { Collision } from './collision.js';
 import Cursor from './input/cursor.js';
 import Keyboard from './input/keyboard.js';
 import { Repeater } from './repeater.js';
+import { ECS } from './ecs/ecs.js';
+import { LegacyEntity, LegacySystem } from './plugins/legacy.js';
 
 const zoomIncrement = .2;
 
@@ -22,6 +25,8 @@ export interface EngineObjectData {
 	// }
 }
 
+
+
 export function screenToWorld(
 	screen: Point,
 	options?: {
@@ -29,15 +34,15 @@ export function screenToWorld(
 		offset?: Point;
 		zoom?: number
 	}
-): Vector2 {
+): Point {
 	const center = options?.center ?? { x: 0, y: 0 };
 	const offset = options?.offset ?? { x: 0, y: 0 };
 	const zoom = options?.zoom ?? 1;
 
-	return new Vector2(
-		(screen.x - offset.x) * zoom + center.x,
-		(screen.y - offset.y) * zoom + center.y
-	);
+	return {
+		x: (screen.x - center.x) / zoom + offset.x,
+		y: (screen.y - center.y) / zoom + offset.y
+	};
 }
 
 export function worldToScreen(
@@ -47,15 +52,15 @@ export function worldToScreen(
 		offset?: Point;
 		zoom?: number
 	}
-): Vector2 {
+): Point {
 	const center = options?.center ?? { x: 0, y: 0 };
 	const offset = options?.offset ?? { x: 0, y: 0 };
 	const zoom = options?.zoom ?? 1;
 
-	return new Vector2(
-		(world.x + offset.x) * zoom + (center.x / zoom),
-		(world.y + offset.y) * zoom + (center.y / zoom)
-	);
+	return {
+		x: (world.x - offset.x) * zoom + center.x,
+		y: (world.y - offset.y) * zoom + center.y
+	};
 }
 
 
@@ -64,14 +69,13 @@ export function worldToScreen(
  * ! SHOULD NOT BE USED ON IT'S OWN
  * @class
  */
-export class EngineObject {
-	id = uuidV4();
+export class EngineObject extends LegacyEntity {
+	// id = uuidV4();
 	x = 0;
 	y = 0;
 	width = 0;
 	height = 0;
 
-	priority = 1;
 	enabled = true;
 	visible = true;
 	engine: World;
@@ -83,9 +87,10 @@ export class EngineObject {
 	// 		offset: false,
 	// 	};
 
-	events = new Emitter();
+	// events = new Emitter();
 
 	constructor(engineRef: World, data: EngineObjectData = {}) {
+		super(engineRef.ecs);
 		this.engine = engineRef;
 
 		if (typeof data === 'object') {
@@ -128,13 +133,13 @@ export class EngineObject {
 	}
 
 	addTo(...tags: any[]): this {
-		this.events.emit('add');
+		// this.events.emit('add');
 
-		if (this.engine instanceof World) {
-			this.engine.objects.add(this);
-		}
+		// if (this.engine instanceof World) {
+		// 	this.engine.objects.add(this);
+		// }
 
-		tags.forEach(tag => tag?.isObjGroup == true && tag.add(this));
+		// tags.forEach(tag => tag?.isObjGroup == true && tag.add(this));
 
 		return this;
 	}
@@ -206,9 +211,14 @@ class createObjectGroup {
 }
 
 export default class World {
+	static ECS = ECS;
+
+	ecs: ECS = new ECS();
+	legacy = new LegacySystem(this.ecs, this);
+
 	/** List of renderable objects */
 	objects: Set<EngineObject> = new Set();
-	offset: Vector2 = new Vector2;
+	offset: Point = { x: 0, y: 0 };
 	zoom: number = 3;
 
 	brush: BrushCanvas;
@@ -219,6 +229,7 @@ export default class World {
 
 	constructor(brush: BrushCanvas) {
 		this.brush = brush;
+		this.ecs.addSystem(this.legacy);
 
 		if (brush.canvas instanceof HTMLCanvasElement != true)
 			throw new Error('Cannot use offscreen canvas for engine');
@@ -232,62 +243,71 @@ export default class World {
 		this.keyboard = new Keyboard(brush.canvas.parentElement);
 
 		this.ticks = new Repeater(64, () => {
+			this.ecs.update();
 			this.frame = this?.ticks?.frame;
 
-			for (const item of this.orderedObjects) {
-				item.tick();
-			}
+			// for (const item of this.orderedObjects) {
+			// 	item.tick();
+			// }
 		});
 
 		this.ticks.start();
 
-		this.cursor.events.on('click', () => {
-			for (const obj of this.orderedObjects) {
-				if (obj.events.all.has('click') != true)
-					continue;
+		// this.cursor.events.on('click', () => {
+		// 	for (const obj of this.orderedObjects) {
+		// 		if (obj.events.all.has('click') != true)
+		// 			continue;
 
-				const screenObj = obj.toScreen();
+		// 		const screenObj = obj.toScreen();
 
-				const clicked = this.collision.rectContains(
-					screenObj,
-					this.cursor.pos
-				);
+		// 		const clicked = this.collision.rectContains(
+		// 			screenObj,
+		// 			this.cursor.pos
+		// 		);
 
-				if (clicked == true && obj.enabled) {
-					obj.events.emit('click', this.cursor.pos);
+		// 		if (clicked == true && obj.enabled) {
+		// 			obj.events.emit('click', this.cursor.pos);
 
-					// if (typeof obj.whileClick == 'function')
-					//   while (this.cursor.down == true)
-					//     obj.whileClick(this.cursor.pos);
+		// 			// if (typeof obj.whileClick == 'function')
+		// 			//   while (this.cursor.down == true)
+		// 			//     obj.whileClick(this.cursor.pos);
 
-					// if (obj.button == true) break;
-				}
-			}
-		});
+		// 			// if (obj.button == true) break;
+		// 		}
+		// 	}
+		// });
 	}
 
-	get orderedObjects() {
-		return Array.from(this.objects).sort(
-			(a: EngineObject, b: EngineObject): number =>
-				a.priority - b.priority
-		);
-	}
+	// get orderedObjects() {
+	// 	return Array.from(this.objects).sort(
+	// 		(a: LegacyEntity, b: LegacyEntity): number =>
+	// 			a.priority - b.priority
+	// 	);
+	// }
 
 	collision = Collision;
 
 	object = (
 		data: EngineObjectData,
-		ref: (arg0: EngineObject) => void
-	): EngineObject =>
-		new EngineObject(this, data)
-			.ref(ref);
+		ref: (arg0: LegacyEntity) => void
+	): LegacyEntity => {
+
+		const entity = new LegacyEntity(this.ecs);
+
+		if (data.priority != null)
+			entity.priority = data.priority;
+
+		ref(entity);
+
+		return entity;
+	}
 
 	screenToWorld(
 		point: Point,
 		options?: {
 			center?: boolean;
 		}
-	): Vector2 {
+	): Point {
 		return screenToWorld(
 			point,
 			{
@@ -295,7 +315,7 @@ export default class World {
 				offset: this.offset,
 				zoom: this.zoom
 			}
-		)
+		);
 	}
 
 	worldToScreen(
@@ -303,7 +323,7 @@ export default class World {
 		options?: {
 			center?: boolean;
 		}
-	): Vector2 {
+	): Point {
 		return worldToScreen(
 			point,
 			{
@@ -314,16 +334,25 @@ export default class World {
 		);
 	}
 
+	/**
+	 * @deprecated
+	 */
 	get objectGroup() {
 		return new createObjectGroup(this);
 	}
 
+	/**
+	 * @deprecated
+	 */
 	findObjects(search: (arg0: EngineObject) => boolean): Array<EngineObject> {
 		return Array
 			.from(this.objects)
 			.filter(search);
 	}
 
+	/**
+	 * @deprecated
+	 */
 	allowZoom() {
 		const eng = this;
 
@@ -422,6 +451,15 @@ export default class World {
 	destroy() {
 		this.keyboard.events.all.clear();
 		this.cursor.reInit();
+
+		/* Queue for deletion */
+		this.ecs.killEntities();
+
+		/* Do final run / deletion */
+		this.ecs.update();
+
+		/* Wipe the canvas */
+		this.brush.clear();
 
 		for (const object of Array.from(this.objects))
 			object.removeType();

@@ -5,7 +5,7 @@ interface Circle {
     y: number;
 }
 export declare class Collision {
-    static rect(rect1: RectWithPosition, rect2: RectWithPosition): boolean;
+    static rect(a: RectWithPosition, b: RectWithPosition): boolean;
     static rectContains(p: RectWithPosition, c: RectOrPosition): boolean;
     static circle(a: Circle, b: Circle): boolean;
 }

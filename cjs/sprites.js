@@ -65,13 +65,16 @@ function responseToImageUrl(response) {
     return __awaiter(this, void 0, void 0, function* () {
         if (response.ok != true)
             throw new Error('Network response was not ok');
+        /** Read the response as a Blob */
         const blob = yield response.blob();
+        /** Create an object URL from the Blob */
         return URL.createObjectURL(blob);
     });
 }
 exports.responseToImageUrl = responseToImageUrl;
 function imageToResponse(image) {
-    const blob = new Blob([image], { type: 'image/jpeg' });
+    const blob = new Blob([image], { type: 'image/jpeg' }); // Adjust the MIME type as needed
+    // Create a Response object from the Blob
     return new Response(blob, { status: 200, statusText: 'OK' });
 }
 exports.imageToResponse = imageToResponse;
@@ -82,28 +85,30 @@ class Spritesheet {
         this.sprite = new Image();
         if (typeof options != 'object')
             throw console.log('Bad spritesheet', options);
-        else if (typeof (options === null || options === void 0 ? void 0 : options.url) !== 'string')
+        if (typeof (options === null || options === void 0 ? void 0 : options.url) !== 'string')
             throw console.log('Bad spritesheet url', options);
-        else if (typeof (options === null || options === void 0 ? void 0 : options.url) !== 'string')
+        if (typeof (options === null || options === void 0 ? void 0 : options.url) !== 'string')
             throw console.log('Bad spritesheet url', options);
-        else if (typeof (options === null || options === void 0 ? void 0 : options.config) !== 'object')
+        if (typeof (options === null || options === void 0 ? void 0 : options.config) !== 'object')
             throw console.log('Bad config', options);
-        else if (typeof ((_a = options.config) === null || _a === void 0 ? void 0 : _a.fileName) !== 'string')
+        if (typeof ((_a = options.config) === null || _a === void 0 ? void 0 : _a.fileName) !== 'string')
             throw console.log('[spritesheet.config] Invalid fileName', options);
-        else if (typeof ((_b = options.config) === null || _b === void 0 ? void 0 : _b.sprites) !== 'object')
+        if (typeof ((_b = options.config) === null || _b === void 0 ? void 0 : _b.sprites) !== 'object')
             throw console.log('[spritesheet.config] Invalid sprites type', options);
         let index = 0;
         for (const [spriteUrl, spriteCfg] of Object.entries(options.config.sprites)) {
             let i = index++;
             if (typeof spriteUrl !== 'string')
                 throw console.log(`[spritesheet.sprites]: I:(${i}) Bad sprite url`, [spriteUrl, spriteCfg]);
-            else if (typeof spriteCfg !== 'object')
+            if (typeof spriteCfg !== 'object')
                 throw console.log(`[spritesheet.sprites]: I:(${i}) Bad sprite config`, [spriteUrl, spriteCfg]);
         }
         if (options.cache === true) {
+            // fetchCached('sprites', options.url)
             fetch(options.url)
                 .then((response) => __awaiter(this, void 0, void 0, function* () {
                 this.sprite.src = yield responseToImageUrl(response);
+                // console.log('CACHE LOADED', options.url);
             }));
         }
         else {
@@ -142,11 +147,16 @@ class Sprites {
     }
     constructor(options) {
         this.canvas = new brush_js_1.default().chainable;
+        /**
+         * Host domain and or path
+         * it's essentially just a url prefix
+         */
         this.host = '';
         this.sprites = new Map();
         this.loading = new Set;
         this.cache = new Map();
-        this.cacheDuration = 3600;
+        /** Seconds */
+        this.cacheDuration = 3600; /* 1 hour */
         this.spriteSheets = new Map();
         if (typeof options === 'object') {
             if (typeof options.host === 'string')
@@ -155,6 +165,9 @@ class Sprites {
                 this.cacheDuration = options.cacheDuration;
         }
     }
+    /**
+     * @param {Spritesheet} spritesheet
+     */
     addSpritesheet(spritesheet) {
         if (spritesheet instanceof Spritesheet != true) {
             console.log(spritesheet);
@@ -191,9 +204,8 @@ class Sprites {
             this.loading.delete(url);
             if (typeof onLoad === 'function') {
                 const result = onLoad(res.img);
-                if (result) {
+                if (result)
                     res.img = result;
-                }
             }
         });
         this.cache.set(url, res);
@@ -203,6 +215,7 @@ class Sprites {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.sprites.has(url))
                 return this.sprites.get(url);
+            /** From spritesheet */
             for (const sheet of Array.from(this.spriteSheets.values())) {
                 if (sheet.config.sprites.hasOwnProperty(url) != true)
                     continue;
@@ -219,10 +232,12 @@ class Sprites {
                 this.cache.set(url, sprite);
                 return sprite.img;
             }
+            /** Return promise loop if in queue */
             if (this.loading.has(url)) {
                 yield new Promise((resolve) => setTimeout(resolve, 500));
                 return yield this.fromCache(url);
             }
+            /** Load new */
             return yield this.promise(url);
         });
     }
