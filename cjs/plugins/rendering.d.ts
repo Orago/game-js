@@ -1,6 +1,4 @@
-import type { Entity } from '../ecs/entity.js';
-import { Component } from '../ecs/component.js';
-import { System } from '../ecs/system.js';
+import { type Entity, Component, System } from '@orago/ecs';
 export declare class Renderable extends Component {
     callback: () => void;
     constructor(callback: () => void);

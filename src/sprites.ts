@@ -133,7 +133,8 @@ export class Spritesheet {
 
 					// console.log('CACHE LOADED', options.url);
 				});
-		} else {
+		}
+		else {
 			this.sprite.src = options.url;
 		}
 

@@ -1,4 +1,18 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
@@ -10,12 +24,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _createObjectGroup_items;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EngineObject = exports.worldToScreen = exports.screenToWorld = void 0;
+const ecs_1 = require("@orago/ecs");
 const collision_js_1 = require("./collision.js");
 const cursor_js_1 = __importDefault(require("./input/cursor.js"));
 const keyboard_js_1 = __importDefault(require("./input/keyboard.js"));
-const repeater_js_1 = require("./repeater.js");
-const ecs_js_1 = require("./ecs/ecs.js");
 const legacy_js_1 = require("./plugins/legacy.js");
+const repeater_js_1 = require("./repeater.js");
+__exportStar(require("@orago/ecs"), exports);
 const zoomIncrement = .2;
 function screenToWorld(screen, options) {
     var _a, _b, _c;
@@ -158,7 +173,7 @@ class createObjectGroup {
 _createObjectGroup_items = new WeakMap();
 class World {
     constructor(brush) {
-        this.ecs = new ecs_js_1.ECS();
+        this.ecs = new ecs_1.ECS();
         this.legacy = new legacy_js_1.LegacySystem(this.ecs, this);
         /** List of renderable objects */
         this.objects = new Set();
@@ -244,58 +259,6 @@ class World {
             .from(this.objects)
             .filter(search);
     }
-    /**
-     * @deprecated
-     */
-    allowZoom() {
-        const eng = this;
-        this.brush.canvas.addEventListener('wheel', (evt) => {
-            if (evt instanceof WheelEvent != true)
-                return;
-            if (evt.deltaY > 0 && eng.zoom > zoomIncrement)
-                eng.zoom -= zoomIncrement;
-            else if (evt.deltaY < 0 && eng.zoom < 20)
-                eng.zoom += zoomIncrement;
-        }, false);
-        let initialDistance;
-        let pinch_Start_Scale;
-        let engine_Mobile_Zoom;
-        function parsePinchScale(event) {
-            if (event.touches.length !== 2)
-                return;
-            const [touch1, touch2] = Array.from(event.touches);
-            const distance = Math.sqrt(Math.pow((touch2.pageX - touch1.pageX), 2) + Math.pow((touch2.pageY - touch1.pageY), 2));
-            if (initialDistance == null) {
-                initialDistance = distance;
-                return;
-            }
-            return distance / initialDistance;
-        }
-        this.brush.canvas.addEventListener('touchstart', function handlePinchStart(event) {
-            event.preventDefault();
-            if (event instanceof TouchEvent) {
-                pinch_Start_Scale = parsePinchScale(event);
-                engine_Mobile_Zoom = eng.zoom;
-            }
-        });
-        this.brush.canvas.addEventListener('touchmove', function handlePinch(event) {
-            event.preventDefault();
-            if (event instanceof TouchEvent != true)
-                return;
-            const scale = parsePinchScale(event);
-            if (scale == null ||
-                pinch_Start_Scale == null ||
-                engine_Mobile_Zoom == null)
-                return;
-            eng.zoom = Math.floor(engine_Mobile_Zoom + (scale - pinch_Start_Scale));
-        });
-        this.brush.canvas.addEventListener('touchend', function handlePinch(event) {
-            event.preventDefault();
-            engine_Mobile_Zoom = undefined;
-            pinch_Start_Scale = undefined;
-        });
-        return this;
-    }
     setCursor(url) {
         const { canvas } = this.brush;
         if (canvas instanceof HTMLCanvasElement)
@@ -315,5 +278,5 @@ class World {
             object.removeType();
     }
 }
-World.ECS = ecs_js_1.ECS;
+World.ECS = ecs_1.ECS;
 exports.default = World;

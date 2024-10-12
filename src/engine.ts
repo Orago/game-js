@@ -1,14 +1,12 @@
-import Emitter from '@orago/lib/emitter';
-import { Vector2 } from '@orago/vector';
+import { ECS } from '@orago/ecs';
 import type { Point } from '@orago/vector';
-import { v4 as uuidV4 } from 'uuid';
 import BrushCanvas from './brush/brush.js';
 import { Collision } from './collision.js';
 import Cursor from './input/cursor.js';
 import Keyboard from './input/keyboard.js';
-import { Repeater } from './repeater.js';
-import { ECS } from './ecs/ecs.js';
 import { LegacyEntity, LegacySystem } from './plugins/legacy.js';
+import { Repeater } from './repeater.js';
+export * from '@orago/ecs';
 
 const zoomIncrement = .2;
 
@@ -78,7 +76,7 @@ export class EngineObject extends LegacyEntity {
 
 	enabled = true;
 	visible = true;
-	engine: World;
+	engine: Engine;
 	// options: {
 	// 	zoom: boolean;
 	// 	offset: boolean;
@@ -89,7 +87,7 @@ export class EngineObject extends LegacyEntity {
 
 	// events = new Emitter();
 
-	constructor(engineRef: World, data: EngineObjectData = {}) {
+	constructor(engineRef: Engine, data: EngineObjectData = {}) {
 		super(engineRef.ecs);
 		this.engine = engineRef;
 
@@ -127,7 +125,7 @@ export class EngineObject extends LegacyEntity {
 		this.events.emit('remove');
 		this.events.all.clear();
 
-		if (this.engine instanceof World) {
+		if (this.engine instanceof Engine) {
 			this.engine.objects.delete(this);
 		}
 	}
@@ -184,11 +182,11 @@ export class EngineObject extends LegacyEntity {
 }
 
 class createObjectGroup {
-	engine: World;
+	engine: Engine;
 	isObjGroup = true;
 	#items: Set<EngineObject> = new Set();
 
-	constructor(engine: World) {
+	constructor(engine: Engine) {
 		this.engine = engine;
 	}
 
@@ -210,7 +208,7 @@ class createObjectGroup {
 	}
 }
 
-export default class World {
+export default class Engine {
 	static ECS = ECS;
 
 	ecs: ECS = new ECS();
@@ -277,6 +275,8 @@ export default class World {
 		// 	}
 		// });
 	}
+	public collision = Collision;
+
 
 	// get orderedObjects() {
 	// 	return Array.from(this.objects).sort(
@@ -285,9 +285,8 @@ export default class World {
 	// 	);
 	// }
 
-	collision = Collision;
 
-	object = (
+	public object = (
 		data: EngineObjectData,
 		ref: (arg0: LegacyEntity) => void
 	): LegacyEntity => {
@@ -302,7 +301,7 @@ export default class World {
 		return entity;
 	}
 
-	screenToWorld(
+	public screenToWorld(
 		point: Point,
 		options?: {
 			center?: boolean;
@@ -318,7 +317,7 @@ export default class World {
 		);
 	}
 
-	worldToScreen(
+	public worldToScreen(
 		point: Point,
 		options?: {
 			center?: boolean;
@@ -341,105 +340,7 @@ export default class World {
 		return new createObjectGroup(this);
 	}
 
-	/**
-	 * @deprecated
-	 */
-	findObjects(search: (arg0: EngineObject) => boolean): Array<EngineObject> {
-		return Array
-			.from(this.objects)
-			.filter(search);
-	}
-
-	/**
-	 * @deprecated
-	 */
-	allowZoom() {
-		const eng = this;
-
-		this.brush.canvas.addEventListener(
-			'wheel',
-			(evt: Event) => {
-				if (evt instanceof WheelEvent != true)
-					return;
-
-				if (evt.deltaY > 0 && eng.zoom > zoomIncrement)
-					eng.zoom -= zoomIncrement;
-
-				else if (evt.deltaY < 0 && eng.zoom < 20)
-					eng.zoom += zoomIncrement;
-			},
-			false
-		);
-
-		let initialDistance: number;
-		let pinch_Start_Scale: number | undefined;
-		let engine_Mobile_Zoom: number | undefined;
-
-		function parsePinchScale(event: TouchEvent): number | undefined {
-			if (event.touches.length !== 2)
-				return;
-
-			const [touch1, touch2] = Array.from(event.touches);
-			const distance = Math.sqrt(
-				(touch2.pageX - touch1.pageX) ** 2 + (touch2.pageY - touch1.pageY) ** 2
-			);
-
-			if (initialDistance == null) {
-				initialDistance = distance;
-				return;
-			}
-
-			return distance / initialDistance;
-		}
-
-		this.brush.canvas.addEventListener(
-			'touchstart',
-			function handlePinchStart(event) {
-				event.preventDefault();
-
-				if (event instanceof TouchEvent) {
-					pinch_Start_Scale = parsePinchScale(event);
-					engine_Mobile_Zoom = eng.zoom;
-				}
-			}
-		);
-
-		this.brush.canvas.addEventListener(
-			'touchmove',
-			function handlePinch(event) {
-				event.preventDefault();
-
-				if (event instanceof TouchEvent != true)
-
-					return;
-
-				const scale = parsePinchScale(event);
-
-				if (
-					scale == null ||
-					pinch_Start_Scale == null ||
-					engine_Mobile_Zoom == null
-				) return;
-
-				eng.zoom = Math.floor(engine_Mobile_Zoom + (scale - pinch_Start_Scale));
-
-			}
-		);
-
-		this.brush.canvas.addEventListener(
-			'touchend',
-			function handlePinch(event) {
-				event.preventDefault();
-
-				engine_Mobile_Zoom = undefined;
-				pinch_Start_Scale = undefined;
-			}
-		);
-
-		return this;
-	}
-
-	setCursor(url: string): this {
+	public setCursor(url: string): this {
 		const { canvas } = this.brush;
 
 		if (canvas instanceof HTMLCanvasElement)
@@ -448,7 +349,7 @@ export default class World {
 		return this;
 	}
 
-	destroy() {
+	public destroy() {
 		this.keyboard.events.all.clear();
 		this.cursor.reInit();
 

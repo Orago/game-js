@@ -42,7 +42,7 @@ export declare class RectangleUtil {
 }
 export declare class RectBody extends RectangleUtil {
     static toBoundingBox(rect: RectBody | RectangleUtil): Bound | undefined;
-    static contains(parent: RectWithPosition, child: RectWithPosition): boolean;
+    static contains(parent: PositionedRectangle, child: PositionedRectangle): boolean;
     static centered(parent: RectBody, child: Rectangle): RectBody;
     x: number;
     y: number;

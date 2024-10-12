@@ -428,7 +428,11 @@ export class ChainableCanvas {
 		return this;
 	}
 
-	get imgUrl(): string {
+	/**
+	 * @deprecated
+	 */
+	get imgUrl(): string { return this.url; }
+	get url(): string {
 		return this.canvas.toDataURL();
 	}
 }

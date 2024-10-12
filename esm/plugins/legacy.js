@@ -1,7 +1,5 @@
 import Emitter from '@orago/lib/emitter';
-import { Entity } from '../ecs/entity.js';
-import { System } from '../ecs/system.js';
-import { Component } from '../ecs/component.js';
+import { Entity, System, Component, } from '@orago/ecs';
 class LegacySignature extends Component {
 }
 ;

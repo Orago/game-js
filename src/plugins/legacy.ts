@@ -1,9 +1,6 @@
 import Emitter from '@orago/lib/emitter';
-import type { ECS } from '../ecs/ecs.js';
-import { Entity } from '../ecs/entity.js';
-import { System } from '../ecs/system.js';
-import { Component } from '../ecs/component.js';
-import World from '../engine.js';
+import { type ECS, Entity, System, Component, } from '@orago/ecs';
+import Engine from '../engine.js';
 
 
 class LegacySignature extends Component { };
@@ -12,7 +9,7 @@ const sig = new LegacySignature();
 export class LegacySystem extends System {
 	componentsRequired = new Set<Function>([LegacySignature]);
 
-	constructor(ecs: ECS, public world: World) {
+	constructor(ecs: ECS, public world: Engine) {
 		super(ecs);
 
 		this.world = world;

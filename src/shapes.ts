@@ -6,6 +6,12 @@ export interface Rectangle {
 	height: number;
 }
 
+export interface Circle {
+	r: number;
+	x: number;
+	y: number;
+}
+
 export type PositionedRectangle = Rectangle & Point;
 
 /**
@@ -113,7 +119,7 @@ export class RectBody extends RectangleUtil {
 			return new Bound(0, 0, rect.width, rect.height);
 	}
 
-	static contains(parent: RectWithPosition, child: RectWithPosition): boolean {
+	static contains(parent: PositionedRectangle, child: PositionedRectangle): boolean {
 		const parentx2 = parent.x + parent.width;
 		const parenty2 = parent.y + parent.height;
 		const childx2 = child.x + child.width;

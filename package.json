@@ -1,6 +1,6 @@
 {
 	"name": "@orago/game",
-	"version": "0.0.31",
+	"version": "0.0.35",
 	"description": "Orago's Game library",
 	"type": "module",
 	"scripts": {
@@ -12,9 +12,7 @@
 	"author": "Orago",
 	"license": "ISC",
 	"exports": {
-		"./*": {
-
-		},
+		"./*": {},
 		"./dist/*": {
 			"import": "./esm/*",
 			"require": "./cjs/*"
@@ -84,7 +82,7 @@
 	},
 	"dependencies": {
 		"@orago/dom": "^0.0.6",
-		"@orago/ecs": "^0.0.2",
+		"@orago/ecs": "^0.0.6",
 		"@orago/lib": "^0.0.20",
 		"@orago/vector": "^0.0.6"
 	},

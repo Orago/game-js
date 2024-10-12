@@ -4,12 +4,13 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _createObjectGroup_items;
+import { ECS } from '@orago/ecs';
 import { Collision } from './collision.js';
 import Cursor from './input/cursor.js';
 import Keyboard from './input/keyboard.js';
-import { Repeater } from './repeater.js';
-import { ECS } from './ecs/ecs.js';
 import { LegacyEntity, LegacySystem } from './plugins/legacy.js';
+import { Repeater } from './repeater.js';
+export * from '@orago/ecs';
 const zoomIncrement = .2;
 export function screenToWorld(screen, options) {
     var _a, _b, _c;
@@ -234,58 +235,6 @@ class World {
         return Array
             .from(this.objects)
             .filter(search);
-    }
-    /**
-     * @deprecated
-     */
-    allowZoom() {
-        const eng = this;
-        this.brush.canvas.addEventListener('wheel', (evt) => {
-            if (evt instanceof WheelEvent != true)
-                return;
-            if (evt.deltaY > 0 && eng.zoom > zoomIncrement)
-                eng.zoom -= zoomIncrement;
-            else if (evt.deltaY < 0 && eng.zoom < 20)
-                eng.zoom += zoomIncrement;
-        }, false);
-        let initialDistance;
-        let pinch_Start_Scale;
-        let engine_Mobile_Zoom;
-        function parsePinchScale(event) {
-            if (event.touches.length !== 2)
-                return;
-            const [touch1, touch2] = Array.from(event.touches);
-            const distance = Math.sqrt(Math.pow((touch2.pageX - touch1.pageX), 2) + Math.pow((touch2.pageY - touch1.pageY), 2));
-            if (initialDistance == null) {
-                initialDistance = distance;
-                return;
-            }
-            return distance / initialDistance;
-        }
-        this.brush.canvas.addEventListener('touchstart', function handlePinchStart(event) {
-            event.preventDefault();
-            if (event instanceof TouchEvent) {
-                pinch_Start_Scale = parsePinchScale(event);
-                engine_Mobile_Zoom = eng.zoom;
-            }
-        });
-        this.brush.canvas.addEventListener('touchmove', function handlePinch(event) {
-            event.preventDefault();
-            if (event instanceof TouchEvent != true)
-                return;
-            const scale = parsePinchScale(event);
-            if (scale == null ||
-                pinch_Start_Scale == null ||
-                engine_Mobile_Zoom == null)
-                return;
-            eng.zoom = Math.floor(engine_Mobile_Zoom + (scale - pinch_Start_Scale));
-        });
-        this.brush.canvas.addEventListener('touchend', function handlePinch(event) {
-            event.preventDefault();
-            engine_Mobile_Zoom = undefined;
-            pinch_Start_Scale = undefined;
-        });
-        return this;
     }
     setCursor(url) {
         const { canvas } = this.brush;

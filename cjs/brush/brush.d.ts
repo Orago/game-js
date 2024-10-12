@@ -108,7 +108,11 @@ export declare class ChainableCanvas {
     get clear(): this;
     /** Clears cached rect */
     clearRect(): this;
+    /**
+     * @deprecated
+     */
     get imgUrl(): string;
+    get url(): string;
 }
 export default class BrushCanvas {
     resolution: number;

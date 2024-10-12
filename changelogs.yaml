@@ -1,0 +1,5 @@
+---
+changelogs:
+- version: 0.0.36
+  changes:
+  - Updated toTitleCase

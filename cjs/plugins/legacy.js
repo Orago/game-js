@@ -5,14 +5,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LegacyEntity = exports.LegacySystem = void 0;
 const emitter_1 = __importDefault(require("@orago/lib/emitter"));
-const entity_js_1 = require("../ecs/entity.js");
-const system_js_1 = require("../ecs/system.js");
-const component_js_1 = require("../ecs/component.js");
-class LegacySignature extends component_js_1.Component {
+const ecs_1 = require("@orago/ecs");
+class LegacySignature extends ecs_1.Component {
 }
 ;
 const sig = new LegacySignature();
-class LegacySystem extends system_js_1.System {
+class LegacySystem extends ecs_1.System {
     constructor(ecs, world) {
         super(ecs);
         this.world = world;
@@ -27,7 +25,7 @@ class LegacySystem extends system_js_1.System {
     }
 }
 exports.LegacySystem = LegacySystem;
-class LegacyEntity extends entity_js_1.Entity {
+class LegacyEntity extends ecs_1.Entity {
     constructor(ecs) {
         super(ecs);
         this.events = new emitter_1.default();

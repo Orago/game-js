@@ -1,5 +1,4 @@
-import { Component } from '../ecs/component.js';
-import { System } from '../ecs/system.js';
+import { Component, System } from '@orago/ecs';
 export class Renderable extends Component {
     constructor(callback) {
         super();

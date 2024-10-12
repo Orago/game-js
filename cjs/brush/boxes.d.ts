@@ -1,4 +1,4 @@
-import { Rectangle } from '../shapes.js';
+import type { Rectangle } from '../shapes.js';
 export declare function gridFrame(obj: {
     x: number;
     y: number;

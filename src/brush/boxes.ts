@@ -1,4 +1,4 @@
-import { Rectangle } from '../shapes.js';
+import type { Rectangle } from '../shapes.js';
 
 export function gridFrame(obj: { x: number; y: number; }, frames: number, fps: number): number {
 	const time = performance.now() / 1000;

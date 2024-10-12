@@ -1,13 +1,7 @@
-import { RectWithPosition, RectOrPosition } from './shapes';
-
-interface Circle {
-	r: number;
-	x: number;
-	y: number;
-}
+import type { PositionedRectangle, Circle } from './shapes';
 
 export class Collision {
-	static rect(a: RectWithPosition, b: RectWithPosition): boolean {
+	public static rect(a: PositionedRectangle, b: PositionedRectangle): boolean {
 		return (
 			a.x + a.width > b.x &&
 			a.x < b.x + b.width &&
@@ -16,19 +10,16 @@ export class Collision {
 		);
 	}
 
-	static rectContains(
-		p: RectWithPosition,
-		c: RectOrPosition
-	): boolean {
-		const px2 = (p.width + p.x) || p.x;
-		const py2 = (p.height + p.y) || p.y;
-		const cx2 = (c.width || 0 + c.x) || c.x;
-		const cy2 = (c.height || 0 + c.y) || c.y;
-
-		return p.x <= c.x && px2 >= cx2 && p.y <= c.y && py2 >= cy2;
+	public static rectContains(outer: PositionedRectangle, inner: PositionedRectangle): boolean {
+		return (
+			inner.x >= outer.x &&
+			inner.x + inner.width <= outer.x + outer.width &&
+			inner.y >= outer.y &&
+			inner.y + inner.height <= outer.y + outer.height
+		);
 	}
 
-	static circle(
+	public static circle(
 		a: Circle,
 		b: Circle
 	): boolean {

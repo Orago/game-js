@@ -1,11 +1,12 @@
+import { ECS } from '@orago/ecs';
 import type { Point } from '@orago/vector';
 import BrushCanvas from './brush/brush.js';
 import { Collision } from './collision.js';
 import Cursor from './input/cursor.js';
 import Keyboard from './input/keyboard.js';
-import { Repeater } from './repeater.js';
-import { ECS } from './ecs/ecs.js';
 import { LegacyEntity, LegacySystem } from './plugins/legacy.js';
+import { Repeater } from './repeater.js';
+export * from '@orago/ecs';
 export interface EngineObjectData {
     x?: number;
     y?: number;
@@ -92,11 +93,6 @@ export default class World {
      * @deprecated
      */
     findObjects(search: (arg0: EngineObject) => boolean): Array<EngineObject>;
-    /**
-     * @deprecated
-     */
-    allowZoom(): this;
     setCursor(url: string): this;
     destroy(): void;
 }
-export {};

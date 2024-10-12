@@ -246,7 +246,11 @@ class ChainableCanvas {
         this.ctx.clearRect(...this.recentConfig.rect);
         return this;
     }
-    get imgUrl() {
+    /**
+     * @deprecated
+     */
+    get imgUrl() { return this.url; }
+    get url() {
         return this.canvas.toDataURL();
     }
 }

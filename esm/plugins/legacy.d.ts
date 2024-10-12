@@ -1,7 +1,5 @@
 import Emitter from '@orago/lib/emitter';
-import type { ECS } from '../ecs/ecs.js';
-import { Entity } from '../ecs/entity.js';
-import { System } from '../ecs/system.js';
+import { type ECS, Entity, System } from '@orago/ecs';
 import World from '../engine.js';
 export declare class LegacySystem extends System {
     world: World;
