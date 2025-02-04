@@ -1,76 +1,34 @@
 {
 	"name": "@orago/game",
-	"version": "0.0.35",
+	"version": "0.0.61",
 	"description": "Orago's Game library",
 	"type": "module",
 	"scripts": {
-		"build": "npm run build-cjs & npm run build-esm",
-		"build-cjs": "npx tsc --module commonjs --moduleResolution node --outDir cjs/",
-		"build-esm": "npx tsc --module es2022 --outDir esm/",
+		"build": "npm run build-cjs & npm run build-esm & npm run build-umd & npm run build-browser-esm & npm run build-browser-umd",
+		"build-cjs": "npx tsc --module commonjs --moduleResolution node --outDir dist/cjs/",
+		"build-esm": "npx tsc --module es2022 --outDir dist/esm/",
+		"build-umd": "npx tsc --module umd --outDir dist/umd/ --declarationDir dist/umd",
+		"build-browser-esm": "rollup --config rollup.config.browser.esm.js --configPlugin typescript --name oragame",
+		"build-browser-umd": "rollup --config rollup.config.browser.umd.js --configPlugin typescript --name oragame",
+		"bb": "npm run build-browser-umd",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"author": "Orago",
 	"license": "ISC",
 	"exports": {
-		"./*": {},
-		"./dist/*": {
-			"import": "./esm/*",
-			"require": "./cjs/*"
+		"./*": {
+			"default": {
+				"import": "./dist/esm/*.js",
+				"require": "./dist/cjs/*.js",
+				"types": "./dist/types/*.d.ts"
+			}
 		},
-		"./src/*": {
-			"import": "./src/*"
-		},
-		"./boxes": {
-			"import": "./esm/brush/boxes.js",
-			"require": "./cjs/brush/boxes.js"
-		},
-		"./brush": {
-			"import": "./esm/brush/brush.js",
-			"require": "./cjs/brush/brush.js"
-		},
-		"./collision": {
-			"import": "./esm/collision.js",
-			"require": "./cjs/collision.js"
-		},
-		"./colorImage": {
-			"import": "./esm/brush/colorImage.js",
-			"require": "./cjs/brush/colorImage.js"
-		},
-		"./cursor": {
-			"import": "./esm/input/cursor.js",
-			"require": "./cjs/input/cursor.js"
-		},
-		"./engine": {
-			"import": "./esm/engine.js",
-			"require": "./cjs/engine.js"
-		},
-		"./keyboard": {
-			"import": "./esm/input/keyboard.js",
-			"require": "./cjs/input/keyboard.js"
-		},
-		"./repeater": {
-			"import": "./esm/repeater.js",
-			"require": "./cjs/repeater.js"
-		},
-		"./shapes": {
-			"import": "./esm/shapes.js",
-			"require": "./cjs/shapes.js"
-		},
-		"./sprites": {
-			"import": "./esm/sprites.js",
-			"require": "./cjs/sprites.js"
-		},
-		"./system": {
-			"import": "./esm/ecs/system.js",
-			"require": "./cjs/ecs/system.js"
-		},
-		"./entity": {
-			"import": "./esm/ecs/entity.js",
-			"require": "./cjs/ecs/entity.js"
-		},
-		"./ecs": {
-			"import": "./esm/ecs/ecs.js",
-			"require": "./cjs/ecs/ecs.js"
+		".": {
+			"default": {
+				"import": "./dist/esm/index.js",
+				"require": "./dist/cjs/index.js",
+				"types": "./dist/types/index.d.ts"
+			}
 		}
 	},
 	"typesVersions": {
@@ -81,13 +39,16 @@
 		}
 	},
 	"dependencies": {
-		"@orago/dom": "^0.0.6",
-		"@orago/ecs": "^0.0.6",
-		"@orago/lib": "^0.0.20",
-		"@orago/vector": "^0.0.6"
+		"@orago/dom": "^0.0.19",
+		"@orago/ecs": "^0.0.9",
+		"@orago/lib": "^0.0.27"
 	},
 	"devDependencies": {
+		"@rollup/plugin-node-resolve": "15.2.3",
+		"@rollup/plugin-typescript": "11.1.6",
 		"@types/uuid": "^9.0.8",
-		"typescript": "^5.3.3"
+		"rollup": "4.18.1",
+		"tslib": "^2.8.1",
+		"typescript": "^5.7.2"
 	}
 }

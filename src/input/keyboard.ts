@@ -1,16 +1,57 @@
-import Emitter from '@orago/lib/emitter';
-import { ProxyNode } from '@orago/dom';
+import { KeyboardAction, SideActionJoint, SidedAction } from "./symbols.js";
+import Emitter from "@orago/lib/emitter";
+import { ProxyNode } from "@orago/dom";
+
+
+// type KeyboardActions = "Down-" | "Up-"
+// type KeyboardCharEvents = Record<Lowercase<`${KeyboardActions}${KeyboardAction}`>, () => void>;
+type KeyboardEvents = {
+	keydown: (char: KeyboardAction) => void;
+	keyup: (char: KeyboardAction) => void;
+};
+
+const unions: Record<SidedAction, SideActionJoint> = {
+	ShiftLeft: "Shift",
+	ShiftRight: "Shift",
+	BracketLeft: "Bracket",
+	BracketRight: "Bracket",
+	ControlLeft: "Control",
+	ControlRight: "Control",
+	AltLeft: "Alt",
+	AltRight: "Alt"
+};
+
+type KeyboardUnionMode = "both" | "split" | "joint";
 
 export default class Keyboard {
-	object: ProxyNode;
-	events = new Emitter();
+	private static formatKeycode(value: string): KeyboardAction {
+		return value as KeyboardAction;
+	}
+
+	public object: ProxyNode;
+	public readonly events: Emitter<KeyboardEvents, true> = new Emitter();
 
 	/* Keys pressed */
-	pressed: Record<string, boolean> = {};
-	alive: boolean = false;
+	public pressed: Partial<Record<KeyboardAction, boolean>> = {};
+	public alive: boolean = false;
+	public union: KeyboardUnionMode = "both";
 
-	constructor(element = document.body) {
+	constructor(element: Element = document.body) {
 		this.object = new ProxyNode(element);
+	}
+
+	attatch(proxyNode: ProxyNode) {
+		this.object.removeListener("kbEvents");
+		this.object = proxyNode;
+		this.object.addListener({
+			kbEvents: {
+				keydown: (event: KeyboardEvent) =>
+					this.simulateKeyDown(event.code as KeyboardAction),
+
+				keyup: (event: KeyboardEvent) =>
+					this.simulateKeyUp(event.code as KeyboardAction)
+			}
+		});
 	}
 
 	init() {
@@ -18,60 +59,74 @@ export default class Keyboard {
 			return;
 
 		this.alive = true;
-
-		this.object.addListener({
-			kbEvents: {
-				keydown: (e: KeyboardEvent) => this.simulateKeyDown(e.key),
-				keyup: (e: KeyboardEvent) => this.simulateKeyUp(e.key)
-			}
-		});
+		this.attatch(this.object);
 	}
 
-	get stop() { return this.dispose; }
-	dispose() {
+	public get stop() { return this.dispose; }
+	public dispose() {
 		if (this.alive !== true)
 			return;
 
 		this.alive = false;
-
-		this.object.removeListener('kbEvents');
+		this.pressed = {};
+		this.object.removeListener("kbEvents");
 	}
 
-	simulateKeyDown(keyIn: string) {
-		const key = (keyIn || '').toLowerCase();
+	public simulateKeyDown(keycode: KeyboardAction) {
+		keycode = Keyboard.formatKeycode(keycode);
 
-		this.pressed[key] = true;
+		this.pressed[keycode] = true;
 
-		this.events.emit('key-' + key, key);
+		const alt = unions?.[keycode as SidedAction];
+		if (this.union != "split") {
+			if (alt != null) this.simulateKeyDown(alt);
+		}
+
+		if (this.union == "joint" && alt != undefined) {
+			return;
+		}
+
+		this.events.emit("keydown", keycode);
 	}
 
-	simulateKeyUp(key: string) {
-		delete this.pressed[(key || '').toLowerCase()];
+	public simulateKeyUp(keycode: KeyboardAction) {
+		keycode = Keyboard.formatKeycode(keycode);
+		delete this.pressed[keycode];
+
+		const alt = unions?.[keycode as SidedAction];
+		if (this.union != "split") {
+			if (alt != null) this.simulateKeyUp(alt);
+		}
+
+		if (this.union == "joint" && alt != undefined) {
+			return;
+		}
+
+		// this.events.emit("Up-" + keycode as any);
+		this.events.emit("keyup", keycode);
 	}
 
-	anyPressed(...args: string[]): boolean {
+	public anyPressed(...args: KeyboardAction[]): boolean {
 		return args.some(this.isPressed);
 	}
 
-	isPressed = (key: string): boolean =>
-		this.pressed[key.toLowerCase()] == true;
+	public isPressed = (key: KeyboardAction): boolean =>
+		this.pressed?.[key] == true;
 
-	intPressed = (key: string): 0 | 1 => this.isPressed(key) ? 1 : 0;
+	public intPressed = (key: KeyboardAction): 0 | 1 => this.isPressed(key) ? 1 : 0;
 
-	mapInt(...keys: string[]): { [key: string]: number; } {
-		const keyMap = (key: string): [string, 0 | 1] => [key, this.intPressed(key)];
+	public mapInt(...keys: KeyboardAction[]): Record<string, number> {
+		const keyMap = (key: KeyboardAction): [KeyboardAction, 0 | 1] => [key, this.intPressed(key)];
 
-		return Object.fromEntries(
-			keys.map(keyMap)
-		);
+		return Object.fromEntries(keys.map(keyMap));
 	}
 
-	applyKeys(keys: { [key: string]: boolean; }) {
+	public applyKeys(keys: Partial<Record<KeyboardAction, boolean>>) {
 		for (const [key, value] of Object.entries(keys)) {
 			if (value === true)
-				this.simulateKeyDown(key);
+				this.simulateKeyDown(key as KeyboardAction);
 			else
-				this.simulateKeyUp(key);
+				this.simulateKeyUp(key as KeyboardAction);
 		}
 	}
 }

@@ -1,9 +1,9 @@
 export class FPS {
-	value: number = 0;
-	currentIndex: number = 0;
-	lastTick: number | undefined = 0;
-	samples: Array<number> = [];
-	sampleSize: number;
+	public value: number = 0;
+	public currentIndex: number = 0;
+	public lastTick: number | undefined = 0;
+	public samples: number[] = [];
+	public sampleSize: number;
 
 	constructor(sampleSize?: number) {
 		this.sampleSize = sampleSize ?? 60;
@@ -12,7 +12,6 @@ export class FPS {
 	tick() {
 		if (this.lastTick == null) {
 			this.lastTick = performance.now();
-
 			return 0;
 		}
 
@@ -42,18 +41,19 @@ export class FPS {
 }
 
 export class Repeater {
-	time: number | undefined;
-	frame: number = -1;
-	paused: boolean = true;
-	RafRef: number | undefined;
-	fpsLimit: number = -1;
-	actualFps: number = -1;
-	delay: number;
-	maxFramesPerSecond?: number;
+	public time: number | undefined;
+	public frame: number = -1;
+	public paused: boolean = true;
+	public RafRef: number | undefined;
+	public fpsLimit: number = -1;
+	public actualFps: number = -1;
+	public delay: number;
+	public maxFramesPerSecond?: number;
+	public delta: number = 0;
 
-	_fpsHandler: FPS;
+	private readonly _fpsHandler: FPS;
 
-	callback: Function;
+	public callback: Function;
 
 	constructor(fpsLimit: number, callback: Function) {
 		this.fpsLimit = fpsLimit;
@@ -65,6 +65,8 @@ export class Repeater {
 	loop(timestamp: number) {
 		if (this.paused)
 			return;
+
+		this.delta = timestamp / (this.time ?? 0);
 
 		if (this.time == null)
 			this.time = timestamp;

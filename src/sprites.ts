@@ -17,6 +17,7 @@ export function getDataUrl(image: ImageType | HTMLCanvasElement): string {
 			.pos(0, 0)
 			.rendering('source-over')
 			.image(image)
+			.last_config
 			.canvas
 			.toDataURL();
 
@@ -39,6 +40,7 @@ export function cloneToCanvas(image: ImageType): HTMLCanvasElement {
 		.pos(0, 0)
 		.rendering('source-over')
 		.image(image)
+		.last_config
 		.canvas;
 }
 
@@ -161,7 +163,7 @@ class BlankSprite extends Sprite {
 }
 
 export default class Sprites {
-	static Slice(
+	public static Slice(
 		image: ImageType,
 		bounds: {
 			x: number;
@@ -171,7 +173,6 @@ export default class Sprites {
 		}
 	): ImageType {
 		const result = new Image();
-
 		const g: [number, number, number, number] = [bounds.x, bounds.y, bounds.width, bounds.height];
 
 		result.src =
@@ -185,21 +186,21 @@ export default class Sprites {
 		return result;
 	}
 
-	canvas = new BrushCanvas().chainable;
+	public canvas = new BrushCanvas().chainable;
 
 	/**
 	 * Host domain and or path
 	 * it's essentially just a url prefix
 	 */
-	host: string = '';
-	sprites = new Map();
-	loading = new Set;
-	cache: Map<string, Sprite> = new Map();
+	public host: string = '';
+	public sprites = new Map();
+	public loading = new Set;
+	public readonly cache: Map<string, Sprite> = new Map();
 
 	/** Seconds */
-	cacheDuration = 3600; /* 1 hour */
+	public cacheDuration = 3600; /* 1 hour */
 
-	spriteSheets: Map<string, Spritesheet> = new Map();
+	public readonly spriteSheets: Map<string, Spritesheet> = new Map();
 
 	constructor(options: { host?: string; cacheDuration?: number; }) {
 		if (typeof options === 'object') {
@@ -211,9 +212,6 @@ export default class Sprites {
 		}
 	}
 
-	/**
-	 * @param {Spritesheet} spritesheet 
-	 */
 	addSpritesheet(spritesheet: Spritesheet) {
 		if (spritesheet instanceof Spritesheet != true) {
 			console.log(spritesheet);
@@ -242,11 +240,8 @@ export default class Sprites {
 		const cached = this.cache.get(url);
 		const result = cached ? cached.img : this.loadSingle(url, options?.onLoad).img;
 
-		if (this.has(url)) {
-			result.dispatchEvent(
-				new Event('load')
-			);
-		}
+		if (this.has(url))
+			result.dispatchEvent(new Event('load'));
 
 		return result;
 	}
@@ -265,12 +260,11 @@ export default class Sprites {
 		res.img.addEventListener('load', url => {
 			this.loading.delete(url);
 
-			if (typeof onLoad === 'function') {
-				const result = onLoad(res.img);
+			if (typeof onLoad !== 'function')
+				return;
 
-				if (result)
-					res.img = result;
-			}
+			const result = onLoad(res.img);
+			if (result) res.img = result;
 		});
 
 		this.cache.set(url, res);
@@ -327,7 +321,6 @@ export default class Sprites {
 		return new Promise((resolve) => {
 			sprite.img.onload = () => {
 				this.cache.set(url, sprite);
-
 				resolve(sprite.img);
 			};
 

@@ -1,5 +1,26 @@
 ---
 changelogs:
+- version: 0.0.46
+  changes:
+  - EngineObjectData is now private
+  - screenToWorld and worldToScreen are now private but still accessible through engine
+
 - version: 0.0.36
   changes:
-  - Updated toTitleCase
+  - BREAKING CHANGE - Updated engine to use custom DOM system over Brush DOM
+  - Removed object groups
+  - Updated orago dom version
+
+- version: 0.0.36
+  changes:
+  - Removed deprecated entity click detection
+  - Removed deprecated orderedObjects function
+  - Removed deprecated entity ticking (update, render)
+  - Fixed casing on typescript interfaces and types
+  - Removed ChainableCanvas.imageFrom function from brush.ts
+  - Removed deprecated ChainableCanvas.blank function from brush.ts
+  - Removed deprecated ChainableCanvas.merge function from brush.ts
+  - Removed GlobalCompositeOperation local type from brush.ts
+  - BREAKING CHANGE - Updated arguments to RectangleUtil.scaleToFit
+  - BREAKING CHANGE - Removed BrushCanvas.swapCanvas function from brush.ts
+  - Removed BrushCanvas

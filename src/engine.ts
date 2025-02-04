@@ -1,16 +1,18 @@
-import { ECS } from '@orago/ecs';
-import type { Point } from '@orago/vector';
-import BrushCanvas from './brush/brush.js';
-import { Collision } from './collision.js';
-import Cursor from './input/cursor.js';
-import Keyboard from './input/keyboard.js';
-import { LegacyEntity, LegacySystem } from './plugins/legacy.js';
-import { Repeater } from './repeater.js';
-export * from '@orago/ecs';
+import type { Point } from "@orago/lib/vector";
 
-const zoomIncrement = .2;
+import { ECS } from "@orago/ecs";
+import BrushCanvas from "./brush/brush.js";
+import { Collision } from "./collision.js";
+import Cursor from "./input/cursor.js";
+import Keyboard from "./input/keyboard.js";
+import { LegacyEntity, LegacySystem } from "./plugins/legacy.js";
+import { Repeater } from "./repeater.js";
+import { newNode as node, ProxyNode } from "@orago/dom";
 
-export interface EngineObjectData {
+
+// const zoomIncrement = .2;
+
+interface EngineObjectData {
 	x?: number;
 	y?: number;
 	width?: number;
@@ -23,9 +25,7 @@ export interface EngineObjectData {
 	// }
 }
 
-
-
-export function screenToWorld(
+function screenToWorld(
 	screen: Point,
 	options?: {
 		center?: Point;
@@ -43,7 +43,7 @@ export function screenToWorld(
 	};
 }
 
-export function worldToScreen(
+function worldToScreen(
 	world: Point,
 	options?: {
 		center?: Point;
@@ -64,19 +64,19 @@ export function worldToScreen(
 
 /**
  * Engine Object
- * ! SHOULD NOT BE USED ON IT'S OWN
+ * ! SHOULD NOT BE USED ON IT"S OWN
  * @class
  */
-export class EngineObject extends LegacyEntity {
+class EngineObject extends LegacyEntity {
 	// id = uuidV4();
-	x = 0;
-	y = 0;
-	width = 0;
-	height = 0;
+	public x = 0;
+	public y = 0;
+	public width = 0;
+	public height = 0;
 
-	enabled = true;
-	visible = true;
-	engine: Engine;
+	public enabled = true;
+	public visible = true;
+	public engine: Engine;
 	// options: {
 	// 	zoom: boolean;
 	// 	offset: boolean;
@@ -91,18 +91,18 @@ export class EngineObject extends LegacyEntity {
 		super(engineRef.ecs);
 		this.engine = engineRef;
 
-		if (typeof data === 'object') {
-			if (typeof data.x === 'number') this.x = data.x;
-			if (typeof data.y === 'number') this.y = data.y;
-			if (typeof data.width === 'number') this.width = data.width;
-			if (typeof data.height === 'number') this.height = data.height;
-			if (typeof data.priority === 'number') this.priority = data.priority;
+		if (typeof data === "object") {
+			if (typeof data.x === "number") this.x = data.x;
+			if (typeof data.y === "number") this.y = data.y;
+			if (typeof data.width === "number") this.width = data.width;
+			if (typeof data.height === "number") this.height = data.height;
+			if (typeof data.priority === "number") this.priority = data.priority;
 
-			if (typeof data.lifetime === 'number') {
+			if (typeof data.lifetime === "number") {
 				const endAt = Date.now() + data.lifetime;
 
 				this.events.on(
-					'update',
+					"update",
 					() =>
 						Date.now() > endAt && this.removeType()
 				);
@@ -117,12 +117,12 @@ export class EngineObject extends LegacyEntity {
 	}
 
 	tick() {
-		this.events.emit('update');
-		this.events.emit('render');
+		this.events.emit("update");
+		this.events.emit("render");
 	}
 
 	removeType() {
-		this.events.emit('remove');
+		this.events.emit("remove");
 		this.events.all.clear();
 
 		if (this.engine instanceof Engine) {
@@ -131,7 +131,7 @@ export class EngineObject extends LegacyEntity {
 	}
 
 	addTo(...tags: any[]): this {
-		// this.events.emit('add');
+		// this.events.emit("add");
 
 		// if (this.engine instanceof World) {
 		// 	this.engine.objects.add(this);
@@ -162,9 +162,7 @@ export class EngineObject extends LegacyEntity {
 			if (
 				this != otherObj &&
 				restriction(this, otherObj)
-			) {
-				return true;
-			}
+			) return true;
 		}
 
 		return false;
@@ -181,116 +179,73 @@ export class EngineObject extends LegacyEntity {
 	}
 }
 
-class createObjectGroup {
-	engine: Engine;
-	isObjGroup = true;
-	#items: Set<EngineObject> = new Set();
-
-	constructor(engine: Engine) {
-		this.engine = engine;
-	}
-
-	add() {
-		for (const item of arguments) {
-			this.#items.add(item)
-		}
-	}
-
-	kill() {
-		for (const item of this.#items) {
-			this.engine.objects.delete(item);
-			this.#items.delete(item);
-		}
-	}
-
-	get items() {
-		return [...this.#items];
-	}
-}
-
 export default class Engine {
-	static ECS = ECS;
+	static screenToWorld = screenToWorld;
+	static worldToScreen = worldToScreen;
+	static Object = EngineObject;
+	static ECS: typeof ECS = ECS;
 
-	ecs: ECS = new ECS();
-	legacy = new LegacySystem(this.ecs, this);
+	static display(engine: Engine, parent: ProxyNode | HTMLElement) {
+		const fullFloatStyling = {
+			position: "absolute",
+			top: 0,
+			left: 0,
+			width: "100%",
+			height: "100%"
+		};
+
+		new ProxyNode(engine.brush.canvas)
+			.styles(fullFloatStyling);
+
+		const el = ProxyNode.extractEl(engine.dom);
+
+		if (ProxyNode.extractEl(parent)?.contains(el) != true)
+			parent.append(el);
+
+		engine.dom.focus();
+	}
+
+	public ecs: ECS = new ECS();
+	public legacy = new LegacySystem(this.ecs, this);
 
 	/** List of renderable objects */
-	objects: Set<EngineObject> = new Set();
-	offset: Point = { x: 0, y: 0 };
-	zoom: number = 3;
+	public objects: Set<EngineObject> = new Set();
+	public offset: Point = { x: 0, y: 0 };
+	public zoom: number = 3;
 
-	brush: BrushCanvas;
-	cursor: Cursor;
-	keyboard: Keyboard;
-	ticks: Repeater;
-	frame: number = 0;
+	public brush: BrushCanvas;
+	public cursor: Cursor;
+	public keyboard: Keyboard;
+	public ticks: Repeater;
+	public frame: number = 0;
+
+	public dom = node.div;
+	public ui = node.div;
 
 	constructor(brush: BrushCanvas) {
 		this.brush = brush;
 		this.ecs.addSystem(this.legacy);
 
-		if (brush.canvas instanceof HTMLCanvasElement != true)
-			throw new Error('Cannot use offscreen canvas for engine');
+		this.brush.canvas.setAttribute("tabindex", "1");
 
-		if (brush.canvas.parentElement == null)
-			throw new Error('Cannot assign container');
-
-		brush.canvas.setAttribute('tabindex', '1');
-
-		this.cursor = new Cursor(brush.canvas);
-		this.keyboard = new Keyboard(brush.canvas.parentElement);
+		this.dom.append(this.brush.canvas, this.ui);
+		this.cursor = new Cursor(this.brush.canvas);
+		this.keyboard = new Keyboard(this.dom.element as HTMLElement);
 
 		this.ticks = new Repeater(64, () => {
 			this.ecs.update();
 			this.frame = this?.ticks?.frame;
-
-			// for (const item of this.orderedObjects) {
-			// 	item.tick();
-			// }
 		});
 
 		this.ticks.start();
-
-		// this.cursor.events.on('click', () => {
-		// 	for (const obj of this.orderedObjects) {
-		// 		if (obj.events.all.has('click') != true)
-		// 			continue;
-
-		// 		const screenObj = obj.toScreen();
-
-		// 		const clicked = this.collision.rectContains(
-		// 			screenObj,
-		// 			this.cursor.pos
-		// 		);
-
-		// 		if (clicked == true && obj.enabled) {
-		// 			obj.events.emit('click', this.cursor.pos);
-
-		// 			// if (typeof obj.whileClick == 'function')
-		// 			//   while (this.cursor.down == true)
-		// 			//     obj.whileClick(this.cursor.pos);
-
-		// 			// if (obj.button == true) break;
-		// 		}
-		// 	}
-		// });
 	}
+
 	public collision = Collision;
-
-
-	// get orderedObjects() {
-	// 	return Array.from(this.objects).sort(
-	// 		(a: LegacyEntity, b: LegacyEntity): number =>
-	// 			a.priority - b.priority
-	// 	);
-	// }
-
 
 	public object = (
 		data: EngineObjectData,
 		ref: (arg0: LegacyEntity) => void
 	): LegacyEntity => {
-
 		const entity = new LegacyEntity(this.ecs);
 
 		if (data.priority != null)
@@ -333,32 +288,21 @@ export default class Engine {
 		);
 	}
 
-	/**
-	 * @deprecated
-	 */
-	get objectGroup() {
-		return new createObjectGroup(this);
-	}
-
 	public setCursor(url: string): this {
-		const { canvas } = this.brush;
-
-		if (canvas instanceof HTMLCanvasElement)
-			canvas.style.cursor = `url(${url}), pointer`;
-
+		this.dom.styles({ cursor: `url(${url}), pointer` });
 		return this;
 	}
 
 	public destroy() {
 		this.keyboard.events.all.clear();
-		this.cursor.reInit();
+		this.cursor.init();
 
 		/* Queue for deletion */
 		this.ecs.killEntities();
-
+		this.ecs.killSystems();
 		/* Do final run / deletion */
 		this.ecs.update();
-
+		this.ecs.addSystem(this.legacy);
 		/* Wipe the canvas */
 		this.brush.clear();
 

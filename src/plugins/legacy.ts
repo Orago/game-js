@@ -7,18 +7,20 @@ class LegacySignature extends Component { };
 const sig = new LegacySignature();
 
 export class LegacySystem extends System {
-	componentsRequired = new Set<Function>([LegacySignature]);
+	public componentsRequired = new Set<Function>([LegacySignature]);
 
 	constructor(ecs: ECS, public world: Engine) {
-		super(ecs);
+		super();
 
 		this.world = world;
 	}
 
-	update(entities: Set<LegacyEntity>): void {
+	public update(entities: Set<LegacyEntity>): void {
 		for (const entity of Array.from(entities).sort((a, b) => a.priority - b.priority)) {
-			entity.events.emit('update');
-			entity.events.emit('render');
+			entity
+				.events
+				.emit('update')
+				.emit('render');
 		}
 	}
 }
@@ -28,18 +30,18 @@ export class LegacyEntity extends Entity {
 	public priority: number = 0;
 
 	constructor(ecs: ECS) {
-		super(ecs);
+		super();
 
-		this.addComponent(sig);
+		ecs.addComponent(this, sig);
 	}
 
-	ref(fn: (arg0: this) => void): this {
+	public ref(fn: (arg0: this) => void): this {
 		fn.bind(this)(this);
 
 		return this;
 	}
 
-	tick() {
+	public tick() {
 		this.events.emit('update');
 		this.events.emit('render');
 	}

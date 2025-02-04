@@ -1,16 +1,11 @@
 import { type Point } from '@orago/lib/vector';
-// import { Vector2 } from '@orago/vector';
 
 export interface Rectangle {
 	width: number;
 	height: number;
 }
 
-export interface Circle {
-	r: number;
-	x: number;
-	y: number;
-}
+export type Circle = { r: number; } & Point;
 
 export type PositionedRectangle = Rectangle & Point;
 
@@ -39,40 +34,62 @@ export type LikeBounds = [
 ];
 
 export class RectangleUtil {
-	static scaleToFit(
-		containerWidth: number,
-		containerHeight: number,
-		rectWidth: number,
-		rectHeight: number
-	): RectangleUtil {
+	static scaleToFitRatio(
+		container: Rectangle,
+		child: Rectangle
+	): number {
 		// Calculate aspect ratios
-		const containerRatio = containerWidth / containerHeight;
-		const rectRatio = rectWidth / rectHeight;
-
-		let scaleFactor = 1;
+		const containerRatio = container.width / container.height;
+		const rectRatio = child.width / child.height;
 
 		// Scale the rectangle to fit within the container
 		if (rectRatio > containerRatio)
-			scaleFactor = containerWidth / rectWidth;
+			return container.width / child.width;
+		else
+			return container.height / child.height;
+	}
 
-		else scaleFactor = containerHeight / rectHeight;
+	static scaleToFit(
+		container: Rectangle,
+		child: Rectangle
+	): Rectangle {
+		// Calculate aspect ratios
+		const scaleFactor = RectangleUtil.scaleToFitRatio(container, child);
 
 		// Calculate the scaled dimensions
-		const width = rectWidth * scaleFactor;
-		const height = rectHeight * scaleFactor;
+		const width = child.width * scaleFactor;
+		const height = child.height * scaleFactor;
 
-		return new RectangleUtil(width, height);
+		return { width, height };
 	}
 
-	static scale(width: number, height: number, scale: number): RectangleUtil {
-		width *= scale;
-		height *= scale;
-
-		return new RectangleUtil(width, height);
+	static scale(width: number, height: number, scale: number): Rectangle {
+		return { width: width * scale, height: height * scale };
 	}
 
-	static FromObj(obj: Rectangle): RectangleUtil {
+	static from(obj: Rectangle): RectangleUtil {
 		return new RectangleUtil(obj.width, obj.height);
+	}
+
+	static contains(parent: PositionedRectangle, child: Point & Partial<Rectangle>): boolean {
+		const parentx2 = parent.x + parent.width;
+		const parenty2 = parent.y + parent.height;
+		const childx2 = child.x + (child?.width ?? 0);
+		const childy2 = child.y + (child?.height ?? 0);
+		return parent.x <= child.x && parentx2 >= childx2 && parent.y <= child.y && parenty2 >= childy2;
+	}
+
+	static centerChild(parent: PositionedRectangle, child: Rectangle): PositionedRectangle {
+		return {
+			x: parent.x + (parent.width - child.width) / 2,
+			y: parent.y + (parent.height - child.height) / 2,
+			width: child.width ?? 0,
+			height: child.height ?? 0,
+		};
+	}
+
+	static toBound(rect: Rectangle & { x?: number; y?: number; }): [x: number, y: number, width: number, height: number] {
+		return [rect?.x ?? 0, rect?.y ?? 0, rect.width, rect.height];
 	}
 
 	width: number;
@@ -97,16 +114,8 @@ export class RectangleUtil {
 		return new RectangleUtil(this.width * scale, this.height * scale);
 	}
 
-
 	toFit(_: Rectangle = this): RectangleUtil {
-		const fit = RectangleUtil.scaleToFit(
-			_.width,
-			_.height,
-			this.width,
-			this.height
-		);
-
-		return fit;
+		return RectangleUtil.from(RectangleUtil.scaleToFit(_, this));
 	}
 }
 
@@ -118,22 +127,16 @@ export class RectBody extends RectangleUtil {
 		if (rect instanceof RectangleUtil)
 			return new Bound(0, 0, rect.width, rect.height);
 	}
-
-	static contains(parent: PositionedRectangle, child: PositionedRectangle): boolean {
-		const parentx2 = parent.x + parent.width;
-		const parenty2 = parent.y + parent.height;
-		const childx2 = child.x + child.width;
-		const childy2 = child.y + child.height;
-
-		return parent.x <= child.x && parentx2 >= childx2 && parent.y <= child.y && parenty2 >= childy2;
-	}
-
-	static centered(parent: RectBody, child: Rectangle): RectBody {
-		return new RectBody(
-			parent.x + (parent.width - child.width) / 2,
-			parent.y + (parent.height - child.height) / 2
-		);
-	}
+	/**
+	 * @deprecated
+	 * Moved to RectangleUtil.contains
+	 */
+	static contains = RectangleUtil.contains;
+	/**
+	 * @deprecated
+	 * Moved to RectangleUtil.centerChild
+	 */
+	static centered = RectangleUtil.centerChild;
 
 	x: number;
 	y: number;
@@ -154,7 +157,7 @@ export class RectBody extends RectangleUtil {
 		return {
 			x: this.x,
 			y: this.y
-		}
+		};
 	}
 
 	set pos(vector2) {
@@ -162,7 +165,7 @@ export class RectBody extends RectangleUtil {
 		this.y = vector2.y;
 	}
 
-	copy() {
+	public copy() {
 		return new RectBody(
 			this.x,
 			this.y,
@@ -171,9 +174,9 @@ export class RectBody extends RectangleUtil {
 		);
 	}
 
-	move(input: Point): RectBody;
-	move(x: number, y: number): RectBody;
-	move(...args: any[]): RectBody {
+	public move(input: Point): RectBody;
+	public move(x: number, y: number): RectBody;
+	public move(...args: any[]): RectBody {
 		if (typeof args[0] == 'object') {
 			this.x += args[0].x;
 			this.y += args[0].y;
@@ -188,18 +191,16 @@ export class RectBody extends RectangleUtil {
 }
 
 export class Bound {
-	static toPositionalRect(bound: Bound): RectBody {
+	public static toPositionalRect(bound: Bound): RectBody {
 		const [x1, y1, x2, y2] = bound;
-
 		const x = Math.min(x1, x2); // Get the minimum x-coordinate as the top-left corner x
 		const y = Math.min(y1, y2); // Get the minimum y-coordinate as the top-left corner y
 		const w = Math.abs(x2 - x1); // Calculate the width as the absolute difference between x2 and x1
 		const h = Math.abs(y2 - y1); // Calculate the height as the absolute difference between y2 and y1
-
 		return new RectBody(x, y, w, h);
 	}
 
-	positions: LikeBounds = [0, 0, 0, 0];
+	public positions: LikeBounds = [0, 0, 0, 0];
 
 	constructor(
 		x1: number = 0, y1: number = 0,
@@ -208,19 +209,13 @@ export class Bound {
 		this.positions = [x1, y1, x2, y2];
 	}
 
-	clear() {
+	public clear() {
 		this.positions = [0, 0, 0, 0];
 	}
 
-	set(...items: Array<[
-		x1: number,
-		x2: number,
-		y1: number,
-		y2: number
-	]>) {
-		if (Array.isArray(items) != true) {
+	public set(...items: LikeBounds[]) {
+		if (Array.isArray(items) != true)
 			return;
-		}
 
 		this.clear();
 
@@ -231,11 +226,11 @@ export class Bound {
 			});
 	}
 
-	toRect() {
+	public toRect() {
 		return Bound.toPositionalRect(this);
 	}
 
-	get valid() {
+	public get valid() {
 		return this.positions.some(n => typeof n !== 'number') != true;
 	}
 

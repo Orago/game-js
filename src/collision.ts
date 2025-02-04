@@ -1,7 +1,10 @@
-import type { PositionedRectangle, Circle } from './shapes';
+import type { PositionedRectangle, Circle } from './shapes.js';
 
 export class Collision {
-	public static rect(a: PositionedRectangle, b: PositionedRectangle): boolean {
+	public static rect(
+		a: PositionedRectangle,
+		b: PositionedRectangle
+	): boolean {
 		return (
 			a.x + a.width > b.x &&
 			a.x < b.x + b.width &&
@@ -10,7 +13,10 @@ export class Collision {
 		);
 	}
 
-	public static rectContains(outer: PositionedRectangle, inner: PositionedRectangle): boolean {
+	public static rectContains(
+		outer: PositionedRectangle,
+		inner: PositionedRectangle
+	): boolean {
 		return (
 			inner.x >= outer.x &&
 			inner.x + inner.width <= outer.x + outer.width &&

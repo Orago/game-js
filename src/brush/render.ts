@@ -1,8 +1,8 @@
-type renderableImage = HTMLImageElement | HTMLCanvasElement | OffscreenCanvas;
+type RenderableImage = HTMLImageElement | HTMLCanvasElement | OffscreenCanvas;
 type Context2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
-type arrayRect = [x?: number, y?: number, w?: number, h?: number];
+type ArrayRect = [x?: number, y?: number, w?: number, h?: number];
 
-interface circleOptions {
+interface CircleOptions {
 	x: number;
 	y: number;
 	radius: number;
@@ -11,13 +11,12 @@ interface circleOptions {
 	strokeWidth?: number;
 }
 
-
 export class CanvasRender {
-	static Image(
+	public static Image(
 		context: Context2D,
-		image: renderableImage,
-		from: arrayRect = [],
-		to: arrayRect = []
+		image: RenderableImage,
+		from: ArrayRect = [],
+		to: ArrayRect = []
 	): void {
 		if (
 			(
@@ -45,80 +44,84 @@ export class CanvasRender {
 			context.drawImage(
 				image,
 
-				preX,
-				preY,
-				preW,
-				preH,
+				preX, preY,
+				preW, preH,
 
-				x,
-				y,
-				w,
-				h
+				x, y,
+				w, h,
 			);
 		}
 		catch (err) { }
 	}
 
-	static text(
+	public static text(
 		context: Context2D,
 		text: string,
 		{ x, y, w }: { x: number; y: number; w?: number; }
 	): void {
-		x = x | 0;
-		y = y | 0;
+		x |= 0;
+		y |= 0;
 		context.fillText(text, x, y, w);
 	}
 
-	static circle(context: Context2D, values: circleOptions) {
+	private static partialCircle(context: Context2D, values: CircleOptions & { percent: number }) {
 		let {
 			x = 0,
 			y = 0,
 			radius = 10,
 			percent,
+			strokeWidth
+		} = values;
+
+		const color = context.fillStyle;
+		radius /= 2;
+		context.save();
+		context.beginPath();
+
+		let amt = ((2 / 100) * percent) + 1.5;
+
+		if (amt > 2)
+			amt = amt - 2;
+
+		context.arc(x, y, radius, amt * Math.PI, 1.5 * Math.PI, false); //25%
+		context.fillStyle = "transparent";
+		context.fill();
+
+		context.lineWidth = strokeWidth ?? (radius - .3) * 2;
+		context.strokeStyle = color;
+		context.stroke();
+		context.restore();
+	}
+
+	private static fullCircle(context: Context2D, values: CircleOptions) {
+		const {
+			x = 0,
+			y = 0,
+			radius = 10,
 			stroke,
 			strokeWidth
 		} = values;
 
-		if (typeof percent === 'number') {
-			const color = context.fillStyle;
-			radius = radius / 2;
-			context.save();
+		context.save();
+		context.beginPath();
+		context.arc(x, y, radius, 0, 2 * Math.PI, false);
+		context.fill();
 
-			context.beginPath();
+		if (typeof stroke == "string") {
+			if (typeof strokeWidth === "number")
+				context.lineWidth = strokeWidth;
 
-			let amt = ((2 / 100) * percent) + 1.5;
-
-			if (amt > 2) {
-				amt = amt - 2;
-			}
-
-			context.arc(x, y, radius, amt * Math.PI, 1.5 * Math.PI, false); //25%
-			context.fillStyle = 'transparent';
-
-			context.fill();
-
-			context.lineWidth = strokeWidth ?? (radius - .3) * 2;
-			context.strokeStyle = color;
+			context.strokeStyle = stroke;
 			context.stroke();
-
-			context.restore();
 		}
-		else {
-			context.save();
-			context.beginPath();
-			context.arc(x, y, radius, 0, 2 * Math.PI, false);
-			context.fill();
 
-			if (typeof stroke == 'string') {
-				if (typeof strokeWidth === 'number') {
-					context.lineWidth = strokeWidth;
-				}
+		context.restore();
+	}
 
-				context.strokeStyle = stroke;
-				context.stroke();
-			}
-
-			context.restore();
-		}
+	public static circle(context: Context2D, values: CircleOptions) {
+		if (typeof values.percent === "number")
+			CanvasRender.partialCircle(context, values as CircleOptions & { percent: number });
+		else
+			CanvasRender.fullCircle(context, values);
 	}
 }

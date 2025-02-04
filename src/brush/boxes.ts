@@ -1,19 +1,37 @@
-import type { Rectangle } from '../shapes.js';
+import type { Rectangle } from "../shapes.js";
 
-export function gridFrame(obj: { x: number; y: number; }, frames: number, fps: number): number {
+export function gridFrame(
+	obj: { x: number; y: number; },
+	frames: number,
+	fps: number
+): number {
 	const time = performance.now() / 1000;
 
-	return (Math.floor(time / (1 / fps)) + obj.x + obj.y) % Math.max(frames, 1);
+	return (
+		(
+			Math.floor(time / (1 / fps))
+			+ obj.x
+			+ obj.y
+		)
+		% Math.max(frames, 1)
+	);
 }
 
-export function getFrameCount(rect: Rectangle, gridSize: Rectangle): number {
+export function getFrameCount(
+	rect: Rectangle,
+	gridSize: Rectangle
+): number {
 	return (
 		(rect.width == gridSize.width ? 0 : rect.width) / gridSize.width +
 		(rect.height == gridSize.height ? 0 : rect.height) / gridSize.height
 	);
 }
 
-export function gridsheetAnimation(frames: number, currentTime: number, endTime: number): number {
+export function gridsheetAnimation(
+	frames: number,
+	currentTime: number,
+	endTime: number
+): number {
 	return Math.min(
 		Math.floor(
 			(currentTime / endTime) * frames

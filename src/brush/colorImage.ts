@@ -1,13 +1,14 @@
-import { rgbToHue, forceRgb } from '@orago/lib/colors';
-import BrushCanvas, { ChainableCanvas } from './brush.js';
+import { rgbToHue, forceRgb } from "@orago/lib/colors";
+import BrushCanvas, { ChainableCanvas } from "./brush.js";
+
+export type RgbArray = [red: number, green: number, blue: number];
 
 const colorableCanvas = new BrushCanvas({
-	inputCanvas: document.createElement('canvas')
+	inputCanvas: document.createElement("canvas")
 });
 
 const colorChain = colorableCanvas.chainable;
 
-export type rgbArray = [red: number, green: number, blue: number];
 
 /** 
  * Draws an overlay tint to canvas
@@ -20,8 +21,8 @@ function badlyColorImage(
 	green: number = 0,
 	blue: number = 0
 ): HTMLCanvasElement { // image is a canvas image
-	const canvas = document.createElement('canvas');
-	const ctx = canvas.getContext('2d');
+	const canvas = document.createElement("canvas");
+	const ctx = canvas.getContext("2d");
 
 	if (ctx instanceof CanvasRenderingContext2D) {
 		const { width, height } = image;
@@ -71,16 +72,15 @@ export function rgbTintImage(
 		.size(sprite.width, sprite.height)
 		.clear
 		.pos(0, 0)
-		.image(sprite);
+		.image(sprite)
 
-	colorChain
 		.opacity(tint)
-		.rendering('source-atop')
-		.color(`rgb(${[red, green, blue].join(',')})`)
-		.rect.rendering('source-over');
+		.rendering("source-atop")
+		.color(`rgb(${[red, green, blue].join(",")})`)
+		.rect.rendering("source-over");
 
-	if (colorChain.canvas instanceof HTMLCanvasElement) {
-		image.src = colorChain.canvas.toDataURL('image/png');
+	if (colorChain.last_config.canvas instanceof HTMLCanvasElement) {
+		image.src = colorChain.last_config.canvas.toDataURL("image/png");
 	}
 
 	return sprite;
@@ -91,11 +91,11 @@ export function rgbTintImage(
  * Old default is 100
  */
 export function lightenOverlay(chain: ChainableCanvas, light: number) {
-	if (typeof light != 'number')
+	if (typeof light != "number")
 		return;
 
 	chain
-		.rendering(light < 100 ? 'color-burn' : 'color-dodge')
+		.rendering(light < 100 ? "color-burn" : "color-dodge")
 
 	// Modify future light after color-effect
 	light = light >= 100 ? light - 100 : 100 - (100 - light);
@@ -111,11 +111,11 @@ export function lightenOverlay(chain: ChainableCanvas, light: number) {
  * Old default is 100
  */
 export function saturateOverlay(chain: ChainableCanvas, saturation: number) {
-	if (typeof saturation != 'number')
+	if (typeof saturation != "number")
 		return;
 
 	chain
-		.rendering('saturation')
+		.rendering("saturation")
 		.color(`hsl(0,${saturation}%, 50%)`)
 		.rect
 }
@@ -135,7 +135,7 @@ export function plainDraw(chain: ChainableCanvas, sprite: HTMLCanvasElement | HT
 		)
 		.clear
 		.pos(0, 0)
-		.rendering('source-over')
+		.rendering("source-over")
 		.image(sprite);
 }
 
@@ -143,11 +143,11 @@ export function plainDraw(chain: ChainableCanvas, sprite: HTMLCanvasElement | HT
  * Tints overlay with Hue
  */
 export function hueOverlay(chain: ChainableCanvas, hue: number) {
-	if (typeof hue != 'number')
+	if (typeof hue != "number")
 		return;
 
 	chain
-		.rendering('hue')
+		.rendering("hue")
 		.color(`hsl(${hue},10%, 50%)`)
 		.rect;
 }
@@ -157,15 +157,15 @@ export function hueOverlay(chain: ChainableCanvas, hue: number) {
  */
 function clipEditFrom(chain: ChainableCanvas, sprite: HTMLImageElement | HTMLCanvasElement) {
 	chain
-		.rendering('destination-in')
+		.rendering("destination-in")
 		.image(sprite)
-		.rendering('source-over')
+		.rendering("source-over")
 }
 
 interface hslTintOptions {
 	saturation?: number;
 	light?: number;
-	rgb?: rgbArray;
+	rgb?: RgbArray;
 	tint?: any;
 	hue?: number;
 }
@@ -177,10 +177,10 @@ interface hslTintOptions {
 export function hslTintImage(sprite: HTMLCanvasElement | HTMLImageElement, options: hslTintOptions): HTMLImageElement {
 	plainDraw(colorChain, sprite);
 
-	if (typeof options?.light === 'number')
+	if (typeof options?.light === "number")
 		lightenOverlay(colorChain, options.light);
 
-	if (typeof options?.saturation === 'number')
+	if (typeof options?.saturation === "number")
 		saturateOverlay(colorChain, options.saturation)
 
 	if (options?.rgb != null)
@@ -188,14 +188,14 @@ export function hslTintImage(sprite: HTMLCanvasElement | HTMLImageElement, optio
 			colorChain,
 			rgbToHue(...forceRgb(options.rgb))
 		);
-		
+
 	else if (options?.tint != null)
 		hueOverlay(
 			colorChain,
 			rgbToHue(...forceRgb(options.tint))
 		);
-		
-	else if (typeof options?.hue === 'number')
+
+	else if (typeof options?.hue === "number")
 		hueOverlay(
 			colorChain,
 			options.hue
@@ -206,8 +206,8 @@ export function hslTintImage(sprite: HTMLCanvasElement | HTMLImageElement, optio
 
 	const image = new Image();
 
-	if (colorChain.canvas instanceof HTMLCanvasElement) {
-		image.src = colorChain.canvas.toDataURL('image/png');
+	if (colorChain.last_config.canvas instanceof HTMLCanvasElement) {
+		image.src = colorChain.canvas.toDataURL("image/png");
 	}
 
 	return image;
