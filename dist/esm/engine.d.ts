@@ -6,7 +6,7 @@ import Cursor from "./input/cursor.js";
 import Keyboard from "./input/keyboard.js";
 import { LegacyEntity, LegacySystem } from "./plugins/legacy.js";
 import { Repeater } from "./repeater.js";
-import { ProxyNode } from "@orago/dom";
+import { VNode } from "@orago/dom";
 interface EngineObjectData {
     x?: number;
     y?: number;
@@ -59,7 +59,7 @@ export default class Engine {
     static worldToScreen: typeof worldToScreen;
     static Object: typeof EngineObject;
     static ECS: typeof ECS;
-    static display(engine: Engine, parent: ProxyNode | HTMLElement): void;
+    static display(engine: Engine, parent: VNode | HTMLElement): void;
     ecs: ECS;
     legacy: LegacySystem;
     /** List of renderable objects */
@@ -71,8 +71,8 @@ export default class Engine {
     keyboard: Keyboard;
     ticks: Repeater;
     frame: number;
-    dom: ProxyNode;
-    ui: ProxyNode;
+    dom: VNode;
+    ui: VNode;
     constructor(brush: BrushCanvas);
     collision: typeof Collision;
     object: (data: EngineObjectData, ref: (arg0: LegacyEntity) => void) => LegacyEntity;

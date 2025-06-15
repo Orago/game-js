@@ -11,29 +11,45 @@ type CursorCalled = (event: Touch | MouseEvent, cursor: Cursor) => void;
 // type ActionPress = Record<CursorAction, CursorCalled> & Record<`${CursorAction}-release`, CursorCalled>;
 
 type CursorEvents = {
-	"button-down": (which: MouseButton, event: Touch | MouseEvent, cursor: Cursor) => void;
-	"button-up": (which: MouseButton, event: Touch | MouseEvent, cursor: Cursor) => void;
-	"move": (x: number, y: number) => void;
-	"start": (event: Touch | MouseEvent) => void;
-	"end": (event: Touch | MouseEvent) => void;
+	"button-down": (
+		which: MouseButton,
+		event: Touch | MouseEvent,
+		cursor: Cursor
+	) => void;
+	"button-up": (
+		which: MouseButton,
+		event: Touch | MouseEvent,
+		cursor: Cursor
+	) => void;
+	move: (x: number, y: number) => void;
+	start: (event: Touch | MouseEvent) => void;
+	end: (event: Touch | MouseEvent) => void;
 
-	"touch": CursorCalled;
-	"release": CursorCalled;
+	touch: CursorCalled;
+	release: CursorCalled;
 };
-
 
 type CursorButtonInt = 0 | 1 | 2 | 3 | 4 | 10;
 
 function isTouchEvent(input: any): input is TouchEvent {
-	const __TouchEvent = typeof TouchEvent != "undefined" ? TouchEvent : window.TouchEvent;
-	if (!__TouchEvent) return false;
-	return typeof input === "object" && input instanceof __TouchEvent;
+	const __TouchEvent =
+		typeof TouchEvent != "undefined" ? TouchEvent : window.TouchEvent;
+
+	if (!__TouchEvent) {
+		return false;
+	} else {
+		return typeof input === "object" && input instanceof __TouchEvent;
+	}
 }
 
 function isTouch(input: any): input is Touch {
 	const __Touch = typeof Touch != "undefined" ? Touch : window.Touch;
-	if (!__Touch) return false;
-	return typeof input === "object" && input instanceof __Touch;
+
+	if (!__Touch) {
+		return false;
+	} else {
+		return typeof input === "object" && input instanceof __Touch;
+	}
 }
 
 const cursorActionDict: Record<CursorButtonInt, MouseButton> = {
@@ -46,7 +62,9 @@ const cursorActionDict: Record<CursorButtonInt, MouseButton> = {
 };
 
 const reverseCursorActionDict: Record<MouseButton, CursorButtonInt> =
-	Object.fromEntries(Object.entries(cursorActionDict).map(e => [e[1], Number(e[0])])) as any;
+	Object.fromEntries(
+		Object.entries(cursorActionDict).map((e) => [e[1], Number(e[0])])
+	) as any;
 
 export default class Cursor {
 	private static actionDict = cursorActionDict;
@@ -69,7 +87,7 @@ export default class Cursor {
 	public buttons: Set<CursorButtonInt> = new Set();
 	public mouse_down: boolean = false;
 	public touching: boolean = false;
-	public startTime: number = 0;
+	public start_time: number = 0;
 	private bound_events: Set<any[]> = new Set();
 	// private _mobile_mode?: 0 | 2;
 
@@ -96,8 +114,7 @@ export default class Cursor {
 			this.object.addEventListener(method, fn);
 		}
 
-		this
-			.events
+		this.events
 			.on("move", (x: number, y: number) => this.setPosition(x, y))
 			.on("start", (e: CursorInput) => this.onStart(e))
 			.on("end", (e: CursorInput) => this.onEnd(e));
@@ -122,12 +139,13 @@ export default class Cursor {
 
 		return {
 			x: Math.floor(((x - b.left) / (b.right - b.left)) * b.width),
-			y: Math.floor(((y - b.top) / (b.bottom - b.top)) * b.height)
-		}
+			y: Math.floor(((y - b.top) / (b.bottom - b.top)) * b.height),
+		};
 	}
 
 	public onStart(event: CursorInput): void {
-		this.startTime = performance.now();
+		this.start_time = performance.now();
+		
 		if (isTouch(event)) {
 			this.events.emit("button-down", "Touch", event, this);
 			this.buttons.add(10);
@@ -144,9 +162,13 @@ export default class Cursor {
 			// 		this.buttons.add(this._mobile_mode = 0);
 			// 	}
 			// }, holdTime);
-		}
-		else {
-			this.events.emit("button-down", Cursor.buttonToAction(event.button as CursorButtonInt), event, this);
+		} else {
+			this.events.emit(
+				"button-down",
+				Cursor.buttonToAction(event.button as CursorButtonInt),
+				event,
+				this
+			);
 			this.buttons.add(event.button as CursorButtonInt);
 
 			// switch (event.button) {
@@ -176,9 +198,13 @@ export default class Cursor {
 			// 	case 1: this.events.emit("middle-release", event, this); break;
 			// 	case 2: this.events.emit("context-release", event, this); break;
 			// }
-		}
-		else {
-			this.events.emit("button-up", Cursor.buttonToAction(event.button as CursorButtonInt), event, this);
+		} else {
+			this.events.emit(
+				"button-up",
+				Cursor.buttonToAction(event.button as CursorButtonInt),
+				event,
+				this
+			);
 			this.buttons.delete(event.button as CursorButtonInt);
 		}
 
@@ -198,19 +224,19 @@ export default class Cursor {
 
 		touchmove: (e: Event) =>
 			isTouchEvent(e) &&
-			this.events.emit("move", e.touches[0].clientX, e.touches[0].clientY),
+			this.events.emit(
+				"move",
+				e.touches[0].clientX,
+				e.touches[0].clientY
+			),
 
 		mouseup: (e: Event) => this.events.emit("end", e as MouseEvent),
 		touchend: (e: Event) => (
 			e.preventDefault(),
-			isTouchEvent(e) &&
-			this.events.emit("end", e.changedTouches[0])
-		)
-		,
-
+			isTouchEvent(e) && this.events.emit("end", e.changedTouches[0])
+		),
 		mousedown: (e: Event) => this.events.emit("start", e as MouseEvent),
 		touchstart: (e: Event) =>
-			isTouchEvent(e) &&
-			this.events.emit("start", e.touches[0]),
-	}
+			isTouchEvent(e) && this.events.emit("start", e.touches[0]),
+	};
 }

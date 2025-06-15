@@ -374,7 +374,7 @@
         }
     }
 
-    class Emitter {
+    let Emitter$1 = class Emitter {
         constructor(all) {
             this.all = new Map();
             if (all instanceof Map)
@@ -429,7 +429,7 @@
             for (const entry of this.all.entries())
                 yield entry;
         }
-    }
+    };
 
     class ChainableConfig {
         constructor(data) {
@@ -1732,7 +1732,7 @@
             this.resolution = 1;
             this.smoothing = true;
             this.ctx = undefined;
-            this.events = new Emitter();
+            this.events = new Emitter$1();
             this.experimental = false;
             /**
              * Toggles smoothing
@@ -2184,15 +2184,21 @@
 
     function isTouchEvent(input) {
         const __TouchEvent = typeof TouchEvent != "undefined" ? TouchEvent : window.TouchEvent;
-        if (!__TouchEvent)
+        if (!__TouchEvent) {
             return false;
-        return typeof input === "object" && input instanceof __TouchEvent;
+        }
+        else {
+            return typeof input === "object" && input instanceof __TouchEvent;
+        }
     }
     function isTouch(input) {
         const __Touch = typeof Touch != "undefined" ? Touch : window.Touch;
-        if (!__Touch)
+        if (!__Touch) {
             return false;
-        return typeof input === "object" && input instanceof __Touch;
+        }
+        else {
+            return typeof input === "object" && input instanceof __Touch;
+        }
     }
     const cursorActionDict = {
         0: "Left",
@@ -2202,7 +2208,7 @@
         4: "Forward",
         10: "Touch",
     };
-    const reverseCursorActionDict = Object.fromEntries(Object.entries(cursorActionDict).map(e => [e[1], Number(e[0])]));
+    const reverseCursorActionDict = Object.fromEntries(Object.entries(cursorActionDict).map((e) => [e[1], Number(e[0])]));
     class Cursor {
         static buttonToAction(value) {
             return cursorActionDict[value];
@@ -2212,14 +2218,14 @@
         }
         // private _mobile_mode?: 0 | 2;
         constructor(object = document.body) {
-            this.events = new Emitter();
+            this.events = new Emitter$1();
             this.position = { x: 0, y: 0 };
             this.start = { x: 0, y: 0 };
             this.end = { x: 0, y: 0 };
             this.buttons = new Set();
             this.mouse_down = false;
             this.touching = false;
-            this.startTime = 0;
+            this.start_time = 0;
             this.bound_events = new Set();
             this.on = {
                 click: (e) => e.preventDefault(),
@@ -2229,11 +2235,10 @@
                 touchmove: (e) => isTouchEvent(e) &&
                     this.events.emit("move", e.touches[0].clientX, e.touches[0].clientY),
                 mouseup: (e) => this.events.emit("end", e),
-                touchend: (e) => isTouchEvent(e) &&
-                    this.events.emit("end", e.changedTouches[0]),
+                touchend: (e) => (e.preventDefault(),
+                    isTouchEvent(e) && this.events.emit("end", e.changedTouches[0])),
                 mousedown: (e) => this.events.emit("start", e),
-                touchstart: (e) => isTouchEvent(e) &&
-                    this.events.emit("start", e.touches[0]),
+                touchstart: (e) => isTouchEvent(e) && this.events.emit("start", e.touches[0]),
             };
             this.object = object;
             this.init();
@@ -2252,8 +2257,7 @@
                 this.bound_events.add([method, fn]);
                 this.object.addEventListener(method, fn);
             }
-            this
-                .events
+            this.events
                 .on("move", (x, y) => this.setPosition(x, y))
                 .on("start", (e) => this.onStart(e))
                 .on("end", (e) => this.onEnd(e));
@@ -2273,11 +2277,11 @@
             const b = object.getBoundingClientRect();
             return {
                 x: Math.floor(((x - b.left) / (b.right - b.left)) * b.width),
-                y: Math.floor(((y - b.top) / (b.bottom - b.top)) * b.height)
+                y: Math.floor(((y - b.top) / (b.bottom - b.top)) * b.height),
             };
         }
         onStart(event) {
-            this.startTime = performance.now();
+            this.start_time = performance.now();
             if (isTouch(event)) {
                 this.events.emit("button-down", "Touch", event, this);
                 this.buttons.add(10);
@@ -2332,6 +2336,74 @@
     Cursor.actionDict = cursorActionDict;
     Cursor.reverseActionDict = reverseCursorActionDict;
 
+    class Emitter {
+        constructor(all) {
+            this.all = new Map();
+            if (all instanceof Map) {
+                this.all = all;
+            }
+            else if (Array.isArray(all)) {
+                this.all = new Map(all);
+            }
+        }
+        /** Adds a listener */
+        on(event, callback) {
+            const handlers = this.all.get(event);
+            if (handlers) {
+                handlers.push(callback);
+            }
+            else {
+                this.all.set(event, [callback]);
+            }
+            return this;
+        }
+        /** Disables a listener */
+        off(event, callback) {
+            const handlers = this.all.get(event);
+            if (handlers) {
+                if (callback) {
+                    const index = handlers.indexOf(callback);
+                    if (index !== -1) {
+                        handlers.splice(index, 1);
+                    }
+                }
+                else {
+                    this.all.set(event, []);
+                }
+            }
+            return this;
+        }
+        /** Notifies all active listeners */
+        emit(event, ...args) {
+            let handlers = this.all.get(event);
+            if (handlers) {
+                for (const handler of handlers.slice()) {
+                    handler(...args);
+                }
+            }
+            if ((handlers = this.all.get("*"))) {
+                for (const handler of handlers.slice()) {
+                    handler(event, ...args);
+                }
+            }
+            return this;
+        }
+        once(event, callback) {
+            const once_callback = (...args) => {
+                this.off(event, once_callback);
+                callback(...args);
+                return void 0;
+            };
+            this.on(event, once_callback);
+            return this;
+        }
+        *[Symbol.iterator]() {
+            for (const entry of this.all.entries()) {
+                yield entry;
+            }
+        }
+    }
+
     class ObserverTracking {
         static inDom(element) {
             return this.tracked_in_dom.get(element) == true;
@@ -2339,22 +2411,27 @@
         static handle(element) {
             var _a, _b;
             if (document.body.contains(element)) {
-                if (this.inDom(element) != true)
-                    (_a = ProxyNode.getEvents(element)) === null || _a === void 0 ? void 0 : _a.emit('append');
+                if (this.inDom(element) != true) {
+                    (_a = ProxyNode.getEvents(element)) === null || _a === void 0 ? void 0 : _a.emit("append");
+                }
                 this.tracked_in_dom.set(element, true);
             }
             else if (this.inDom(element)) {
                 this.tracked_in_dom.set(element, false);
-                (_b = ProxyNode.getEvents(element)) === null || _b === void 0 ? void 0 : _b.emit('remove');
+                (_b = ProxyNode.getEvents(element)) === null || _b === void 0 ? void 0 : _b.emit("remove");
             }
         }
         constructor() {
             this.list = new Set();
             this.observer = new MutationObserver(() => {
-                for (const element of this.list)
+                for (const element of this.list) {
                     ObserverTracking.handle(element);
+                }
             });
-            this.observer.observe(document.body, { childList: true, subtree: true });
+            this.observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+            });
         }
     }
     ObserverTracking.tracked_in_dom = new WeakMap();
@@ -2369,10 +2446,12 @@
         }
         add(event, ...items) {
             let list = this.all.get(event);
-            if (list)
+            if (list) {
                 list.push(...items.filter((e) => (list === null || list === void 0 ? void 0 : list.includes(e)) != true));
-            else
+            }
+            else {
                 this.all.set(event, [...items]);
+            }
             return this;
         }
         remove(event, ...items) {
@@ -2380,8 +2459,9 @@
             if (list) {
                 for (const item of items) {
                     const index = list.indexOf(item);
-                    if (index !== -1)
+                    if (index !== -1) {
                         list.splice(index, 1);
+                    }
                 }
             }
             return this;
@@ -2392,48 +2472,605 @@
         }
     }
 
+    function VNodeExtractEl(node) {
+        if ("element" in node) {
+            return node.element;
+        }
+        return node;
+    }
+    class PNodeUtil {
+        static resetStyles(vnode, to_reset) {
+            const options = to_reset.length > 0 ? to_reset : ["content", "style", "class"];
+            for (const option of options) {
+                if (option === "content") {
+                    vnode.element.innerHTML = "";
+                }
+                else if (option === "style") {
+                    if (vnode.element instanceof HTMLElement) {
+                        const style_ref = vnode.element.style;
+                        for (let i = style_ref.length; i--;) {
+                            const name_string = style_ref[i];
+                            style_ref.removeProperty(name_string);
+                        }
+                    }
+                }
+                else if (option === "class") {
+                    vnode.element.className = "";
+                }
+            }
+            return vnode;
+        }
+    }
+    class P_VNodeUtil {
+        static setStyles(element, styles = {}) {
+            if (typeof styles != "object" ||
+                element instanceof HTMLElement != true) {
+                return;
+            }
+            for (const [key, value] of Object.entries(styles)) {
+                if (key === "variables") {
+                    for (const [prop_key, prop_value] of Object.entries(value)) {
+                        element.style.setProperty(`--${prop_key}`, prop_value);
+                    }
+                }
+                if (value == undefined) {
+                    continue;
+                }
+                element.style[key] = `${value}`;
+            }
+        }
+        static removeStyles(element, styles) {
+            if (element instanceof HTMLElement) {
+                for (const style of styles) {
+                    element.style.removeProperty(style);
+                }
+            }
+        }
+        static injectItems(vnode, direction = "append", objs) {
+            if (objs.length < 1) {
+                return vnode;
+            }
+            for (const el of objs) {
+                if (Array.isArray(el)) {
+                    objs.splice(objs.indexOf(el), 1, ...el);
+                }
+            }
+            for (const item of objs) {
+                if (item == false || item == null || Array.isArray(item)) {
+                    continue;
+                }
+                const extracted = typeof item === "string" ? item : VNodeExtractEl(item);
+                if (direction === "append") {
+                    vnode.element.append(extracted);
+                }
+                else {
+                    vnode.element.prepend(extracted);
+                }
+            }
+            return vnode;
+        }
+        static attr(element, attributes = {}) {
+            if (typeof attributes == "object" && attributes !== null) {
+                for (const [key, value] of Object.entries(attributes)) {
+                    element.setAttribute(key, value + "");
+                }
+            }
+        }
+    }
+
+    (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    };
+
+    var Helpers;
+    (function (Helpers) {
+        class VecLike {
+            static toString(args) {
+                return `(${this.clean(args).join(",")})`;
+            }
+            static clean(args) {
+                return args;
+            }
+            static valid(args) {
+                return true;
+            }
+        }
+        class VectorNumber extends VecLike {
+            static clean(args) {
+                return new Array(this.size).fill(0).map((v, i) => { var _a; return (_a = args === null || args === void 0 ? void 0 : args[i]) !== null && _a !== void 0 ? _a : v; });
+            }
+            static valid(args) {
+                return (args.length == this.size &&
+                    args.every((n) => typeof n === "number"));
+            }
+        }
+        VectorNumber.size = 0;
+        Helpers.VectorNumber = VectorNumber;
+        class VectorNumberInt extends VectorNumber {
+            static clean(args) {
+                return super.clean(args).map((n) => n | 0);
+            }
+            static valid(args) {
+                return super.valid(args) && args.every((n) => n == (n | 0));
+            }
+        }
+        VectorNumberInt.size = 0;
+        Helpers.VectorNumberInt = VectorNumberInt;
+    })(Helpers || (Helpers = {}));
+    class Vector2 extends Helpers.VectorNumber {
+        static clean(args) {
+            return super.clean(args);
+        }
+        static valid(args) {
+            return super.valid(args);
+        }
+        static fromObject(point) {
+            return this.clean([point.x, point.y]);
+        }
+        static toObject(args) {
+            return { x: args[0], y: args[0] };
+        }
+    }
+    Vector2.size = 2;
+    class Vector2i extends Helpers.VectorNumberInt {
+        static clean(args) {
+            return super.clean(args);
+        }
+        static valid(args) {
+            return super.valid(args);
+        }
+        static fromObject(point) {
+            return this.clean([point.x, point.y]);
+        }
+        static toObject(args) {
+            this.type;
+            return { x: args[0] | 0, y: args[1] | 0 };
+        }
+    }
+    Vector2i.size = 2;
+    class Vector3 extends Helpers.VectorNumber {
+        static clean(args) {
+            return super.clean(args);
+        }
+        static valid(args) {
+            return super.valid(args);
+        }
+        static fromObject(point) {
+            return this.clean([point.x, point.y, point.z]);
+        }
+        static toObject(args) {
+            return { x: args[0], y: args[1], z: args[2] };
+        }
+    }
+    Vector3.size = 3;
+    class Vector3i extends Helpers.VectorNumberInt {
+        static clean(args) {
+            return super.clean(args);
+        }
+        static valid(args) {
+            return super.valid(args);
+        }
+        static toObject(args) {
+            return { x: args[0] | 0, y: args[1] | 0, z: args[2] | 0 };
+        }
+    }
+    Vector3i.size = 3;
+
+    function valueTrap(obj, property, callback) {
+        Object.defineProperty(obj, property, {
+            configurable: true,
+            get() {
+                const value = callback();
+                Object.defineProperty(obj, property, {
+                    value,
+                    writable: false,
+                    configurable: false,
+                    enumerable: true,
+                });
+                return value;
+            },
+        });
+    }
+    class VNodeAnimation {
+        constructor(node, styles, options) {
+            this.node = node;
+            this.node = node;
+            this.animation = this.node.element.animate(styles, options.animation);
+            const use_reverse = options.animation.direction == "reverse" ||
+                options.animation.direction == "alternate-reverse";
+            const end_index = use_reverse ? 0 : styles.length - 1;
+            if (typeof options === "object") {
+                this.animation.addEventListener("finish", () => {
+                    if (options.save === true) {
+                        P_VNodeUtil.setStyles(this.node.element, styles[end_index]);
+                    }
+                });
+            }
+        }
+    }
+    class VNodeUtilityClass {
+        constructor(node) {
+            this.node = node;
+            this.node = node;
+        }
+        nest(run) {
+            run(this);
+            return this.node;
+        }
+    }
+    class VNodeStyle extends VNodeUtilityClass {
+        update(styles = {}) {
+            P_VNodeUtil.setStyles(this.node.element, styles);
+            return this;
+        }
+        remove(...styles) {
+            P_VNodeUtil.removeStyles(this.node.element, styles);
+            return this;
+        }
+        animate(styles, options) {
+            return new VNodeAnimation(this.node, styles, options);
+        }
+    }
+    class VNodeClasses extends VNodeUtilityClass {
+        static addClasses(element, args) {
+            for (const arg of args) {
+                if (arg.includes(" ")) {
+                    args.splice(args.indexOf(arg), 1, ...arg.split(" "));
+                }
+                else if (Array.isArray(arg)) {
+                    args.splice(args.indexOf(arg), 1, ...arg);
+                }
+            }
+            if (Array.isArray(args)) {
+                element.classList.add(...args);
+            }
+        }
+        static removeClasses(element, args) {
+            for (const arg of args) {
+                if (arg.includes(" ")) {
+                    args.splice(args.indexOf(arg), 1, ...arg.split(" "));
+                }
+            }
+            if (Array.isArray(args)) {
+                element.classList.remove(...args);
+            }
+        }
+        has(class_name) {
+            return this.node.element.classList.contains(class_name);
+        }
+        add(...classes) {
+            VNodeClasses.addClasses(this.node.element, classes);
+            return this;
+        }
+        remove(...classes) {
+            VNodeClasses.removeClasses(this.node.element, classes);
+            return this;
+        }
+        set(...classes) {
+            this.node.element.className = classes.join(" ");
+            return this;
+        }
+        toggleClass(class_name, status = !this.has(class_name)) {
+            if (status) {
+                this.add(class_name);
+            }
+            else {
+                this.remove(class_name);
+            }
+            return this;
+        }
+    }
+    class VNodeEvents extends VNodeUtilityClass {
+        static getEvents(element) {
+            const existing = VNodeEvents.weak_events.get(element);
+            if (existing) {
+                return existing;
+            }
+            else {
+                const emitter = new Emitter();
+                VNodeEvents.weak_events.set(element, emitter);
+                return emitter;
+            }
+        }
+        static getCallbacksGroup(element) {
+            const got = VNodeEvents.stored_listeners.get(element);
+            if (got) {
+                return got;
+            }
+            else {
+                const submap = new SubMap();
+                VNodeEvents.stored_listeners.set(element, submap);
+                return submap;
+            }
+        }
+        static on(element, event, callback) {
+            if (VNodeEvents.reserved_events.includes(event)) {
+                VNodeEvents.getEvents(element).on(event, callback);
+            }
+            else {
+                if (event == "keypress" || event == "keydown" || event == "keyup") {
+                    P_VNodeUtil.attr(element, { tabIndex: 0 });
+                }
+                VNodeEvents.getCallbacksGroup(element).add(event, callback);
+                element.addEventListener(event, callback);
+            }
+        }
+        static off(element, event, callback) {
+            if (VNodeEvents.reserved_events.includes(event)) {
+                VNodeEvents.getEvents(element).off(event, callback);
+            }
+            else {
+                const group = VNodeEvents.getCallbacksGroup(element);
+                if (callback) {
+                    group.remove(event, callback);
+                    element.removeEventListener(event, callback);
+                }
+                else {
+                    for (const callback of group.get(event)) {
+                        element.removeEventListener(event, callback);
+                    }
+                    group.removeAll(event);
+                }
+            }
+        }
+        static once(element, event, callback) {
+            const once_callback = (...args) => {
+                this.off(element, event, once_callback);
+                callback(...args);
+                return void 0;
+            };
+            this.on(element, event, (...args) => once_callback(...args));
+        }
+        constructor(node) {
+            super(node);
+            this.element = this.node.element;
+        }
+        on(event, callback) {
+            VNodeEvents.on(this.element, event, callback);
+            return this;
+        }
+        off(event, callback) {
+            VNodeEvents.off(this.element, event, callback);
+            return this;
+        }
+        once(event, callback) {
+            VNodeEvents.once(this.element, event, callback);
+            return this;
+        }
+    }
+    VNodeEvents.reserved_events = [
+        "append",
+        "remove",
+    ];
+    VNodeEvents.stored_listeners = new WeakMap();
+    VNodeEvents.weak_events = new WeakMap();
+
+    var _a;
+    class VNode {
+        static from(el) {
+            if (typeof el === "string") {
+                return new VNode(document.createElement(el));
+            }
+            else if (el instanceof HTMLElement ||
+                el instanceof HTMLInputElement) {
+                return new VNode(el);
+            }
+            else if (el instanceof VNode) {
+                return new VNode(el.element);
+            }
+            else if (el instanceof ProxyNode) {
+                return new VNode(el.element);
+            }
+            else {
+                throw new Error("Invalid element");
+            }
+        }
+        constructor(element) {
+            valueTrap(this, "style", () => new VNodeStyle(this));
+            valueTrap(this, "class", () => new VNodeClasses(this));
+            valueTrap(this, "events", () => new VNodeEvents(this));
+            if (typeof element === "string") {
+                this.element = document.createElement(element);
+            }
+            else {
+                this.element = VNode.extractEl(element);
+            }
+            if (VNode.send_events === true) {
+                VNode.events.emit("create", this);
+            }
+        }
+        attr(attributes = {}) {
+            P_VNodeUtil.attr(this.element, attributes);
+            return this;
+        }
+        swap(node) {
+            const new_node = VNode.extractEl(node);
+            this.element.replaceWith(new_node);
+            this.element = new_node;
+            return this;
+        }
+        id(value = undefined) {
+            if (value == undefined) {
+                return this.element.id;
+            }
+            else {
+                this.element.id = value;
+                return this;
+            }
+        }
+        append(...objs) {
+            return P_VNodeUtil.injectItems(this, "append", objs);
+        }
+        prepend(...objs) {
+            return P_VNodeUtil.injectItems(this, "prepend", objs);
+        }
+        appendTo(obj, direction = "append") {
+            if (obj == false) {
+                return this;
+            }
+            if (direction === "append") {
+                obj.append(VNodeExtractEl(this.element));
+            }
+            else {
+                obj.prepend(VNodeExtractEl(this.element));
+            }
+            return this;
+        }
+        getBounds() {
+            return this.element.getBoundingClientRect();
+        }
+        value(value = undefined) {
+            if (this.element instanceof HTMLInputElement) {
+                if (value == undefined) {
+                    return this.element.value;
+                }
+                else {
+                    this.element.value = value;
+                    return this;
+                }
+            }
+            else {
+                if (value == undefined) {
+                    return this.element.textContent;
+                }
+                else {
+                    this.element.textContent = value;
+                    return this;
+                }
+            }
+        }
+        focus() {
+            if (this.inDom()) {
+                if (this.element instanceof HTMLElement) {
+                    this.element.focus();
+                }
+            }
+            else {
+                setTimeout(() => {
+                    if (this.element instanceof HTMLElement) {
+                        this.element.focus();
+                    }
+                }, 0);
+            }
+            return this;
+        }
+        ref(run) {
+            run(this);
+            return this;
+        }
+        remove() {
+            this.element.remove();
+            return this;
+        }
+        setContent(...content) {
+            return this.clear().append(...content);
+        }
+        clear() {
+            this.element.textContent = "";
+            return this;
+        }
+        setStyles(styles) {
+            this.style.update(styles);
+            return this;
+        }
+        setClasses(...classes) {
+            this.class.set(...classes);
+            return this;
+        }
+        inDom(parent = document.body) {
+            return parent.contains(this.element);
+        }
+        scroll(x = 0, y = 0) {
+            this.element.scroll(x, y);
+            return this;
+        }
+    }
+    VNode.Util = (_a = class VNodeUtilExtend {
+            static qs(selector, element = document) {
+                const current = element.querySelector(selector);
+                return current ? new VNode(current) : null;
+            }
+            static qsAll(selector, element = document) {
+                return Array.from(element.querySelectorAll(selector)).map((current) => {
+                    return new VNode(current);
+                });
+            }
+            static getChildren(extractable) {
+                const extracted = this.extractEl(extractable);
+                return Array.from(extracted.children).map((document_el) => new VNode(document_el));
+            }
+        },
+        _a.extractEl = VNodeExtractEl,
+        _a);
+    VNode.indexing = new Map();
+    VNode.new = new Proxy({}, {
+        get(target, element_tag) {
+            return new VNode(document.createElement(element_tag));
+        },
+    });
+    VNode.extractEl = VNodeExtractEl;
+    VNode.send_events = false;
+    VNode.events = new Emitter();
+
     let reserved_events = ["append", "remove"];
     class ProxyNode {
         static getEvents(element) {
             const existing = ProxyNode.weak_events.get(element);
-            if (existing)
+            if (existing) {
                 return existing;
-            const emitter = new Emitter();
-            ProxyNode.weak_events.set(element, emitter);
-            return emitter;
+            }
+            else {
+                const emitter = new Emitter();
+                ProxyNode.weak_events.set(element, emitter);
+                return emitter;
+            }
         }
         static extractEl(node) {
-            return node instanceof ProxyNode ? node.element : node;
+            if (node instanceof ProxyNode || node instanceof VNode) {
+                return node.element;
+            }
+            else {
+                return node;
+            }
         }
         static isNode(el) {
             return el instanceof ProxyNode;
         }
         static getCallbacksGroup(element) {
             const got = ProxyNode.stored_listeners.get(element);
-            if (got)
+            if (got) {
                 return got;
-            const submap = new SubMap();
-            ProxyNode.stored_listeners.set(element, submap);
-            return submap;
+            }
+            else {
+                const submap = new SubMap();
+                ProxyNode.stored_listeners.set(element, submap);
+                return submap;
+            }
         }
         static getListeners(element, event) {
             const group = ProxyNode.getCallbacksGroup(element);
             return group.get(event);
         }
-        get call() {
-            return this;
-        }
         constructor(el) {
             this.listeners = {};
-            if (typeof el === 'string')
+            if (typeof el === "string") {
                 this.element = document.createElement(el);
+            }
             else if (el instanceof HTMLElement ||
                 el instanceof HTMLInputElement)
                 this.element = el;
-            else if (el instanceof ProxyNode)
+            else if (el instanceof ProxyNode) {
                 this.element = el.element;
-            else
-                throw new Error('Invalid element');
+            }
+            else {
+                throw new Error("Invalid element");
+            }
         }
         get focused() {
             return document.activeElement === this.element;
@@ -2446,20 +3083,26 @@
         }
         get parent() {
             const parent = this.element.parentElement;
-            if (parent != null)
+            if (parent != null) {
                 return new ProxyNode(parent);
+            }
         }
         get value() {
             var _a;
-            if (this.element instanceof HTMLInputElement)
+            if (this.element instanceof HTMLInputElement) {
                 return this.element.value;
-            return (_a = this.element.textContent) !== null && _a !== void 0 ? _a : '';
+            }
+            else {
+                return (_a = this.element.textContent) !== null && _a !== void 0 ? _a : "";
+            }
         }
         set value(value) {
-            if (this.element instanceof HTMLInputElement)
+            if (this.element instanceof HTMLInputElement) {
                 this.element.value = value;
-            else
+            }
+            else {
                 this.element.textContent = value;
+            }
         }
         get wrapper() {
             return this.ref;
@@ -2477,56 +3120,38 @@
             return this;
         }
         attr(attributes = {}) {
-            if (typeof attributes != 'object')
+            if (typeof attributes != "object") {
                 return this;
-            for (const [key, value] of Object.entries(attributes))
-                this.element.setAttribute(key, value + '');
+            }
+            for (const [key, value] of Object.entries(attributes)) {
+                this.element.setAttribute(key, value + "");
+            }
             return this;
         }
         swap(node) {
-            const newNode = ProxyNode.extractEl(node);
-            this.element.replaceWith(newNode);
-            this.element = newNode;
+            const new_node = ProxyNode.extractEl(node);
+            this.element.replaceWith(new_node);
+            this.element = new_node;
             return this;
         }
         clone() {
             return new ProxyNode(this.element.cloneNode(true));
         }
         clear() {
-            this.element.textContent = '';
+            this.element.textContent = "";
             return this;
         }
         exists() {
             return document.body.contains(this.element);
         }
         getChildren() {
-            return Array
-                .from(this.element.children)
-                .map(documentEl => new ProxyNode(documentEl));
+            return Array.from(this.element.children).map((documentEl) => new ProxyNode(documentEl));
         }
-        reset(...toReset) {
-            const options = toReset.length > 0 ? toReset : ['content', 'style', 'class'];
-            for (const option of options) {
-                if (option === 'content') {
-                    this.element.innerHTML = '';
-                }
-                else if (option === 'style') {
-                    if (this.element instanceof HTMLElement) {
-                        const styleObj = this.element.style;
-                        for (let i = styleObj.length; i--;) {
-                            const nameString = styleObj[i];
-                            styleObj.removeProperty(nameString);
-                        }
-                    }
-                }
-                else if (option === 'class') {
-                    this.element.className = '';
-                }
-            }
-            return this;
+        reset(...to_reset) {
+            return PNodeUtil.resetStyles(this, to_reset);
         }
         class(...args) {
-            this.element.className = args.join(' ');
+            this.element.className = args.join(" ");
             return this;
         }
         hasClass(className) {
@@ -2534,21 +3159,27 @@
         }
         addClass(...args) {
             for (const arg of args) {
-                if (arg.includes(' '))
-                    args.splice(args.indexOf(arg), 1, ...arg.split(' '));
-                else if (Array.isArray(arg))
+                if (arg.includes(" ")) {
+                    args.splice(args.indexOf(arg), 1, ...arg.split(" "));
+                }
+                else if (Array.isArray(arg)) {
                     args.splice(args.indexOf(arg), 1, ...arg);
+                }
             }
-            if (Array.isArray(args))
+            if (Array.isArray(args)) {
                 this.element.classList.add(...args);
+            }
             return this;
         }
         removeClass(...args) {
-            for (const arg of args)
-                if (arg.includes(' '))
-                    args.splice(args.indexOf(arg), 1, ...arg.split(' '));
-            if (Array.isArray(args))
+            for (const arg of args) {
+                if (arg.includes(" ")) {
+                    args.splice(args.indexOf(arg), 1, ...arg.split(" "));
+                }
+            }
+            if (Array.isArray(args)) {
                 this.element.classList.remove(...args);
+            }
             return this;
         }
         toggleClass(className, status = !this.hasClass(className)) {
@@ -2556,14 +3187,16 @@
             return this;
         }
         styles(styles = {}) {
-            if (typeof styles != 'object')
+            if (typeof styles != "object") {
                 return this;
-            if (this.element instanceof HTMLElement != true)
+            }
+            else if (this.element instanceof HTMLElement != true) {
                 return this;
+            }
             for (const [key, value] of Object.entries(styles)) {
-                if (key === 'props') {
-                    for (const [propKey, propValue] of Object.entries(value)) {
-                        this.element.style.setProperty(`--${propKey}`, propValue);
+                if (key === "props") {
+                    for (const [prop_key, prop_value] of Object.entries(value)) {
+                        this.element.style.setProperty(`--${prop_key}`, prop_value);
                     }
                 }
                 this.element.style[key] = value;
@@ -2571,10 +3204,12 @@
             return this;
         }
         removeStyles(...styles) {
-            if (this.element instanceof HTMLElement != true)
+            if (this.element instanceof HTMLElement != true) {
                 return this;
-            for (const style of styles)
+            }
+            for (const style of styles) {
                 this.element.style.removeProperty(style);
+            }
             return this;
         }
         getEvents() {
@@ -2585,6 +3220,9 @@
                 this.getEvents().on(event, callback);
             }
             else {
+                if (event == "keypress" || event == "keydown" || event == "keyup") {
+                    this.attr({ tabindex: 0 });
+                }
                 ProxyNode.getCallbacksGroup(this.element).add(event, callback);
                 this.element.addEventListener(event, callback);
             }
@@ -2623,9 +3261,9 @@
             var _b;
             for (const [key, event] of Object.entries(events)) {
                 for (const [listener, fn] of Object.entries(event)) {
-                    if (listener == 'keypress' ||
-                        listener == 'keydown' ||
-                        listener == 'keyup') {
+                    if (listener == "keypress" ||
+                        listener == "keydown" ||
+                        listener == "keyup") {
                         this.attr({ tabindex: 0 });
                     }
                     const func = fn.bind(this);
@@ -2637,17 +3275,19 @@
             return this;
         }
         removeListener(key) {
-            for (const listener in this.listeners[key])
+            for (const listener in this.listeners[key]) {
                 this.element.removeEventListener(listener, this.listeners[key][listener]);
+            }
             delete this.listeners[key];
             return this;
         }
         interval(callback, time = 1000, immediate = false) {
-            const toCall = () => callback.bind(this)(this, () => clearInterval(tempInterval));
-            if (immediate)
+            const toCall = () => callback.bind(this)(this, () => clearInterval(temp_interval));
+            if (immediate) {
                 toCall();
-            const tempInterval = setInterval(toCall, time);
-            this.on('remove', () => clearInterval(tempInterval));
+            }
+            const temp_interval = setInterval(toCall, time);
+            this.on("remove", () => clearInterval(temp_interval));
             return this;
         }
         remove() {
@@ -2658,37 +3298,40 @@
             return this.clear().append(...content);
         }
         append(...objs) {
-            if (objs.length < 1)
+            if (objs.length < 1) {
                 return this;
-            for (const el of objs)
-                if (Array.isArray(el))
+            }
+            for (const el of objs) {
+                if (Array.isArray(el)) {
                     objs.splice(objs.indexOf(el), 1, ...el);
+                }
+            }
             for (const item of objs) {
-                if (item == false ||
-                    item == null ||
-                    Array.isArray(item))
+                if (item == false || item == null || Array.isArray(item)) {
                     continue;
-                this.element.append(typeof item === 'string' ?
-                    item :
-                    ProxyNode.extractEl(item));
+                }
+                this.element.append(typeof item === "string" ? item : ProxyNode.extractEl(item));
             }
             return this;
         }
         appendTo(obj) {
-            if (obj == false)
+            if (obj == false) {
                 return this;
+            }
             obj.append(ProxyNode.extractEl(this.element));
             return this;
         }
         prependTo(obj) {
-            if (obj == null)
+            if (obj == null) {
                 return this;
+            }
             obj.prepend(ProxyNode.extractEl(this.element));
             return this;
         }
         prepend(...objs) {
-            if (objs.length < 1)
+            if (objs.length < 1) {
                 return this;
+            }
             for (const el of objs) {
                 if (Array.isArray(el)) {
                     const i = objs.indexOf(el);
@@ -2696,13 +3339,13 @@
                     objs.push(...el);
                 }
             }
-            for (const el of objs)
+            for (const el of objs) {
                 this.element.prepend(ProxyNode.extractEl(el));
+            }
             return this;
         }
         focus() {
-            setTimeout(() => this.element instanceof HTMLElement &&
-                this.element.focus(), 0);
+            setTimeout(() => this.element instanceof HTMLElement && this.element.focus(), 0);
             return this;
         }
         scroll(x = 0, y = 0) {
@@ -2710,16 +3353,18 @@
             return this;
         }
         setTabIndex(index) {
-            if (typeof index == 'number') {
-                if (0 > index)
-                    this.element.removeAttribute('tabindex');
-                else
-                    this.element.setAttribute('tabindex', '0');
+            if (typeof index == "number") {
+                if (0 > index) {
+                    this.element.removeAttribute("tabindex");
+                }
+                else {
+                    this.element.setAttribute("tabindex", "0");
+                }
             }
             return this;
         }
         horizontalScrolling() {
-            this.on('wheel', (event) => {
+            this.on("wheel", (event) => {
                 event.preventDefault();
                 this.element.scrollLeft += event.deltaY;
             });
@@ -2728,7 +3373,7 @@
         animate(styles, options) {
             var _a;
             const instance = this.element.animate(styles, options);
-            if (typeof options === 'object') {
+            if (typeof options === "object") {
                 instance.onfinish = (ev) => {
                     var _a, _b;
                     if (options.save === true) {
@@ -2745,26 +3390,12 @@
     }
     ProxyNode.stored_listeners = new WeakMap();
     ProxyNode.weak_events = new WeakMap();
-    ProxyNode.qs = qs;
-    ProxyNode.qsAll = qsAll;
     ProxyNode.tracking = new ObserverTracking();
-    function generateProxyNode(el) {
-        return new ProxyNode(el);
-    }
-    const newNode = new Proxy({}, {
-        get(target, elementTag) {
-            return generateProxyNode(document.createElement(elementTag));
-        }
+    new Proxy({}, {
+        get(target, element_tag) {
+            return new ProxyNode(document.createElement(element_tag));
+        },
     });
-    function qs(selector, element = document) {
-        const currentNode = element.querySelector(selector);
-        return currentNode ? new ProxyNode(currentNode) : null;
-    }
-    function qsAll(selector, element = document) {
-        return Array
-            .from(element.querySelectorAll(selector))
-            .map($ => $ ? new ProxyNode($) : newNode.div);
-    }
 
     const unions = {
         ShiftLeft: "Shift",
@@ -2774,45 +3405,77 @@
         ControlLeft: "Control",
         ControlRight: "Control",
         AltLeft: "Alt",
-        AltRight: "Alt"
+        AltRight: "Alt",
     };
+    class VNodeEventGroup {
+        constructor(node) {
+            this.node = node;
+            this.map = new Map();
+            this.node = node;
+        }
+        on(event, callback) {
+            this.map.set(event, callback);
+            this.node.events.on(event, callback);
+            return this;
+        }
+        off(event, callback) {
+            this.map.delete(event);
+            this.node.events.off(event, callback);
+            return this;
+        }
+        clear() {
+            for (const [event, callback] of this.map.entries()) {
+                this.off(event, callback);
+            }
+            return this;
+        }
+    }
     class Keyboard {
         static formatKeycode(value) {
             return value;
         }
         constructor(element = document.body) {
-            this.events = new Emitter();
+            this.events = new Emitter$1();
             /* Keys pressed */
             this.pressed = {};
             this.alive = false;
             this.union = "both";
             this.isPressed = (key) => { var _a; return ((_a = this.pressed) === null || _a === void 0 ? void 0 : _a[key]) == true; };
             this.intPressed = (key) => this.isPressed(key) ? 1 : 0;
-            this.object = new ProxyNode(element);
+            this.object = new VNode(element);
+            this.event_group = new VNodeEventGroup(this.object);
         }
-        attatch(proxyNode) {
-            this.object.removeListener("kbEvents");
-            this.object = proxyNode;
-            this.object.addListener({
-                kbEvents: {
-                    keydown: (event) => this.simulateKeyDown(event.code),
-                    keyup: (event) => this.simulateKeyUp(event.code)
-                }
+        attatch(node) {
+            this.dispose();
+            this.object = node;
+            this.event_group = new VNodeEventGroup(this.object);
+            this.event_group
+                .on("keydown", (event) => {
+                this.simulateKeyDown(event.code);
+            })
+                .on("keyup", (event) => {
+                this.simulateKeyUp(event.code);
             });
         }
         init() {
-            if (this.alive !== false)
+            if (this.alive !== false) {
                 return;
+            }
             this.alive = true;
             this.attatch(this.object);
         }
-        get stop() { return this.dispose; }
+        get stop() {
+            return this.dispose;
+        }
         dispose() {
-            if (this.alive !== true)
+            if (this.event_group != undefined) {
+                this.event_group.clear();
+            }
+            if (this.alive !== true) {
                 return;
+            }
             this.alive = false;
             this.pressed = {};
-            this.object.removeListener("kbEvents");
         }
         simulateKeyDown(keycode) {
             keycode = Keyboard.formatKeycode(keycode);
@@ -2845,7 +3508,10 @@
             return args.some(this.isPressed);
         }
         mapInt(...keys) {
-            const keyMap = (key) => [key, this.intPressed(key)];
+            const keyMap = (key) => [
+                key,
+                this.intPressed(key),
+            ];
             return Object.fromEntries(keys.map(keyMap));
         }
         applyKeys(keys) {
@@ -2880,7 +3546,7 @@
     class LegacyEntity extends Entity {
         constructor(ecs) {
             super();
-            this.events = new Emitter();
+            this.events = new Emitter$1();
             this.priority = 0;
             ecs.addComponent(this, sig);
         }
@@ -2930,20 +3596,29 @@
             this.paused = true;
             this.fpsLimit = -1;
             this.actualFps = -1;
+            this.start_time = 0;
+            this.timestamp = 0;
+            this.delta = 0;
             this.fpsLimit = fpsLimit;
             this.delay = 1000 / fpsLimit;
             this.callback = callback;
             this._fpsHandler = new FPS();
         }
         loop(timestamp) {
-            if (this.paused)
+            if (this.paused) {
                 return;
-            if (this.time == null)
-                this.time = timestamp;
-            const seg = Math.floor((timestamp - this.time) / this.delay);
+            }
+            if (this.start_time == null)
+                this.start_time = timestamp;
+            const seg = Math.floor((timestamp - this.start_time) / this.delay);
             if (seg > this.frame) {
                 this.frame = seg;
                 this.actualFps = this._fpsHandler.tick();
+                this.delta = (timestamp - this.timestamp) / 1000;
+                if (timestamp - this.timestamp > 3000) {
+                    this.delta = 0;
+                }
+                this.timestamp = timestamp;
                 this.callback(this);
             }
             this.RafRef = requestAnimationFrame(this.loop.bind(this));
@@ -2960,7 +3635,7 @@
             this.maxFramesPerSecond = newFps;
             this.delay = 1000;
             this.frame = -1;
-            this.time = undefined;
+            this.start_time = 0;
         }
         /**
          * Restarts the repeater if it's not already running
@@ -2977,11 +3652,10 @@
         pause(paused = !this.paused == true) {
             this.paused = paused;
             if (this.paused !== true)
-                return this.start(),
-                    void 0;
-            if (typeof this.RafRef === 'number')
+                return this.start(), void 0;
+            if (typeof this.RafRef === "number")
                 cancelAnimationFrame(this.RafRef);
-            this.time = undefined;
+            this.start_time = 0;
             this.frame = -1;
         }
     }
@@ -2993,7 +3667,7 @@
         const zoom = (_c = options === null || options === void 0 ? void 0 : options.zoom) !== null && _c !== void 0 ? _c : 1;
         return {
             x: (screen.x - center.x) / zoom + offset.x,
-            y: (screen.y - center.y) / zoom + offset.y
+            y: (screen.y - center.y) / zoom + offset.y,
         };
     }
     function worldToScreen(world, options) {
@@ -3003,7 +3677,7 @@
         const zoom = (_c = options === null || options === void 0 ? void 0 : options.zoom) !== null && _c !== void 0 ? _c : 1;
         return {
             x: (world.x - offset.x) * zoom + center.x,
-            y: (world.y - offset.y) * zoom + center.y
+            y: (world.y - offset.y) * zoom + center.y,
         };
     }
     /**
@@ -3042,8 +3716,8 @@
                 if (typeof data.priority === "number")
                     this.priority = data.priority;
                 if (typeof data.lifetime === "number") {
-                    const endAt = Date.now() + data.lifetime;
-                    this.events.on("update", () => Date.now() > endAt && this.removeType());
+                    const ends_at = Date.now() + data.lifetime;
+                    this.events.on("update", () => Date.now() > ends_at && this.removeType());
                 }
             }
         }
@@ -3076,17 +3750,17 @@
                 x: pos.x,
                 y: pos.y,
                 width: this.width * this.engine.zoom,
-                height: this.height * this.engine.zoom
+                height: this.height * this.engine.zoom,
             };
         }
         get canvas() {
             return this.engine.brush;
         }
         collides(restriction = () => false) {
-            for (const otherObj of this.engine.objects.values()) {
-                if (this != otherObj &&
-                    restriction(this, otherObj))
+            for (const other_obj of this.engine.objects.values()) {
+                if (this != other_obj && restriction(this, other_obj)) {
                     return true;
+                }
             }
             return false;
         }
@@ -3102,18 +3776,18 @@
     class Engine {
         static display(engine, parent) {
             var _a;
-            const fullFloatStyling = {
+            const full_float_styling = {
                 position: "absolute",
                 top: 0,
                 left: 0,
                 width: "100%",
-                height: "100%"
+                height: "100%",
             };
-            new ProxyNode(engine.brush.canvas)
-                .styles(fullFloatStyling);
-            const el = ProxyNode.extractEl(engine.dom);
-            if (((_a = ProxyNode.extractEl(parent)) === null || _a === void 0 ? void 0 : _a.contains(el)) != true)
+            new VNode(engine.brush.canvas).style.update(full_float_styling);
+            const el = VNode.Util.extractEl(engine.dom);
+            if (((_a = VNode.Util.extractEl(parent)) === null || _a === void 0 ? void 0 : _a.contains(el)) != true) {
                 parent.append(el);
+            }
             engine.dom.focus();
         }
         constructor(brush) {
@@ -3124,13 +3798,14 @@
             this.offset = { x: 0, y: 0 };
             this.zoom = 3;
             this.frame = 0;
-            this.dom = newNode.div;
-            this.ui = newNode.div;
+            this.dom = VNode.new.div;
+            this.ui = VNode.new.div;
             this.collision = Collision;
             this.object = (data, ref) => {
                 const entity = new LegacyEntity(this.ecs);
-                if (data.priority != null)
+                if (data.priority != null) {
                     entity.priority = data.priority;
+                }
                 ref(entity);
                 return entity;
             };
@@ -3140,6 +3815,8 @@
             this.dom.append(this.brush.canvas, this.ui);
             this.cursor = new Cursor(this.brush.canvas);
             this.keyboard = new Keyboard(this.dom.element);
+            // 	this.cursor = new Cursor(this.dom.element);
+            // this.keyboard = new Keyboard(this.dom.element as HTMLElement);
             this.ticks = new Repeater(64, () => {
                 var _a;
                 this.ecs.update();
@@ -3151,18 +3828,18 @@
             return screenToWorld(point, {
                 center: (options === null || options === void 0 ? void 0 : options.center) === true ? this.brush.center() : { x: 0, y: 0 },
                 offset: this.offset,
-                zoom: this.zoom
+                zoom: this.zoom,
             });
         }
         worldToScreen(point, options) {
             return worldToScreen(point, {
                 center: (options === null || options === void 0 ? void 0 : options.center) === true ? this.brush.center() : { x: 0, y: 0 },
                 offset: this.offset,
-                zoom: this.zoom
+                zoom: this.zoom,
             });
         }
         setCursor(url) {
-            this.dom.styles({ cursor: `url(${url}), pointer` });
+            this.dom.style.update({ cursor: `url(${url}), pointer` });
             return this;
         }
         destroy() {
@@ -3176,8 +3853,9 @@
             this.ecs.addSystem(this.legacy);
             /* Wipe the canvas */
             this.brush.clear();
-            for (const object of Array.from(this.objects))
+            for (const object of Array.from(this.objects)) {
                 object.removeType();
+            }
         }
     }
     Engine.screenToWorld = screenToWorld;
@@ -3318,9 +3996,11 @@
             this.current_maps = new Map();
             this.active = true;
             this.onceing = new Set();
-            if (typeof input === "object")
-                for (const [name, data] of Object.entries(input))
+            if (typeof input === "object") {
+                for (const [name, data] of Object.entries(input)) {
                     this.current_maps.set(name, data);
+                }
+            }
         }
         setKeyboard(keyboard) {
             this.keyboard = keyboard;
@@ -3332,39 +4012,50 @@
         }
         isPressed(name) {
             var _a, _b;
-            if (this.active == false)
+            if (this.active == false) {
                 return false;
+            }
             const data = this.current_maps.get(name);
+            if ((data === null || data === void 0 ? void 0 : data.simulated) == true) {
+                return true;
+            }
             if (data === null || data === void 0 ? void 0 : data.cursor) {
-                for (const button of data.cursor)
-                    if ((_a = this.cursor) === null || _a === void 0 ? void 0 : _a.hasButton(button))
+                for (const button of data.cursor) {
+                    if ((_a = this.cursor) === null || _a === void 0 ? void 0 : _a.hasButton(button)) {
                         return true;
+                    }
+                }
             }
             if (data === null || data === void 0 ? void 0 : data.keyboard) {
-                for (const button of data.keyboard)
-                    if ((_b = this.keyboard) === null || _b === void 0 ? void 0 : _b.isPressed(button))
+                for (const button of data.keyboard) {
+                    if ((_b = this.keyboard) === null || _b === void 0 ? void 0 : _b.isPressed(button)) {
                         return true;
+                    }
+                }
             }
             if (data === null || data === void 0 ? void 0 : data.gamepad) {
-                const gamepads = Gamepads
-                    .getAll()
-                    .filter((_, i) => (this.allowed_gamepads == null || this.allowed_gamepads.includes(i)))
-                    .filter(_ => _ != null);
+                const gamepads = Gamepads.getAll()
+                    .filter((_, i) => this.allowed_gamepads == null ||
+                    this.allowed_gamepads.includes(i))
+                    .filter((_) => _ != null);
                 for (const button of data.gamepad) {
-                    if (Gamepads.TestAction(gamepads, button, data === null || data === void 0 ? void 0 : data.gamepad_deadzone))
+                    if (Gamepads.TestAction(gamepads, button, data === null || data === void 0 ? void 0 : data.gamepad_deadzone)) {
                         return true;
+                    }
                 }
             }
             return false;
         }
         once(name) {
-            if (this.active == false)
+            if (this.active == false) {
                 return false;
+            }
             const pressed = this.isPressed(name);
             const has = this.onceing.has(name);
             if (has || pressed != true) {
-                if (pressed != true && has)
+                if (pressed != true && has) {
                     this.onceing.delete(name);
+                }
                 return false;
             }
             this.onceing.add(name);
@@ -3563,13 +4254,14 @@
     };
 
     const rerenderCanvas = new BrushCanvas({
-        inputCanvas: document.createElement('canvas')
+        inputCanvas: document.createElement("canvas"),
     });
     const { chainable } = rerenderCanvas;
     function responseToImageUrl(response) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (response.ok != true)
-                throw new Error('Network response was not ok');
+            if (response.ok != true) {
+                throw new Error("Network response was not ok");
+            }
             /** Read the response as a Blob */
             const blob = yield response.blob();
             /** Create an object URL from the Blob */
@@ -3581,30 +4273,37 @@
             var _a, _b;
             this.loaded = false;
             this.sprite = new Image();
-            if (typeof options != 'object')
-                throw console.log('Bad spritesheet', options);
-            if (typeof (options === null || options === void 0 ? void 0 : options.url) !== 'string')
-                throw console.log('Bad spritesheet url', options);
-            if (typeof (options === null || options === void 0 ? void 0 : options.url) !== 'string')
-                throw console.log('Bad spritesheet url', options);
-            if (typeof (options === null || options === void 0 ? void 0 : options.config) !== 'object')
-                throw console.log('Bad config', options);
-            if (typeof ((_a = options.config) === null || _a === void 0 ? void 0 : _a.fileName) !== 'string')
-                throw console.log('[spritesheet.config] Invalid fileName', options);
-            if (typeof ((_b = options.config) === null || _b === void 0 ? void 0 : _b.sprites) !== 'object')
-                throw console.log('[spritesheet.config] Invalid sprites type', options);
+            if (typeof options != "object") {
+                throw console.log("Bad spritesheet", options);
+            }
+            else if (typeof (options === null || options === void 0 ? void 0 : options.url) !== "string") {
+                throw console.log("Bad spritesheet url", options);
+            }
+            else if (typeof (options === null || options === void 0 ? void 0 : options.url) !== "string") {
+                throw console.log("Bad spritesheet url", options);
+            }
+            else if (typeof (options === null || options === void 0 ? void 0 : options.config) !== "object") {
+                throw console.log("Bad config", options);
+            }
+            else if (typeof ((_a = options.config) === null || _a === void 0 ? void 0 : _a.fileName) !== "string") {
+                throw console.log("[spritesheet.config] Invalid fileName", options);
+            }
+            else if (typeof ((_b = options.config) === null || _b === void 0 ? void 0 : _b.sprites) !== "object") {
+                throw console.log("[spritesheet.config] Invalid sprites type", options);
+            }
             let index = 0;
             for (const [spriteUrl, spriteCfg] of Object.entries(options.config.sprites)) {
                 let i = index++;
-                if (typeof spriteUrl !== 'string')
+                if (typeof spriteUrl !== "string") {
                     throw console.log(`[spritesheet.sprites]: I:(${i}) Bad sprite url`, [spriteUrl, spriteCfg]);
-                if (typeof spriteCfg !== 'object')
+                }
+                else if (typeof spriteCfg !== "object") {
                     throw console.log(`[spritesheet.sprites]: I:(${i}) Bad sprite config`, [spriteUrl, spriteCfg]);
+                }
             }
             if (options.cache === true) {
                 // fetchCached('sprites', options.url)
-                fetch(options.url)
-                    .then((response) => __awaiter(this, void 0, void 0, function* () {
+                fetch(options.url).then((response) => __awaiter(this, void 0, void 0, function* () {
                     this.sprite.src = yield responseToImageUrl(response);
                     // console.log('CACHE LOADED', options.url);
                 }));
@@ -3613,9 +4312,9 @@
                 this.sprite.src = options.url;
             }
             this.id = options.id;
-            this.sprite.crossOrigin = 'anonymous';
-            this.sprite.onload = () => this.loaded = true;
-            this.sprite.onerror = e => console.log('failed to load', e, options.url);
+            this.sprite.crossOrigin = "anonymous";
+            this.sprite.onload = () => (this.loaded = true);
+            this.sprite.onerror = (e) => console.log("failed to load", e, options.url);
             this.config = options.config;
         }
     }
@@ -3632,14 +4331,17 @@
     class Sprites {
         static Slice(image, bounds) {
             const result = new Image();
-            const g = [bounds.x, bounds.y, bounds.width, bounds.height];
-            result.src =
-                chainable
-                    .canvasSize(bounds.width, bounds.height)
-                    .clear
-                    .rendering('source-over')
-                    .image(image, g)
-                    .canvas.toDataURL();
+            const g = [
+                bounds.x,
+                bounds.y,
+                bounds.width,
+                bounds.height,
+            ];
+            result.src = chainable
+                .canvasSize(bounds.width, bounds.height)
+                .clear.rendering("source-over")
+                .image(image, g)
+                .canvas.toDataURL();
             return result;
         }
         constructor(options) {
@@ -3648,30 +4350,31 @@
              * Host domain and or path
              * it's essentially just a url prefix
              */
-            this.host = '';
+            this.host = "";
             this.sprites = new Map();
-            this.loading = new Set;
+            this.loading = new Set();
             this.cache = new Map();
             /** Seconds */
-            this.cacheDuration = 3600; /* 1 hour */
+            this.cache_duration = 3600; /* 1 hour */
             this.spriteSheets = new Map();
-            if (typeof options === 'object') {
-                if (typeof options.host === 'string')
+            if (typeof options === "object") {
+                if (typeof options.host === "string") {
                     this.host = options.host;
-                if (typeof options.cacheDuration === 'number')
-                    this.cacheDuration = options.cacheDuration;
+                }
+                if (typeof options.cacheDuration === "number") {
+                    this.cache_duration = options.cacheDuration;
+                }
             }
         }
         addSpritesheet(spritesheet) {
             if (spritesheet instanceof Spritesheet != true) {
                 console.log(spritesheet);
-                throw new Error('^ Invalid spritesheet');
+                throw new Error("^ Invalid spritesheet");
             }
             this.spriteSheets.set(spritesheet.id, spritesheet);
         }
         parseUrl(url) {
-            if (typeof url == 'string' &&
-                url.startsWith('/'))
+            if (typeof url == "string" && url.startsWith("/"))
                 return this.host + url;
             return url;
         }
@@ -3681,22 +4384,26 @@
         get(url, options) {
             url = this.parseUrl(url);
             const cached = this.cache.get(url);
-            const result = cached ? cached.img : this.loadSingle(url, options === null || options === void 0 ? void 0 : options.onLoad).img;
+            const result = cached
+                ? cached.img
+                : this.loadSingle(url, options === null || options === void 0 ? void 0 : options.onLoad).img;
             if (this.has(url))
-                result.dispatchEvent(new Event('load'));
+                result.dispatchEvent(new Event("load"));
             return result;
         }
         loadSingle(url, onLoad) {
             const res = new BlankSprite();
-            if (this.loading.has(url))
+            if (this.loading.has(url)) {
                 return res;
+            }
             this.loading.add(url);
-            res.img.crossOrigin = 'anonymous';
+            res.img.crossOrigin = "anonymous";
             res.img.src = url;
-            res.img.addEventListener('load', url => {
+            res.img.addEventListener("load", (url) => {
                 this.loading.delete(url);
-                if (typeof onLoad !== 'function')
+                if (typeof onLoad !== "function") {
                     return;
+                }
                 const result = onLoad(res.img);
                 if (result)
                     res.img = result;
@@ -3706,19 +4413,22 @@
         }
         fromCache(url) {
             return __awaiter(this, void 0, void 0, function* () {
-                if (this.sprites.has(url))
+                if (this.sprites.has(url)) {
                     return this.sprites.get(url);
+                }
                 /** From spritesheet */
                 for (const sheet of Array.from(this.spriteSheets.values())) {
-                    if (sheet.config.sprites.hasOwnProperty(url) != true)
+                    if (sheet.config.sprites.hasOwnProperty(url) != true) {
                         continue;
+                    }
                     if (sheet.loaded !== true) {
                         yield new Promise((resolve) => setTimeout(resolve, 500));
                         return yield this.fromCache(url);
                     }
                     const cached = this.cache.get(url);
-                    if (cached != null)
+                    if (cached != null) {
                         return cached.img;
+                    }
                     const opts = sheet.config.sprites[url];
                     const img = Sprites.Slice(sheet.sprite, opts);
                     const sprite = new Sprite(img);
@@ -3737,16 +4447,16 @@
         loadSinglePromise(url) {
             return __awaiter(this, void 0, void 0, function* () {
                 const sprite = new BlankSprite();
-                sprite.img.crossOrigin = 'anonymous';
+                sprite.img.crossOrigin = "anonymous";
                 sprite.img.src = url;
                 return new Promise((resolve) => {
                     sprite.img.onload = () => {
                         this.cache.set(url, sprite);
                         resolve(sprite.img);
                     };
-                    sprite.img.onerror = err => {
+                    sprite.img.onerror = (err) => {
                         resolve(sprite.img);
-                        console.log('file: ', [url], 'is messed up', err);
+                        console.log("file: ", [url], "is messed up", err);
                     };
                 });
             });

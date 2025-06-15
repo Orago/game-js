@@ -1,20 +1,29 @@
 import { KeyboardAction } from "./symbols.js";
 import Emitter from "@orago/lib/emitter";
-import { ProxyNode } from "@orago/dom";
+import { VNode } from "@orago/dom";
 type KeyboardEvents = {
     keydown: (char: KeyboardAction) => void;
     keyup: (char: KeyboardAction) => void;
 };
 type KeyboardUnionMode = "both" | "split" | "joint";
+declare class VNodeEventGroup {
+    private node;
+    map: Map<string, Function>;
+    constructor(node: VNode);
+    on(event: string, callback: Function): this;
+    off(event: string, callback?: Function): this;
+    clear(): this;
+}
 export default class Keyboard {
     private static formatKeycode;
-    object: ProxyNode;
+    object: VNode;
     readonly events: Emitter<KeyboardEvents, true>;
     pressed: Partial<Record<KeyboardAction, boolean>>;
     alive: boolean;
     union: KeyboardUnionMode;
-    constructor(element?: Element);
-    attatch(proxyNode: ProxyNode): void;
+    event_group?: VNodeEventGroup;
+    constructor(element?: HTMLElement);
+    attatch(node: VNode): void;
     init(): void;
     get stop(): () => void;
     dispose(): void;

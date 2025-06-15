@@ -1,5 +1,5 @@
 import Emitter from "@orago/lib/emitter";
-import { ProxyNode } from "@orago/dom";
+import { VNode } from "@orago/dom";
 const unions = {
     ShiftLeft: "Shift",
     ShiftRight: "Shift",
@@ -8,8 +8,31 @@ const unions = {
     ControlLeft: "Control",
     ControlRight: "Control",
     AltLeft: "Alt",
-    AltRight: "Alt"
+    AltRight: "Alt",
 };
+class VNodeEventGroup {
+    constructor(node) {
+        this.node = node;
+        this.map = new Map();
+        this.node = node;
+    }
+    on(event, callback) {
+        this.map.set(event, callback);
+        this.node.events.on(event, callback);
+        return this;
+    }
+    off(event, callback) {
+        this.map.delete(event);
+        this.node.events.off(event, callback);
+        return this;
+    }
+    clear() {
+        for (const [event, callback] of this.map.entries()) {
+            this.off(event, callback);
+        }
+        return this;
+    }
+}
 export default class Keyboard {
     static formatKeycode(value) {
         return value;
@@ -22,31 +45,40 @@ export default class Keyboard {
         this.union = "both";
         this.isPressed = (key) => { var _a; return ((_a = this.pressed) === null || _a === void 0 ? void 0 : _a[key]) == true; };
         this.intPressed = (key) => this.isPressed(key) ? 1 : 0;
-        this.object = new ProxyNode(element);
+        this.object = new VNode(element);
+        this.event_group = new VNodeEventGroup(this.object);
     }
-    attatch(proxyNode) {
-        this.object.removeListener("kbEvents");
-        this.object = proxyNode;
-        this.object.addListener({
-            kbEvents: {
-                keydown: (event) => this.simulateKeyDown(event.code),
-                keyup: (event) => this.simulateKeyUp(event.code)
-            }
+    attatch(node) {
+        this.dispose();
+        this.object = node;
+        this.event_group = new VNodeEventGroup(this.object);
+        this.event_group
+            .on("keydown", (event) => {
+            this.simulateKeyDown(event.code);
+        })
+            .on("keyup", (event) => {
+            this.simulateKeyUp(event.code);
         });
     }
     init() {
-        if (this.alive !== false)
+        if (this.alive !== false) {
             return;
+        }
         this.alive = true;
         this.attatch(this.object);
     }
-    get stop() { return this.dispose; }
+    get stop() {
+        return this.dispose;
+    }
     dispose() {
-        if (this.alive !== true)
+        if (this.event_group != undefined) {
+            this.event_group.clear();
+        }
+        if (this.alive !== true) {
             return;
+        }
         this.alive = false;
         this.pressed = {};
-        this.object.removeListener("kbEvents");
     }
     simulateKeyDown(keycode) {
         keycode = Keyboard.formatKeycode(keycode);
@@ -79,7 +111,10 @@ export default class Keyboard {
         return args.some(this.isPressed);
     }
     mapInt(...keys) {
-        const keyMap = (key) => [key, this.intPressed(key)];
+        const keyMap = (key) => [
+            key,
+            this.intPressed(key),
+        ];
         return Object.fromEntries(keys.map(keyMap));
     }
     applyKeys(keys) {

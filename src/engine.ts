@@ -7,8 +7,7 @@ import Cursor from "./input/cursor.js";
 import Keyboard from "./input/keyboard.js";
 import { LegacyEntity, LegacySystem } from "./plugins/legacy.js";
 import { Repeater } from "./repeater.js";
-import { newNode as node, ProxyNode } from "@orago/dom";
-
+import { VNode } from "@orago/dom";
 
 // const zoomIncrement = .2;
 
@@ -30,7 +29,7 @@ function screenToWorld(
 	options?: {
 		center?: Point;
 		offset?: Point;
-		zoom?: number
+		zoom?: number;
 	}
 ): Point {
 	const center = options?.center ?? { x: 0, y: 0 };
@@ -39,7 +38,7 @@ function screenToWorld(
 
 	return {
 		x: (screen.x - center.x) / zoom + offset.x,
-		y: (screen.y - center.y) / zoom + offset.y
+		y: (screen.y - center.y) / zoom + offset.y,
 	};
 }
 
@@ -48,7 +47,7 @@ function worldToScreen(
 	options?: {
 		center?: Point;
 		offset?: Point;
-		zoom?: number
+		zoom?: number;
 	}
 ): Point {
 	const center = options?.center ?? { x: 0, y: 0 };
@@ -57,10 +56,9 @@ function worldToScreen(
 
 	return {
 		x: (world.x - offset.x) * zoom + center.x,
-		y: (world.y - offset.y) * zoom + center.y
+		y: (world.y - offset.y) * zoom + center.y,
 	};
 }
-
 
 /**
  * Engine Object
@@ -96,15 +94,15 @@ class EngineObject extends LegacyEntity {
 			if (typeof data.y === "number") this.y = data.y;
 			if (typeof data.width === "number") this.width = data.width;
 			if (typeof data.height === "number") this.height = data.height;
-			if (typeof data.priority === "number") this.priority = data.priority;
+			if (typeof data.priority === "number")
+				this.priority = data.priority;
 
 			if (typeof data.lifetime === "number") {
-				const endAt = Date.now() + data.lifetime;
+				const ends_at = Date.now() + data.lifetime;
 
 				this.events.on(
 					"update",
-					() =>
-						Date.now() > endAt && this.removeType()
+					() => Date.now() > ends_at && this.removeType()
 				);
 			}
 		}
@@ -149,20 +147,24 @@ class EngineObject extends LegacyEntity {
 			x: pos.x,
 			y: pos.y,
 			width: this.width * this.engine.zoom,
-			height: this.height * this.engine.zoom
-		}
+			height: this.height * this.engine.zoom,
+		};
 	}
 
 	get canvas() {
 		return this.engine.brush;
 	}
 
-	collides(restriction: (arg0: EngineObject | null, arg1: EngineObject | null) => boolean = () => false): boolean {
-		for (const otherObj of this.engine.objects.values()) {
-			if (
-				this != otherObj &&
-				restriction(this, otherObj)
-			) return true;
+	collides(
+		restriction: (
+			arg0: EngineObject | null,
+			arg1: EngineObject | null
+		) => boolean = () => false
+	): boolean {
+		for (const other_obj of this.engine.objects.values()) {
+			if (this != other_obj && restriction(this, other_obj)) {
+				return true;
+			}
 		}
 
 		return false;
@@ -185,22 +187,22 @@ export default class Engine {
 	static Object = EngineObject;
 	static ECS: typeof ECS = ECS;
 
-	static display(engine: Engine, parent: ProxyNode | HTMLElement) {
-		const fullFloatStyling = {
+	static display(engine: Engine, parent: VNode | HTMLElement) {
+		const full_float_styling = {
 			position: "absolute",
 			top: 0,
 			left: 0,
 			width: "100%",
-			height: "100%"
+			height: "100%",
 		};
 
-		new ProxyNode(engine.brush.canvas)
-			.styles(fullFloatStyling);
+		new VNode(engine.brush.canvas).style.update(full_float_styling);
 
-		const el = ProxyNode.extractEl(engine.dom);
+		const el = VNode.Util.extractEl(engine.dom);
 
-		if (ProxyNode.extractEl(parent)?.contains(el) != true)
+		if (VNode.Util.extractEl(parent)?.contains(el) != true) {
 			parent.append(el);
+		}
 
 		engine.dom.focus();
 	}
@@ -219,8 +221,8 @@ export default class Engine {
 	public ticks: Repeater;
 	public frame: number = 0;
 
-	public dom = node.div;
-	public ui = node.div;
+	public dom = VNode.new.div;
+	public ui = VNode.new.div;
 
 	constructor(brush: BrushCanvas) {
 		this.brush = brush;
@@ -231,6 +233,9 @@ export default class Engine {
 		this.dom.append(this.brush.canvas, this.ui);
 		this.cursor = new Cursor(this.brush.canvas);
 		this.keyboard = new Keyboard(this.dom.element as HTMLElement);
+
+		// 	this.cursor = new Cursor(this.dom.element);
+		// this.keyboard = new Keyboard(this.dom.element as HTMLElement);
 
 		this.ticks = new Repeater(64, () => {
 			this.ecs.update();
@@ -248,13 +253,14 @@ export default class Engine {
 	): LegacyEntity => {
 		const entity = new LegacyEntity(this.ecs);
 
-		if (data.priority != null)
+		if (data.priority != null) {
 			entity.priority = data.priority;
+		}
 
 		ref(entity);
 
 		return entity;
-	}
+	};
 
 	public screenToWorld(
 		point: Point,
@@ -262,14 +268,12 @@ export default class Engine {
 			center?: boolean;
 		}
 	): Point {
-		return screenToWorld(
-			point,
-			{
-				center: options?.center === true ? this.brush.center() : { x: 0, y: 0 },
-				offset: this.offset,
-				zoom: this.zoom
-			}
-		);
+		return screenToWorld(point, {
+			center:
+				options?.center === true ? this.brush.center() : { x: 0, y: 0 },
+			offset: this.offset,
+			zoom: this.zoom,
+		});
 	}
 
 	public worldToScreen(
@@ -278,18 +282,16 @@ export default class Engine {
 			center?: boolean;
 		}
 	): Point {
-		return worldToScreen(
-			point,
-			{
-				center: options?.center === true ? this.brush.center() : { x: 0, y: 0 },
-				offset: this.offset,
-				zoom: this.zoom
-			}
-		);
+		return worldToScreen(point, {
+			center:
+				options?.center === true ? this.brush.center() : { x: 0, y: 0 },
+			offset: this.offset,
+			zoom: this.zoom,
+		});
 	}
 
 	public setCursor(url: string): this {
-		this.dom.styles({ cursor: `url(${url}), pointer` });
+		this.dom.style.update({ cursor: `url(${url}), pointer` });
 		return this;
 	}
 
@@ -306,7 +308,8 @@ export default class Engine {
 		/* Wipe the canvas */
 		this.brush.clear();
 
-		for (const object of Array.from(this.objects))
+		for (const object of Array.from(this.objects)) {
 			object.removeType();
+		}
 	}
 }

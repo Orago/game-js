@@ -16,15 +16,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     const holdTime = 500;
     function isTouchEvent(input) {
         const __TouchEvent = typeof TouchEvent != "undefined" ? TouchEvent : window.TouchEvent;
-        if (!__TouchEvent)
+        if (!__TouchEvent) {
             return false;
-        return typeof input === "object" && input instanceof __TouchEvent;
+        }
+        else {
+            return typeof input === "object" && input instanceof __TouchEvent;
+        }
     }
     function isTouch(input) {
         const __Touch = typeof Touch != "undefined" ? Touch : window.Touch;
-        if (!__Touch)
+        if (!__Touch) {
             return false;
-        return typeof input === "object" && input instanceof __Touch;
+        }
+        else {
+            return typeof input === "object" && input instanceof __Touch;
+        }
     }
     const cursorActionDict = {
         0: "Left",
@@ -34,7 +40,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         4: "Forward",
         10: "Touch",
     };
-    const reverseCursorActionDict = Object.fromEntries(Object.entries(cursorActionDict).map(e => [e[1], Number(e[0])]));
+    const reverseCursorActionDict = Object.fromEntries(Object.entries(cursorActionDict).map((e) => [e[1], Number(e[0])]));
     class Cursor {
         static buttonToAction(value) {
             return cursorActionDict[value];
@@ -51,7 +57,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             this.buttons = new Set();
             this.mouse_down = false;
             this.touching = false;
-            this.startTime = 0;
+            this.start_time = 0;
             this.bound_events = new Set();
             this.on = {
                 click: (e) => e.preventDefault(),
@@ -61,11 +67,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 touchmove: (e) => isTouchEvent(e) &&
                     this.events.emit("move", e.touches[0].clientX, e.touches[0].clientY),
                 mouseup: (e) => this.events.emit("end", e),
-                touchend: (e) => isTouchEvent(e) &&
-                    this.events.emit("end", e.changedTouches[0]),
+                touchend: (e) => (e.preventDefault(),
+                    isTouchEvent(e) && this.events.emit("end", e.changedTouches[0])),
                 mousedown: (e) => this.events.emit("start", e),
-                touchstart: (e) => isTouchEvent(e) &&
-                    this.events.emit("start", e.touches[0]),
+                touchstart: (e) => isTouchEvent(e) && this.events.emit("start", e.touches[0]),
             };
             this.object = object;
             this.init();
@@ -84,8 +89,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 this.bound_events.add([method, fn]);
                 this.object.addEventListener(method, fn);
             }
-            this
-                .events
+            this.events
                 .on("move", (x, y) => this.setPosition(x, y))
                 .on("start", (e) => this.onStart(e))
                 .on("end", (e) => this.onEnd(e));
@@ -105,11 +109,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             const b = object.getBoundingClientRect();
             return {
                 x: Math.floor(((x - b.left) / (b.right - b.left)) * b.width),
-                y: Math.floor(((y - b.top) / (b.bottom - b.top)) * b.height)
+                y: Math.floor(((y - b.top) / (b.bottom - b.top)) * b.height),
             };
         }
         onStart(event) {
-            this.startTime = performance.now();
+            this.start_time = performance.now();
             if (isTouch(event)) {
                 this.events.emit("button-down", "Touch", event, this);
                 this.buttons.add(10);

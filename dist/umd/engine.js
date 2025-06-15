@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         const zoom = (_c = options === null || options === void 0 ? void 0 : options.zoom) !== null && _c !== void 0 ? _c : 1;
         return {
             x: (screen.x - center.x) / zoom + offset.x,
-            y: (screen.y - center.y) / zoom + offset.y
+            y: (screen.y - center.y) / zoom + offset.y,
         };
     }
     function worldToScreen(world, options) {
@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         const zoom = (_c = options === null || options === void 0 ? void 0 : options.zoom) !== null && _c !== void 0 ? _c : 1;
         return {
             x: (world.x - offset.x) * zoom + center.x,
-            y: (world.y - offset.y) * zoom + center.y
+            y: (world.y - offset.y) * zoom + center.y,
         };
     }
     /**
@@ -75,8 +75,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 if (typeof data.priority === "number")
                     this.priority = data.priority;
                 if (typeof data.lifetime === "number") {
-                    const endAt = Date.now() + data.lifetime;
-                    this.events.on("update", () => Date.now() > endAt && this.removeType());
+                    const ends_at = Date.now() + data.lifetime;
+                    this.events.on("update", () => Date.now() > ends_at && this.removeType());
                 }
             }
         }
@@ -109,17 +109,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 x: pos.x,
                 y: pos.y,
                 width: this.width * this.engine.zoom,
-                height: this.height * this.engine.zoom
+                height: this.height * this.engine.zoom,
             };
         }
         get canvas() {
             return this.engine.brush;
         }
         collides(restriction = () => false) {
-            for (const otherObj of this.engine.objects.values()) {
-                if (this != otherObj &&
-                    restriction(this, otherObj))
+            for (const other_obj of this.engine.objects.values()) {
+                if (this != other_obj && restriction(this, other_obj)) {
                     return true;
+                }
             }
             return false;
         }
@@ -135,18 +135,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     class Engine {
         static display(engine, parent) {
             var _a;
-            const fullFloatStyling = {
+            const full_float_styling = {
                 position: "absolute",
                 top: 0,
                 left: 0,
                 width: "100%",
-                height: "100%"
+                height: "100%",
             };
-            new dom_1.ProxyNode(engine.brush.canvas)
-                .styles(fullFloatStyling);
-            const el = dom_1.ProxyNode.extractEl(engine.dom);
-            if (((_a = dom_1.ProxyNode.extractEl(parent)) === null || _a === void 0 ? void 0 : _a.contains(el)) != true)
+            new dom_1.VNode(engine.brush.canvas).style.update(full_float_styling);
+            const el = dom_1.VNode.Util.extractEl(engine.dom);
+            if (((_a = dom_1.VNode.Util.extractEl(parent)) === null || _a === void 0 ? void 0 : _a.contains(el)) != true) {
                 parent.append(el);
+            }
             engine.dom.focus();
         }
         constructor(brush) {
@@ -157,13 +157,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             this.offset = { x: 0, y: 0 };
             this.zoom = 3;
             this.frame = 0;
-            this.dom = dom_1.newNode.div;
-            this.ui = dom_1.newNode.div;
+            this.dom = dom_1.VNode.new.div;
+            this.ui = dom_1.VNode.new.div;
             this.collision = collision_js_1.Collision;
             this.object = (data, ref) => {
                 const entity = new legacy_js_1.LegacyEntity(this.ecs);
-                if (data.priority != null)
+                if (data.priority != null) {
                     entity.priority = data.priority;
+                }
                 ref(entity);
                 return entity;
             };
@@ -173,6 +174,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             this.dom.append(this.brush.canvas, this.ui);
             this.cursor = new cursor_js_1.default(this.brush.canvas);
             this.keyboard = new keyboard_js_1.default(this.dom.element);
+            // 	this.cursor = new Cursor(this.dom.element);
+            // this.keyboard = new Keyboard(this.dom.element as HTMLElement);
             this.ticks = new repeater_js_1.Repeater(64, () => {
                 var _a;
                 this.ecs.update();
@@ -184,18 +187,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             return screenToWorld(point, {
                 center: (options === null || options === void 0 ? void 0 : options.center) === true ? this.brush.center() : { x: 0, y: 0 },
                 offset: this.offset,
-                zoom: this.zoom
+                zoom: this.zoom,
             });
         }
         worldToScreen(point, options) {
             return worldToScreen(point, {
                 center: (options === null || options === void 0 ? void 0 : options.center) === true ? this.brush.center() : { x: 0, y: 0 },
                 offset: this.offset,
-                zoom: this.zoom
+                zoom: this.zoom,
             });
         }
         setCursor(url) {
-            this.dom.styles({ cursor: `url(${url}), pointer` });
+            this.dom.style.update({ cursor: `url(${url}), pointer` });
             return this;
         }
         destroy() {
@@ -209,8 +212,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             this.ecs.addSystem(this.legacy);
             /* Wipe the canvas */
             this.brush.clear();
-            for (const object of Array.from(this.objects))
+            for (const object of Array.from(this.objects)) {
                 object.removeType();
+            }
         }
     }
     Engine.screenToWorld = screenToWorld;

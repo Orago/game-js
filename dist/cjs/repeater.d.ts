@@ -8,7 +8,6 @@ export declare class FPS {
     tick(): number;
 }
 export declare class Repeater {
-    time: number | undefined;
     frame: number;
     paused: boolean;
     RafRef: number | undefined;
@@ -16,10 +15,12 @@ export declare class Repeater {
     actualFps: number;
     delay: number;
     maxFramesPerSecond?: number;
+    start_time: number;
+    timestamp: number;
     delta: number;
     private readonly _fpsHandler;
-    callback: Function;
-    constructor(fpsLimit: number, callback: Function);
+    callback: (repeater: Repeater) => void;
+    constructor(fpsLimit: number, callback: Repeater["callback"]);
     loop(timestamp: number): void;
     get setFps(): number;
     get fps(): number;

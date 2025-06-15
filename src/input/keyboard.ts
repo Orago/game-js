@@ -1,7 +1,6 @@
 import { KeyboardAction, SideActionJoint, SidedAction } from "./symbols.js";
 import Emitter from "@orago/lib/emitter";
-import { ProxyNode } from "@orago/dom";
-
+import { VNode } from "@orago/dom";
 
 // type KeyboardActions = "Down-" | "Up-"
 // type KeyboardCharEvents = Record<Lowercase<`${KeyboardActions}${KeyboardAction}`>, () => void>;
@@ -18,17 +17,44 @@ const unions: Record<SidedAction, SideActionJoint> = {
 	ControlLeft: "Control",
 	ControlRight: "Control",
 	AltLeft: "Alt",
-	AltRight: "Alt"
+	AltRight: "Alt",
 };
 
 type KeyboardUnionMode = "both" | "split" | "joint";
+
+class VNodeEventGroup {
+	map: Map<string, Function> = new Map();
+
+	constructor(private node: VNode) {
+		this.node = node;
+	}
+
+	public on(event: string, callback: Function): this {
+		this.map.set(event, callback);
+		this.node.events.on(event, callback);
+		return this;
+	}
+
+	public off(event: string, callback?: Function): this {
+		this.map.delete(event);
+		this.node.events.off(event, callback);
+		return this;
+	}
+
+	public clear(): this {
+		for (const [event, callback] of this.map.entries()) {
+			this.off(event, callback);
+		}
+		return this;
+	}
+}
 
 export default class Keyboard {
 	private static formatKeycode(value: string): KeyboardAction {
 		return value as KeyboardAction;
 	}
 
-	public object: ProxyNode;
+	public object: VNode;
 	public readonly events: Emitter<KeyboardEvents, true> = new Emitter();
 
 	/* Keys pressed */
@@ -36,40 +62,51 @@ export default class Keyboard {
 	public alive: boolean = false;
 	public union: KeyboardUnionMode = "both";
 
-	constructor(element: Element = document.body) {
-		this.object = new ProxyNode(element);
+	public event_group?: VNodeEventGroup;
+
+	constructor(element: HTMLElement = document.body) {
+		this.object = new VNode(element);
+		this.event_group = new VNodeEventGroup(this.object);
 	}
 
-	attatch(proxyNode: ProxyNode) {
-		this.object.removeListener("kbEvents");
-		this.object = proxyNode;
-		this.object.addListener({
-			kbEvents: {
-				keydown: (event: KeyboardEvent) =>
-					this.simulateKeyDown(event.code as KeyboardAction),
+	attatch(node: VNode) {
+		this.dispose();
+		this.object = node;
+		this.event_group = new VNodeEventGroup(this.object);
 
-				keyup: (event: KeyboardEvent) =>
-					this.simulateKeyUp(event.code as KeyboardAction)
-			}
-		});
+		this.event_group
+			.on("keydown", (event: KeyboardEvent) => {
+				this.simulateKeyDown(event.code as KeyboardAction);
+			})
+			.on("keyup", (event: KeyboardEvent) => {
+				this.simulateKeyUp(event.code as KeyboardAction);
+			});
 	}
 
 	init() {
-		if (this.alive !== false)
+		if (this.alive !== false) {
 			return;
+		}
 
 		this.alive = true;
 		this.attatch(this.object);
 	}
 
-	public get stop() { return this.dispose; }
-	public dispose() {
-		if (this.alive !== true)
-			return;
+	public get stop() {
+		return this.dispose;
+	}
 
-		this.alive = false;
+	public dispose() {
+		if (this.event_group != undefined) {
+			this.event_group.clear();
+		}
+
 		this.pressed = {};
-		this.object.removeListener("kbEvents");
+		this.alive = false;
+
+		// if (this.alive !== true) {
+		// 	return;
+		// }
 	}
 
 	public simulateKeyDown(keycode: KeyboardAction) {
@@ -113,20 +150,22 @@ export default class Keyboard {
 	public isPressed = (key: KeyboardAction): boolean =>
 		this.pressed?.[key] == true;
 
-	public intPressed = (key: KeyboardAction): 0 | 1 => this.isPressed(key) ? 1 : 0;
+	public intPressed = (key: KeyboardAction): 0 | 1 =>
+		this.isPressed(key) ? 1 : 0;
 
 	public mapInt(...keys: KeyboardAction[]): Record<string, number> {
-		const keyMap = (key: KeyboardAction): [KeyboardAction, 0 | 1] => [key, this.intPressed(key)];
+		const keyMap = (key: KeyboardAction): [KeyboardAction, 0 | 1] => [
+			key,
+			this.intPressed(key),
+		];
 
 		return Object.fromEntries(keys.map(keyMap));
 	}
 
 	public applyKeys(keys: Partial<Record<KeyboardAction, boolean>>) {
 		for (const [key, value] of Object.entries(keys)) {
-			if (value === true)
-				this.simulateKeyDown(key as KeyboardAction);
-			else
-				this.simulateKeyUp(key as KeyboardAction);
+			if (value === true) this.simulateKeyDown(key as KeyboardAction);
+			else this.simulateKeyUp(key as KeyboardAction);
 		}
 	}
 }

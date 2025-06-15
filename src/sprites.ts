@@ -1,7 +1,7 @@
-import BrushCanvas from './brush/brush.js';
+import BrushCanvas from "./brush/brush.js";
 
 const rerenderCanvas = new BrushCanvas({
-	inputCanvas: document.createElement('canvas')
+	inputCanvas: document.createElement("canvas"),
 });
 
 const { chainable } = rerenderCanvas;
@@ -9,58 +9,52 @@ const { chainable } = rerenderCanvas;
 type ImageType = HTMLImageElement;
 
 export function getDataUrl(image: ImageType | HTMLCanvasElement): string {
-	if (image instanceof HTMLImageElement)
+	if (image instanceof HTMLImageElement) {
 		return chainable
 			.canvasSize(image.width, image.height)
 			.size(image.width, image.height)
-			.clear
-			.pos(0, 0)
-			.rendering('source-over')
+			.clear.pos(0, 0)
+			.rendering("source-over")
 			.image(image)
-			.last_config
-			.canvas
-			.toDataURL();
-
-	if (image instanceof HTMLCanvasElement)
+			.last_config.canvas.toDataURL();
+	} else if (image instanceof HTMLCanvasElement) {
 		return image.toDataURL();
-
-	return '';
+	} else {
+		return "";
+	}
 }
 export function cloneToCanvas(image: ImageType): HTMLCanvasElement {
-	const rerenderCanvas = new BrushCanvas({
-		inputCanvas: document.createElement('canvas')
+	const rerender_canvas = new BrushCanvas({
+		inputCanvas: document.createElement("canvas"),
 	});
 
-	const { chainable } = rerenderCanvas;
+	const { chainable } = rerender_canvas;
 
 	return chainable
 		.canvasSize(image.width, image.height)
 		.size(image.width, image.height)
-		.clear
-		.pos(0, 0)
-		.rendering('source-over')
-		.image(image)
-		.last_config
-		.canvas;
+		.clear.pos(0, 0)
+		.rendering("source-over")
+		.image(image).last_config.canvas;
 }
 
 export function cloneImage(image: ImageType | HTMLCanvasElement): ImageType {
 	const cloned = new Image();
 
 	if (image instanceof HTMLImageElement) {
-		cloned.crossOrigin = image.crossOrigin ?? 'anonymous';
+		cloned.crossOrigin = image.crossOrigin ?? "anonymous";
 		cloned.src = image.src;
-	}
-
-	else if (image instanceof HTMLCanvasElement)
+	} else if (image instanceof HTMLCanvasElement) {
 		cloned.src = image.toDataURL();
+	}
 
 	return cloned;
 }
 
 export async function responseToImageUrl(response: Response): Promise<any> {
-	if (response.ok != true)
-		throw new Error('Network response was not ok');
+	if (response.ok != true) {
+		throw new Error("Network response was not ok");
+	}
 
 	/** Read the response as a Blob */
 	const blob = await response.blob();
@@ -70,17 +64,17 @@ export async function responseToImageUrl(response: Response): Promise<any> {
 }
 
 export function imageToResponse(image: any): Response {
-	const blob = new Blob([image], { type: 'image/jpeg' }); // Adjust the MIME type as needed
+	const blob = new Blob([image], { type: "image/jpeg" }); // Adjust the MIME type as needed
 
 	// Create a Response object from the Blob
-	return new Response(blob, { status: 200, statusText: 'OK' });
+	return new Response(blob, { status: 200, statusText: "OK" });
 }
 
-type spriteCfg = { x: number; y: number; width: number; height: number; };
+type spriteCfg = { x: number; y: number; width: number; height: number };
 
 interface SpritesheetConfig {
 	fileName: string;
-	sprites: { [name: string]: spriteCfg; };
+	sprites: { [name: string]: spriteCfg };
 }
 
 export class Spritesheet {
@@ -89,61 +83,65 @@ export class Spritesheet {
 	sprite: HTMLImageElement = new Image();
 	config: SpritesheetConfig;
 
-	constructor(
-		options: {
-			id: string;
-			url: string;
-			cache?: true;
-			config: SpritesheetConfig;
+	constructor(options: {
+		id: string;
+		url: string;
+		cache?: true;
+		config: SpritesheetConfig;
+	}) {
+		if (typeof options != "object") {
+			throw console.log("Bad spritesheet", options);
+		} else if (typeof options?.url !== "string") {
+			throw console.log("Bad spritesheet url", options);
+		} else if (typeof options?.url !== "string") {
+			throw console.log("Bad spritesheet url", options);
+		} else if (typeof options?.config !== "object") {
+			throw console.log("Bad config", options);
+		} else if (typeof options.config?.fileName !== "string") {
+			throw console.log("[spritesheet.config] Invalid fileName", options);
+		} else if (typeof options.config?.sprites !== "object") {
+			throw console.log(
+				"[spritesheet.config] Invalid sprites type",
+				options
+			);
 		}
-	) {
-		if (typeof options != 'object')
-			throw console.log('Bad spritesheet', options);
-
-		if (typeof options?.url !== 'string')
-			throw console.log('Bad spritesheet url', options);
-
-		if (typeof options?.url !== 'string')
-			throw console.log('Bad spritesheet url', options);
-
-		if (typeof options?.config !== 'object')
-			throw console.log('Bad config', options);
-
-		if (typeof options.config?.fileName !== 'string')
-			throw console.log('[spritesheet.config] Invalid fileName', options);
-
-		if (typeof options.config?.sprites !== 'object')
-			throw console.log('[spritesheet.config] Invalid sprites type', options);
 
 		let index = 0;
 
-		for (const [spriteUrl, spriteCfg] of Object.entries(options.config.sprites)) {
+		for (const [spriteUrl, spriteCfg] of Object.entries(
+			options.config.sprites
+		)) {
 			let i = index++;
 
-			if (typeof spriteUrl !== 'string')
-				throw console.log(`[spritesheet.sprites]: I:(${i}) Bad sprite url`, [spriteUrl, spriteCfg]);
-
-			if (typeof spriteCfg !== 'object')
-				throw console.log(`[spritesheet.sprites]: I:(${i}) Bad sprite config`, [spriteUrl, spriteCfg]);
+			if (typeof spriteUrl !== "string") {
+				throw console.log(
+					`[spritesheet.sprites]: I:(${i}) Bad sprite url`,
+					[spriteUrl, spriteCfg]
+				);
+			} else if (typeof spriteCfg !== "object") {
+				throw console.log(
+					`[spritesheet.sprites]: I:(${i}) Bad sprite config`,
+					[spriteUrl, spriteCfg]
+				);
+			}
 		}
 
 		if (options.cache === true) {
 			// fetchCached('sprites', options.url)
-			fetch(options.url)
-				.then(async response => {
-					this.sprite.src = await responseToImageUrl(response);
+			fetch(options.url).then(async (response) => {
+				this.sprite.src = await responseToImageUrl(response);
 
-					// console.log('CACHE LOADED', options.url);
-				});
-		}
-		else {
+				// console.log('CACHE LOADED', options.url);
+			});
+		} else {
 			this.sprite.src = options.url;
 		}
 
 		this.id = options.id;
-		this.sprite.crossOrigin = 'anonymous';
-		this.sprite.onload = () => this.loaded = true;
-		this.sprite.onerror = e => console.log('failed to load', e, options.url);
+		this.sprite.crossOrigin = "anonymous";
+		this.sprite.onload = () => (this.loaded = true);
+		this.sprite.onerror = (e) =>
+			console.log("failed to load", e, options.url);
 		this.config = options.config;
 	}
 }
@@ -173,15 +171,18 @@ export default class Sprites {
 		}
 	): ImageType {
 		const result = new Image();
-		const g: [number, number, number, number] = [bounds.x, bounds.y, bounds.width, bounds.height];
+		const g: [number, number, number, number] = [
+			bounds.x,
+			bounds.y,
+			bounds.width,
+			bounds.height,
+		];
 
-		result.src =
-			chainable
-				.canvasSize(bounds.width, bounds.height)
-				.clear
-				.rendering('source-over')
-				.image(image, g)
-				.canvas.toDataURL();
+		result.src = chainable
+			.canvasSize(bounds.width, bounds.height)
+			.clear.rendering("source-over")
+			.image(image, g)
+			.canvas.toDataURL();
 
 		return result;
 	}
@@ -192,40 +193,40 @@ export default class Sprites {
 	 * Host domain and or path
 	 * it's essentially just a url prefix
 	 */
-	public host: string = '';
+	public host: string = "";
 	public sprites = new Map();
-	public loading = new Set;
+	public loading = new Set();
 	public readonly cache: Map<string, Sprite> = new Map();
 
 	/** Seconds */
-	public cacheDuration = 3600; /* 1 hour */
+	public cache_duration = 3600; /* 1 hour */
 
 	public readonly spriteSheets: Map<string, Spritesheet> = new Map();
 
-	constructor(options: { host?: string; cacheDuration?: number; }) {
-		if (typeof options === 'object') {
-			if (typeof options.host === 'string')
+	constructor(options: { host?: string; cacheDuration?: number }) {
+		if (typeof options === "object") {
+			if (typeof options.host === "string") {
 				this.host = options.host;
+			}
 
-			if (typeof options.cacheDuration === 'number')
-				this.cacheDuration = options.cacheDuration;
+			if (typeof options.cacheDuration === "number") {
+				this.cache_duration = options.cacheDuration;
+			}
 		}
 	}
 
 	addSpritesheet(spritesheet: Spritesheet) {
 		if (spritesheet instanceof Spritesheet != true) {
 			console.log(spritesheet);
-			throw new Error('^ Invalid spritesheet');
+			throw new Error("^ Invalid spritesheet");
 		}
 
 		this.spriteSheets.set(spritesheet.id, spritesheet);
 	}
 
 	parseUrl(url: string): string {
-		if (
-			typeof url == 'string' &&
-			url.startsWith('/')
-		) return this.host + url;
+		if (typeof url == "string" && url.startsWith("/"))
+			return this.host + url;
 
 		return url;
 	}
@@ -238,10 +239,11 @@ export default class Sprites {
 		url = this.parseUrl(url);
 
 		const cached = this.cache.get(url);
-		const result = cached ? cached.img : this.loadSingle(url, options?.onLoad).img;
+		const result = cached
+			? cached.img
+			: this.loadSingle(url, options?.onLoad).img;
 
-		if (this.has(url))
-			result.dispatchEvent(new Event('load'));
+		if (this.has(url)) result.dispatchEvent(new Event("load"));
 
 		return result;
 	}
@@ -249,19 +251,21 @@ export default class Sprites {
 	loadSingle(url: string, onLoad?: Function): Sprite {
 		const res = new BlankSprite();
 
-		if (this.loading.has(url))
+		if (this.loading.has(url)) {
 			return res;
+		}
 
 		this.loading.add(url);
 
-		res.img.crossOrigin = 'anonymous';
+		res.img.crossOrigin = "anonymous";
 		res.img.src = url;
 
-		res.img.addEventListener('load', url => {
+		res.img.addEventListener("load", (url) => {
 			this.loading.delete(url);
 
-			if (typeof onLoad !== 'function')
+			if (typeof onLoad !== "function") {
 				return;
+			}
 
 			const result = onLoad(res.img);
 			if (result) res.img = result;
@@ -273,13 +277,15 @@ export default class Sprites {
 	}
 
 	async fromCache(url: string): Promise<ImageType> {
-		if (this.sprites.has(url))
+		if (this.sprites.has(url)) {
 			return this.sprites.get(url);
+		}
 
 		/** From spritesheet */
 		for (const sheet of Array.from(this.spriteSheets.values())) {
-			if (sheet.config.sprites.hasOwnProperty(url) != true)
+			if (sheet.config.sprites.hasOwnProperty(url) != true) {
 				continue;
+			}
 
 			if (sheet.loaded !== true) {
 				await new Promise((resolve) => setTimeout(resolve, 500));
@@ -289,8 +295,9 @@ export default class Sprites {
 
 			const cached = this.cache.get(url);
 
-			if (cached != null)
+			if (cached != null) {
 				return cached.img;
+			}
 
 			const opts = sheet.config.sprites[url];
 			const img = Sprites.Slice(sheet.sprite, opts);
@@ -312,10 +319,10 @@ export default class Sprites {
 		return await this.promise(url);
 	}
 
-	async loadSinglePromise(url: string): Promise<Sprite['img']> {
+	async loadSinglePromise(url: string): Promise<Sprite["img"]> {
 		const sprite = new BlankSprite();
 
-		sprite.img.crossOrigin = 'anonymous';
+		sprite.img.crossOrigin = "anonymous";
 		sprite.img.src = url;
 
 		return new Promise((resolve) => {
@@ -324,9 +331,9 @@ export default class Sprites {
 				resolve(sprite.img);
 			};
 
-			sprite.img.onerror = err => {
+			sprite.img.onerror = (err) => {
 				resolve(sprite.img);
-				console.log('file: ', [url], 'is messed up', err)
+				console.log("file: ", [url], "is messed up", err);
 			};
 		});
 	}

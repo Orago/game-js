@@ -6,10 +6,12 @@ interface InputMapData {
     cursor?: MouseButton[];
     gamepad?: GamepadAction[];
     gamepad_deadzone?: number;
+    /** Dangerous */
+    simulated?: boolean;
 }
 type MappedKeys = Record<string, InputMapData>;
 type Evt<K, Strict extends boolean> = Strict extends true ? keyof K | "*" : keyof K | "*" | (string & {});
-export declare class InputMap<T extends (MappedKeys & {}) = {}, Strict extends boolean = false> {
+export declare class InputMap<T extends MappedKeys & {} = {}, Strict extends boolean = false> {
     current_maps: Map<Evt<T, Strict>, InputMapData>;
     keyboard?: Keyboard;
     cursor?: Cursor;

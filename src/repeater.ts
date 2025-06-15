@@ -23,8 +23,7 @@ export class FPS {
 
 		let total = 0;
 
-		for (let i = 0; i < this.samples.length; i++)
-			total += this.samples[i];
+		for (let i = 0; i < this.samples.length; i++) total += this.samples[i];
 
 		const average = Math.round(total / this.samples.length);
 
@@ -41,7 +40,6 @@ export class FPS {
 }
 
 export class Repeater {
-	public time: number | undefined;
 	public frame: number = -1;
 	public paused: boolean = true;
 	public RafRef: number | undefined;
@@ -49,13 +47,15 @@ export class Repeater {
 	public actualFps: number = -1;
 	public delay: number;
 	public maxFramesPerSecond?: number;
+	public start_time: number = 0;
+	public timestamp: number = 0;
 	public delta: number = 0;
 
 	private readonly _fpsHandler: FPS;
 
-	public callback: Function;
+	public callback: (repeater: Repeater) => void;
 
-	constructor(fpsLimit: number, callback: Function) {
+	constructor(fpsLimit: number, callback: Repeater["callback"]) {
 		this.fpsLimit = fpsLimit;
 		this.delay = 1000 / fpsLimit;
 		this.callback = callback;
@@ -63,19 +63,23 @@ export class Repeater {
 	}
 
 	loop(timestamp: number) {
-		if (this.paused)
+		if (this.paused) {
 			return;
+		}
 
-		this.delta = timestamp / (this.time ?? 0);
+		if (this.start_time == null) this.start_time = timestamp;
 
-		if (this.time == null)
-			this.time = timestamp;
-
-		const seg = Math.floor((timestamp - this.time) / this.delay);
+		const seg = Math.floor((timestamp - this.start_time) / this.delay);
 
 		if (seg > this.frame) {
 			this.frame = seg;
 			this.actualFps = this._fpsHandler.tick();
+			this.delta = (timestamp - this.timestamp) / 1000;
+
+			if (timestamp - this.timestamp > 3000) {
+				this.delta = 0;
+			}
+			this.timestamp = timestamp;
 			this.callback(this);
 		}
 
@@ -91,13 +95,12 @@ export class Repeater {
 	}
 
 	set fps(newFps: number) {
-		if (arguments.length == 0)
-			return;
+		if (arguments.length == 0) return;
 
 		this.maxFramesPerSecond = newFps;
 		this.delay = 1000;
 		this.frame = -1;
-		this.time = undefined;
+		this.start_time = 0;
 	}
 
 	/**
@@ -116,14 +119,11 @@ export class Repeater {
 	pause(paused: boolean = !this.paused == true): void {
 		this.paused = paused;
 
-		if (this.paused !== true)
-			return this.start(),
-				void 0;
+		if (this.paused !== true) return this.start(), void 0;
 
-		if (typeof this.RafRef === 'number')
-			cancelAnimationFrame(this.RafRef);
+		if (typeof this.RafRef === "number") cancelAnimationFrame(this.RafRef);
 
-		this.time = undefined;
+		this.start_time = 0;
 		this.frame = -1;
 	}
 }

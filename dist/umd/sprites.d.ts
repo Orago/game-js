@@ -49,7 +49,7 @@ export default class Sprites {
     loading: Set<unknown>;
     readonly cache: Map<string, Sprite>;
     /** Seconds */
-    cacheDuration: number;
+    cache_duration: number;
     readonly spriteSheets: Map<string, Spritesheet>;
     constructor(options: {
         host?: string;
@@ -61,7 +61,7 @@ export default class Sprites {
     get(url: string, options?: any): HTMLImageElement;
     loadSingle(url: string, onLoad?: Function): Sprite;
     fromCache(url: string): Promise<ImageType>;
-    loadSinglePromise(url: string): Promise<Sprite['img']>;
+    loadSinglePromise(url: string): Promise<Sprite["img"]>;
     promise(url: string): Promise<ImageType>;
 }
 export {};

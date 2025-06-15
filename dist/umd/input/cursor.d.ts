@@ -6,11 +6,11 @@ type CursorCalled = (event: Touch | MouseEvent, cursor: Cursor) => void;
 type CursorEvents = {
     "button-down": (which: MouseButton, event: Touch | MouseEvent, cursor: Cursor) => void;
     "button-up": (which: MouseButton, event: Touch | MouseEvent, cursor: Cursor) => void;
-    "move": (x: number, y: number) => void;
-    "start": (event: Touch | MouseEvent) => void;
-    "end": (event: Touch | MouseEvent) => void;
-    "touch": CursorCalled;
-    "release": CursorCalled;
+    move: (x: number, y: number) => void;
+    start: (event: Touch | MouseEvent) => void;
+    end: (event: Touch | MouseEvent) => void;
+    touch: CursorCalled;
+    release: CursorCalled;
 };
 type CursorButtonInt = 0 | 1 | 2 | 3 | 4 | 10;
 export default class Cursor {
@@ -26,7 +26,7 @@ export default class Cursor {
     buttons: Set<CursorButtonInt>;
     mouse_down: boolean;
     touching: boolean;
-    startTime: number;
+    start_time: number;
     private bound_events;
     constructor(object?: HTMLElement);
     reconnect(object: HTMLElement): void;

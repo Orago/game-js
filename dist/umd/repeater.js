@@ -47,20 +47,29 @@
             this.paused = true;
             this.fpsLimit = -1;
             this.actualFps = -1;
+            this.start_time = 0;
+            this.timestamp = 0;
+            this.delta = 0;
             this.fpsLimit = fpsLimit;
             this.delay = 1000 / fpsLimit;
             this.callback = callback;
             this._fpsHandler = new FPS();
         }
         loop(timestamp) {
-            if (this.paused)
+            if (this.paused) {
                 return;
-            if (this.time == null)
-                this.time = timestamp;
-            const seg = Math.floor((timestamp - this.time) / this.delay);
+            }
+            if (this.start_time == null)
+                this.start_time = timestamp;
+            const seg = Math.floor((timestamp - this.start_time) / this.delay);
             if (seg > this.frame) {
                 this.frame = seg;
                 this.actualFps = this._fpsHandler.tick();
+                this.delta = (timestamp - this.timestamp) / 1000;
+                if (timestamp - this.timestamp > 3000) {
+                    this.delta = 0;
+                }
+                this.timestamp = timestamp;
                 this.callback(this);
             }
             this.RafRef = requestAnimationFrame(this.loop.bind(this));
@@ -77,7 +86,7 @@
             this.maxFramesPerSecond = newFps;
             this.delay = 1000;
             this.frame = -1;
-            this.time = undefined;
+            this.start_time = 0;
         }
         /**
          * Restarts the repeater if it's not already running
@@ -94,11 +103,10 @@
         pause(paused = !this.paused == true) {
             this.paused = paused;
             if (this.paused !== true)
-                return this.start(),
-                    void 0;
-            if (typeof this.RafRef === 'number')
+                return this.start(), void 0;
+            if (typeof this.RafRef === "number")
                 cancelAnimationFrame(this.RafRef);
-            this.time = undefined;
+            this.start_time = 0;
             this.frame = -1;
         }
     }
