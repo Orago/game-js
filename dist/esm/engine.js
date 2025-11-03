@@ -1,4 +1,4 @@
-import { ECS } from "@orago/ecs";
+import { Ecs } from "@orago/ecs";
 import { Collision } from "./collision.js";
 import Cursor from "./input/cursor.js";
 import Keyboard from "./input/keyboard.js";
@@ -136,7 +136,7 @@ class Engine {
         engine.dom.focus();
     }
     constructor(brush) {
-        this.ecs = new ECS();
+        this.ecs = new Ecs();
         this.legacy = new LegacySystem(this.ecs, this);
         /** List of renderable objects */
         this.objects = new Set();
@@ -155,7 +155,7 @@ class Engine {
             return entity;
         };
         this.brush = brush;
-        this.ecs.addSystem(this.legacy);
+        this.ecs.systems.add(this.legacy);
         this.brush.canvas.setAttribute("tabindex", "1");
         this.dom.append(this.brush.canvas, this.ui);
         this.cursor = new Cursor(this.brush.canvas);
@@ -191,11 +191,11 @@ class Engine {
         this.keyboard.events.all.clear();
         this.cursor.init();
         /* Queue for deletion */
-        this.ecs.killEntities();
-        this.ecs.killSystems();
+        this.ecs.entities.clear();
+        this.ecs.systems.clear();
         /* Do final run / deletion */
         this.ecs.update();
-        this.ecs.addSystem(this.legacy);
+        this.ecs.systems.add(this.legacy);
         /* Wipe the canvas */
         this.brush.clear();
         for (const object of Array.from(this.objects)) {
@@ -206,5 +206,5 @@ class Engine {
 Engine.screenToWorld = screenToWorld;
 Engine.worldToScreen = worldToScreen;
 Engine.Object = EngineObject;
-Engine.ECS = ECS;
+Engine.ECS = Ecs;
 export default Engine;

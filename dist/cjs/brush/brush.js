@@ -6,10 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChainableCanvas = void 0;
 const render_js_1 = require("./render.js");
 const emitter_1 = __importDefault(require("@orago/lib/emitter"));
-const chainableCanvas_js_1 = require("./chainableCanvas.js");
+const chainable_canvas_js_1 = require("./chainable-canvas.js");
 const webgl_2d_js_1 = require("./webgl-2d.js");
-var chainableCanvas_js_2 = require("./chainableCanvas.js");
-Object.defineProperty(exports, "ChainableCanvas", { enumerable: true, get: function () { return chainableCanvas_js_2.ChainableCanvas; } });
+var chainable_canvas_js_2 = require("./chainable-canvas.js");
+Object.defineProperty(exports, "ChainableCanvas", { enumerable: true, get: function () { return chainable_canvas_js_2.ChainableCanvas; } });
 class BrushCanvas {
     constructor(settings = {}) {
         this.resolution = 1;
@@ -180,6 +180,6 @@ class BrushCanvas {
         return this;
     }
     get get() { return this; }
-    get chainable() { return new chainableCanvas_js_1.ChainableCanvas(this); }
+    get chainable() { return new chainable_canvas_js_1.ChainableCanvas(this); }
 }
 exports.default = BrushCanvas;

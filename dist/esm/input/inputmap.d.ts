@@ -18,6 +18,11 @@ export declare class InputMap<T extends MappedKeys & {} = {}, Strict extends boo
     allowed_gamepads?: number[];
     active: boolean;
     private onceing;
+    /**
+     *
+     * @param input
+     * @param parent - unused
+     */
     constructor(input?: T, parent?: HTMLElement);
     setKeyboard(keyboard: Keyboard): this;
     setCursor(cursor: Cursor): this;

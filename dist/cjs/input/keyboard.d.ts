@@ -15,7 +15,7 @@ declare class VNodeEventGroup {
     clear(): this;
 }
 export default class Keyboard {
-    private static formatKeycode;
+    static formatKeycode(value: string): KeyboardAction;
     object: VNode;
     readonly events: Emitter<KeyboardEvents, true>;
     pressed: Partial<Record<KeyboardAction, boolean>>;
@@ -23,7 +23,7 @@ export default class Keyboard {
     union: KeyboardUnionMode;
     event_group?: VNodeEventGroup;
     constructor(element?: HTMLElement);
-    attatch(node: VNode): void;
+    attatch(node: VNode | HTMLElement): void;
     init(): void;
     get stop(): () => void;
     dispose(): void;

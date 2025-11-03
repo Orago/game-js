@@ -1,16 +1,19 @@
-import Emitter from '@orago/lib/emitter';
-import { type ECS, Entity, System } from '@orago/ecs';
-import Engine from '../engine.js';
+import Emitter from "@orago/lib/emitter";
+import { type Ecs, Entity, System, Component } from "@orago/ecs";
+import Engine from "../engine.js";
+declare class LegacySignature extends Component {
+}
 export declare class LegacySystem extends System {
     world: Engine;
-    componentsRequired: Set<Function>;
-    constructor(ecs: ECS, world: Engine);
+    components: Set<typeof LegacySignature>;
+    constructor(ecs: Ecs, world: Engine);
     update(entities: Set<LegacyEntity>): void;
 }
 export declare class LegacyEntity extends Entity {
     readonly events: Emitter<{}, false>;
     priority: number;
-    constructor(ecs: ECS);
+    constructor(ecs: Ecs);
     ref(fn: (arg0: this) => void): this;
     tick(): void;
 }
+export {};

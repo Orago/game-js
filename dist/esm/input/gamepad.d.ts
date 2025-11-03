@@ -1,4 +1,4 @@
-import { GamepadAction } from './symbols';
+import { GamepadAction } from "./symbols";
 type Gamepad = GamepadEvent["gamepad"];
 export declare class Gamepads {
     static mappedButtons: Record<GamepadAction, number>;

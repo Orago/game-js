@@ -1,8 +1,8 @@
 import { CanvasRender } from "./render.js";
 import Emitter from "@orago/lib/emitter";
-import { ChainableCanvas } from "./chainableCanvas.js";
+import { ChainableCanvas } from "./chainable-canvas.js";
 import { WebGLCanvas } from "./webgl-2d.js";
-export { ChainableCanvas } from "./chainableCanvas.js";
+export { ChainableCanvas } from "./chainable-canvas.js";
 export default class BrushCanvas {
     constructor(settings = {}) {
         this.resolution = 1;

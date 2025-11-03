@@ -39,7 +39,7 @@
  *    cvs.getContext("webgl-2d");
  *
  */
-import { colorKeywords } from "./webgl2d/color_keywords.js";
+import { colorKeywords } from "./webgl2d/color-keywords.js";
 function normalizeToNDC(x, y, canvasWidth, canvasHeight) {
     return {
         x: (x / canvasWidth) * 2 - 1,
@@ -74,7 +74,7 @@ let vec3 = {
         return Math.sqrt(pt[0] * pt[0] + pt[1] * pt[1] + pt[2] * pt[2]);
     },
     normalize: function (pt) {
-        var d = Math.sqrt((pt[0] * pt[0]) + (pt[1] * pt[1]) + (pt[2] * pt[2]));
+        var d = Math.sqrt(pt[0] * pt[0] + pt[1] * pt[1] + pt[2] * pt[2]);
         if (d === 0) {
             return [0, 0, 0];
         }
@@ -84,10 +84,16 @@ let vec3 = {
         return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
     },
     angle: function (v1, v2) {
-        return Math.acos((v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]) / (Math.sqrt(v1[0] * v1[0] + v1[1] * v1[1] + v1[2] * v1[2]) * Math.sqrt(v2[0] * v2[0] + v2[1] * v2[1] + v2[2] * v2[2])));
+        return Math.acos((v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]) /
+            (Math.sqrt(v1[0] * v1[0] + v1[1] * v1[1] + v1[2] * v1[2]) *
+                Math.sqrt(v2[0] * v2[0] + v2[1] * v2[1] + v2[2] * v2[2])));
     },
     cross: function (vectA, vectB) {
-        return [vectA[1] * vectB[2] - vectB[1] * vectA[2], vectA[2] * vectB[0] - vectB[2] * vectA[0], vectA[0] * vectB[1] - vectB[0] * vectA[1]];
+        return [
+            vectA[1] * vectB[2] - vectB[1] * vectA[2],
+            vectA[2] * vectB[0] - vectB[2] * vectA[0],
+            vectA[0] * vectB[1] - vectB[0] * vectA[1],
+        ];
     },
     multiply: function (vectA, constB) {
         return [vectA[0] * constB, vectA[1] * constB, vectA[2] * constB];
@@ -100,19 +106,19 @@ let vec3 = {
     },
     equal: function (a, b) {
         var epsilon = 0.0000001;
-        if ((a === undefined) && (b === undefined)) {
+        if (a === undefined && b === undefined) {
             return true;
         }
-        if ((a === undefined) || (b === undefined)) {
+        if (a === undefined || b === undefined) {
             return false;
         }
-        return (Math.abs(a[0] - b[0]) < epsilon && Math.abs(a[1] - b[1]) < epsilon && Math.abs(a[2] - b[2]) < epsilon);
-    }
+        return (Math.abs(a[0] - b[0]) < epsilon &&
+            Math.abs(a[1] - b[1]) < epsilon &&
+            Math.abs(a[2] - b[2]) < epsilon);
+    },
 };
 let mat3 = {
-    identity: [1.0, 0.0, 0.0,
-        0.0, 1.0, 0.0,
-        0.0, 0.0, 1.0],
+    identity: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0],
     multiply(m1, m2) {
         var m10 = m1[0], m11 = m1[1], m12 = m1[2], m13 = m1[3], m14 = m1[4], m15 = m1[5], m16 = m1[6], m17 = m1[7], m18 = m1[8], m20 = m2[0], m21 = m2[1], m22 = m2[2], m23 = m2[3], m24 = m2[4], m25 = m2[5], m26 = m2[6], m27 = m2[7], m28 = m2[8];
         m2[0] = m20 * m10 + m23 * m11 + m26 * m12;
@@ -133,7 +139,7 @@ let mat3 = {
     },
     transpose(m) {
         return [m[0], m[3], m[6], m[1], m[4], m[7], m[2], m[5], m[8]];
-    }
+    },
 }; //mat3
 // Transform library from CubicVR.js
 class Transform {
@@ -170,13 +176,9 @@ class Transform {
             this.valid--;
         }
     }
-    ;
     getIdentity() {
-        return [1.0, 0.0, 0.0,
-            0.0, 1.0, 0.0,
-            0.0, 0.0, 1.0];
+        return [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
     }
-    ;
     getResult() {
         if (!this.c_stack) {
             return this.m_stack[0];
@@ -193,19 +195,16 @@ class Transform {
         this.result = this.m_cache[this.c_stack];
         return this.result;
     }
-    ;
     pushMatrix() {
         this.c_stack++;
         this.m_stack[this.c_stack] = this.getIdentity();
     }
-    ;
     popMatrix() {
         if (this.c_stack === 0) {
             return;
         }
         this.c_stack--;
     }
-    ;
     translate(x, y) {
         this.translateMatrix[6] = x;
         this.translateMatrix[7] = y;
@@ -216,7 +215,6 @@ class Transform {
         }
         */
     }
-    ;
     scale(x, y) {
         this.scaleMatrix[0] = x;
         this.scaleMatrix[4] = y;
@@ -227,7 +225,6 @@ class Transform {
         }
         */
     }
-    ;
     rotate(ang) {
         var sAng, cAng;
         sAng = Math.sin(-ang);
@@ -243,14 +240,13 @@ class Transform {
         }
         */
     }
-    ;
 }
 Transform.STACK_DEPTH_LIMIT = 16;
 // Shader Pool BitMasks, i.e. sMask = (shaderMask.texture+shaderMask.stroke)
 let shaderMask = {
     texture: 1,
     crop: 2,
-    path: 4
+    path: 4,
 };
 let rectVertexPositionBuffer;
 let rectVertexColorBuffer;
@@ -258,16 +254,12 @@ let pathVertexPositionBuffer;
 let pathVertexColorBuffer;
 // 2D Vertices and Texture UV coords
 let rectVerts = new Float32Array([
-    0, 0, 0, 0,
-    0, 1, 0, 1,
-    1, 1, 1, 1,
-    1, 0, 1, 0
+    0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0,
 ]);
 export class WebGLCanvas {
     static affect(canvas, options) {
         return (canvas === null || canvas === void 0 ? void 0 : canvas.gl2d) || new WebGLCanvas(canvas, options);
     }
-    ;
     constructor(canvas, options) {
         this.gl = void 0;
         this.fs = void 0;
@@ -288,11 +280,13 @@ export class WebGLCanvas {
         // Override getContext function with "webgl-2d" enabled version
         canvas.getContext = (function (gl2d) {
             return function (context) {
-                if ((gl2d.options.force || context === "webgl-2d") && !(canvas.width === 0 || canvas.height === 0)) {
+                if ((gl2d.options.force || context === "webgl-2d") &&
+                    !(canvas.width === 0 || canvas.height === 0)) {
                     if (gl2d.gl) {
                         return gl2d.gl;
                     }
-                    let gl = gl2d.gl = gl2d.canvas.$getContext("experimental-webgl");
+                    let gl = (gl2d.gl = gl2d.canvas
+                        .$getContext("experimental-webgl"));
                     gl2d.initShaders();
                     gl2d.initBuffers();
                     // Append Canvas2D API features to the WebGL context
@@ -316,7 +310,7 @@ export class WebGLCanvas {
                     return gl2d.canvas.$getContext(context);
                 }
             };
-        }(this));
+        })(this);
         this.postInit();
     }
     getFragmentShaderSource(sMask) {
@@ -324,8 +318,8 @@ export class WebGLCanvas {
             "#ifdef GL_ES",
             "precision highp float;",
             "#endif",
-            "#define hasTexture " + ((sMask & shaderMask.texture) ? "1" : "0"),
-            "#define hasCrop " + ((sMask & shaderMask.crop) ? "1" : "0"),
+            "#define hasTexture " + (sMask & shaderMask.texture ? "1" : "0"),
+            "#define hasCrop " + (sMask & shaderMask.crop ? "1" : "0"),
             "varying vec4 vColor;",
             "#if hasTexture",
             "varying vec2 vTextureCoord;",
@@ -344,16 +338,15 @@ export class WebGLCanvas {
             "#else",
             "gl_FragColor = vColor;",
             "#endif",
-            "}"
+            "}",
         ].join("\n");
         return fsSource;
     }
-    ;
     getVertexShaderSource(stackDepth, sMask) {
         // let w = 2 / this.canvas.width, h = -2 / this.canvas.height;
         stackDepth = stackDepth || 1;
         let vsSource = [
-            "#define hasTexture " + ((sMask & shaderMask.texture) ? "1" : "0"),
+            "#define hasTexture " + (sMask & shaderMask.texture ? "1" : "0"),
             "attribute vec4 aVertexPosition;",
             "#if hasTexture",
             "varying vec2 vTextureCoord;",
@@ -377,11 +370,10 @@ export class WebGLCanvas {
             "#if hasTexture",
             "  vTextureCoord = aVertexPosition.zw;",
             "#endif",
-            "}"
+            "}",
         ].join("\n");
         return vsSource;
     }
-    ;
     // Initialize fragment and vertex shaders
     initShaders(transformStackDepth, sMask) {
         let gl = this.gl;
@@ -398,19 +390,20 @@ export class WebGLCanvas {
             return storedShader;
         }
         else {
-            let fs = this.fs = gl.createShader(gl.FRAGMENT_SHADER);
+            let fs = (this.fs = gl.createShader(gl.FRAGMENT_SHADER));
             gl.shaderSource(this.fs, this.getFragmentShaderSource(sMask));
             gl.compileShader(this.fs);
             if (!gl.getShaderParameter(this.fs, gl.COMPILE_STATUS)) {
                 throw "fragment shader error: " + gl.getShaderInfoLog(this.fs);
             }
-            var vs = this.vs = gl.createShader(gl.VERTEX_SHADER);
+            var vs = (this.vs = gl.createShader(gl.VERTEX_SHADER));
             gl.shaderSource(this.vs, this.getVertexShaderSource(transformStackDepth, sMask));
             gl.compileShader(this.vs);
             if (!gl.getShaderParameter(this.vs, gl.COMPILE_STATUS)) {
                 throw "vertex shader error: " + gl.getShaderInfoLog(this.vs);
             }
-            let shaderProgram = this.shaderProgram = gl.createProgram();
+            let shaderProgram = (this.shaderProgram =
+                gl.createProgram());
             // @ts-ignore
             shaderProgram.stackDepth = transformStackDepth;
             gl.attachShader(shaderProgram, fs);
@@ -440,7 +433,6 @@ export class WebGLCanvas {
             return shaderProgram;
         } //if
     }
-    ;
     initBuffers() {
         let gl = this.gl;
         rectVertexPositionBuffer = gl.createBuffer();
@@ -500,13 +492,14 @@ export class WebGLCanvas {
         function colorStringToVec4(value) {
             var result = [], match, channel, isPercent, hasAlpha, alphaChannel, sameType;
             if ((match = reRGBAColor.exec(value))) {
-                hasAlpha = match[1], alphaChannel = parseFloat(match[8]);
-                if ((hasAlpha && isNaN(alphaChannel)) || (!hasAlpha && !isNaN(alphaChannel))) {
+                (hasAlpha = match[1]), (alphaChannel = parseFloat(match[8]));
+                if ((hasAlpha && isNaN(alphaChannel)) ||
+                    (!hasAlpha && !isNaN(alphaChannel))) {
                     return false;
                 }
                 sameType = match[3];
                 for (var i = 2; i < 8; i += 2) {
-                    channel = match[i], isPercent = match[i + 1];
+                    (channel = match[i]), (isPercent = match[i + 1]);
                     if (isPercent !== sameType) {
                         return false;
                     }
@@ -524,15 +517,28 @@ export class WebGLCanvas {
                 result.push(hasAlpha ? alphaChannel : 1.0);
             }
             else if ((match = reHSLAColor.exec(value))) {
-                hasAlpha = match[1], alphaChannel = parseFloat(match[5]);
+                (hasAlpha = match[1]), (alphaChannel = parseFloat(match[5]));
                 result = HSLAToRGBA(match[2], match[3], match[4], parseFloat((hasAlpha && alphaChannel ? alphaChannel : 1.0) + ""));
             }
             else if ((match = reHex6Color.exec(value))) {
                 var colorInt = parseInt(match[1], 16);
-                result = [((colorInt & 0xFF0000) >> 16) / 255, ((colorInt & 0x00FF00) >> 8) / 255, (colorInt & 0x0000FF) / 255, 1.0];
+                result = [
+                    ((colorInt & 0xff0000) >> 16) / 255,
+                    ((colorInt & 0x00ff00) >> 8) / 255,
+                    (colorInt & 0x0000ff) / 255,
+                    1.0,
+                ];
             }
             else if ((match = reHex3Color.exec(value))) {
-                var hexString = "#" + [match[1], match[1], match[2], match[2], match[3], match[3]].join("");
+                var hexString = "#" +
+                    [
+                        match[1],
+                        match[1],
+                        match[2],
+                        match[2],
+                        match[3],
+                        match[3],
+                    ].join("");
                 result = colorStringToVec4(hexString);
             }
             else if (value.toLowerCase() in colorKeywords) {
@@ -548,7 +554,15 @@ export class WebGLCanvas {
             return result;
         }
         function colorVecToString(vec4) {
-            return "rgba(" + (vec4[0] * 255) + ", " + (vec4[1] * 255) + ", " + (vec4[2] * 255) + ", " + parseFloat(vec4[3] + "") + ")";
+            return ("rgba(" +
+                vec4[0] * 255 +
+                ", " +
+                vec4[1] * 255 +
+                ", " +
+                vec4[2] * 255 +
+                ", " +
+                parseFloat(vec4[3] + "") +
+                ")");
         }
         // Maintain drawing state params during gl.save and gl.restore. see saveDrawState() and restoreDrawState()
         var drawState = {}, drawStateStack = [];
@@ -564,8 +578,18 @@ export class WebGLCanvas {
         }
         function saveDrawState() {
             var bakedDrawState = {
-                fillStyle: [drawState.fillStyle[0], drawState.fillStyle[1], drawState.fillStyle[2], drawState.fillStyle[3]],
-                strokeStyle: [drawState.strokeStyle[0], drawState.strokeStyle[1], drawState.strokeStyle[2], drawState.strokeStyle[3]],
+                fillStyle: [
+                    drawState.fillStyle[0],
+                    drawState.fillStyle[1],
+                    drawState.fillStyle[2],
+                    drawState.fillStyle[3],
+                ],
+                strokeStyle: [
+                    drawState.strokeStyle[0],
+                    drawState.strokeStyle[1],
+                    drawState.strokeStyle[2],
+                    drawState.strokeStyle[3],
+                ],
                 globalAlpha: drawState.globalAlpha,
                 globalCompositeOperation: drawState.globalCompositeOperation,
                 lineCap: drawState.lineCap,
@@ -578,7 +602,7 @@ export class WebGLCanvas {
                 shadowOffsetY: drawState.shadowOffsetY,
                 textAlign: drawState.textAlign,
                 font: drawState.font,
-                textBaseline: drawState.textBaseline
+                textBaseline: drawState.textBaseline,
             };
             drawStateStack.push(bakedDrawState);
         }
@@ -591,17 +615,23 @@ export class WebGLCanvas {
         // These getters and setters store the original rgba string as well as convert to a vector
         drawState.fillStyle = [0, 0, 0, 1]; // default black
         Object.defineProperty(gl, "fillStyle", {
-            get: function () { return colorVecToString(drawState.fillStyle); },
+            get: function () {
+                return colorVecToString(drawState.fillStyle);
+            },
             set: function (value) {
-                drawState.fillStyle = colorStringToVec4(value) || drawState.fillStyle;
-            }
+                drawState.fillStyle =
+                    colorStringToVec4(value) || drawState.fillStyle;
+            },
         });
         drawState.strokeStyle = [0, 0, 0, 1]; // default black
         Object.defineProperty(gl, "strokeStyle", {
-            get: function () { return colorVecToString(drawState.strokeStyle); },
+            get: function () {
+                return colorVecToString(drawState.strokeStyle);
+            },
             set: function (value) {
-                drawState.strokeStyle = colorStringToVec4(value) || drawState.strokeStyle;
-            }
+                drawState.strokeStyle =
+                    colorStringToVec4(value) || drawState.strokeStyle;
+            },
         });
         // WebGL already has a lineWidth() function but Canvas2D requires a lineWidth property
         // Store the original lineWidth() function for later use
@@ -609,101 +639,127 @@ export class WebGLCanvas {
         gl.$lineWidth = gl.lineWidth;
         drawState.lineWidth = 1.0;
         Object.defineProperty(gl, "lineWidth", {
-            get: function () { return drawState.lineWidth; },
+            get: function () {
+                return drawState.lineWidth;
+            },
             set: function (value) {
                 // @ts-ignore
                 gl.$lineWidth(value);
                 drawState.lineWidth = value;
-            }
+            },
         });
         // Currently unsupported attributes and their default values
         drawState.lineCap = "butt";
         Object.defineProperty(gl, "lineCap", {
-            get: function () { return drawState.lineCap; },
+            get: function () {
+                return drawState.lineCap;
+            },
             set: function (value) {
                 drawState.lineCap = value;
-            }
+            },
         });
         drawState.lineJoin = "miter";
         Object.defineProperty(gl, "lineJoin", {
-            get: function () { return drawState.lineJoin; },
+            get: function () {
+                return drawState.lineJoin;
+            },
             set: function (value) {
                 drawState.lineJoin = value;
-            }
+            },
         });
         drawState.miterLimit = 10;
         Object.defineProperty(gl, "miterLimit", {
-            get: function () { return drawState.miterLimit; },
+            get: function () {
+                return drawState.miterLimit;
+            },
             set: function (value) {
                 drawState.miterLimit = value;
-            }
+            },
         });
         drawState.shadowOffsetX = 0;
         Object.defineProperty(gl, "shadowOffsetX", {
-            get: function () { return drawState.shadowOffsetX; },
+            get: function () {
+                return drawState.shadowOffsetX;
+            },
             set: function (value) {
                 drawState.shadowOffsetX = value;
-            }
+            },
         });
         drawState.shadowOffsetY = 0;
         Object.defineProperty(gl, "shadowOffsetY", {
-            get: function () { return drawState.shadowOffsetY; },
+            get: function () {
+                return drawState.shadowOffsetY;
+            },
             set: function (value) {
                 drawState.shadowOffsetY = value;
-            }
+            },
         });
         drawState.shadowBlur = 0;
         Object.defineProperty(gl, "shadowBlur", {
-            get: function () { return drawState.shadowBlur; },
+            get: function () {
+                return drawState.shadowBlur;
+            },
             set: function (value) {
                 drawState.shadowBlur = value;
-            }
+            },
         });
         drawState.shadowColor = "rgba(0, 0, 0, 0.0)";
         Object.defineProperty(gl, "shadowColor", {
-            get: function () { return drawState.shadowColor; },
+            get: function () {
+                return drawState.shadowColor;
+            },
             set: function (value) {
                 drawState.shadowColor = value;
-            }
+            },
         });
         drawState.font = "10px sans-serif";
         Object.defineProperty(gl, "font", {
-            get: function () { return drawState.font; },
+            get: function () {
+                return drawState.font;
+            },
             set: function (value) {
                 // @ts-ignore
                 textCtx.font = value;
                 drawState.font = value;
-            }
+            },
         });
         drawState.textAlign = "start";
         Object.defineProperty(gl, "textAlign", {
-            get: function () { return drawState.textAlign; },
+            get: function () {
+                return drawState.textAlign;
+            },
             set: function (value) {
                 drawState.textAlign = value;
-            }
+            },
         });
         drawState.textBaseline = "alphabetic";
         Object.defineProperty(gl, "textBaseline", {
-            get: function () { return drawState.textBaseline; },
+            get: function () {
+                return drawState.textBaseline;
+            },
             set: function (value) {
                 drawState.textBaseline = value;
-            }
+            },
         });
         // This attribute will need to control global alpha of objects drawn.
         drawState.globalAlpha = 1.0;
         Object.defineProperty(gl, "globalAlpha", {
-            get: function () { return drawState.globalAlpha; },
+            get: function () {
+                return drawState.globalAlpha;
+            },
             set: function (value) {
                 drawState.globalAlpha = value;
-            }
+            },
         });
         // This attribute will need to set the gl.blendFunc mode
         drawState.globalCompositeOperation = "source-over";
         Object.defineProperty(gl, "globalCompositeOperation", {
-            get: function () { return drawState.globalCompositeOperation; },
+            get: function () {
+                return drawState.globalCompositeOperation;
+            },
             set: function (value) {
                 drawState.globalCompositeOperation = value;
-            }
+            },
         });
         // Need a solution for drawing text that isnt stupid slow
         ctx.fillText = function fillText(text, x, y) {
@@ -716,7 +772,9 @@ export class WebGLCanvas {
             */
         };
         ctx.strokeText = function strokeText() { };
-        ctx.measureText = function measureText(value) { return new TextMetrics(); };
+        ctx.measureText = function measureText(value) {
+            return new TextMetrics();
+        };
         let tempCanvas = document.createElement("canvas");
         let tempCtx = tempCanvas.getContext("2d");
         ctx.save = function save() {
@@ -915,10 +973,17 @@ export class WebGLCanvas {
                 imageCache.push(image);
                 // we may wish to consider tiling large images like this instead of scaling and
                 // adjust appropriately (flip to next texture source and tile offset) when drawing
-                if (image.width > gl2d.maxTextureSize || image.height > gl2d.maxTextureSize) {
+                if (image.width > gl2d.maxTextureSize ||
+                    image.height > gl2d.maxTextureSize) {
                     var canvas = document.createElement("canvas");
-                    canvas.width = (image.width > gl2d.maxTextureSize) ? gl2d.maxTextureSize : image.width;
-                    canvas.height = (image.height > gl2d.maxTextureSize) ? gl2d.maxTextureSize : image.height;
+                    canvas.width =
+                        image.width > gl2d.maxTextureSize
+                            ? gl2d.maxTextureSize
+                            : image.width;
+                    canvas.height =
+                        image.height > gl2d.maxTextureSize
+                            ? gl2d.maxTextureSize
+                            : image.height;
                     let ctx = canvas.getContext("2d");
                     ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvas.width, canvas.height);
                     image = canvas;
@@ -941,7 +1006,8 @@ export class WebGLCanvas {
             }
         }
         ctx.drawImage = function drawImage(image, a, b, c, d, e, f, g, h) {
-            if (image.getContext2D == null && IsImageOk(image) != true)
+            if (image.getContext2D == null &&
+                IsImageOk(image) != true)
                 return;
             var transform = gl2d.transform;
             transform.pushMatrix();

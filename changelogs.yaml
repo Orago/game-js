@@ -1,5 +1,8 @@
 ---
 changelogs:
+- version: 0.0.xx
+  changes:
+  - Renamed inputCanvas to canvas
 - version: 0.0.46
   changes:
   - EngineObjectData is now private

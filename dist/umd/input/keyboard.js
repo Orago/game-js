@@ -64,7 +64,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         }
         attatch(node) {
             this.dispose();
-            this.object = node;
+            this.object = dom_1.VNode.from(node);
             this.event_group = new VNodeEventGroup(this.object);
             this.event_group
                 .on("keydown", (event) => {
@@ -88,11 +88,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             if (this.event_group != undefined) {
                 this.event_group.clear();
             }
-            if (this.alive !== true) {
-                return;
-            }
-            this.alive = false;
             this.pressed = {};
+            this.alive = false;
+            // if (this.alive !== true) {
+            // 	return;
+            // }
         }
         simulateKeyDown(keycode) {
             keycode = Keyboard.formatKeycode(keycode);
@@ -133,10 +133,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         }
         applyKeys(keys) {
             for (const [key, value] of Object.entries(keys)) {
-                if (value === true)
+                if (value === true) {
                     this.simulateKeyDown(key);
-                else
+                }
+                else {
                     this.simulateKeyUp(key);
+                }
             }
         }
     }

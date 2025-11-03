@@ -3,7 +3,7 @@ import Emitter from "@orago/lib/emitter";
 import { MouseButton } from "./symbols";
 type CursorInput = Touch | MouseEvent;
 type CursorCalled = (event: Touch | MouseEvent, cursor: Cursor) => void;
-type CursorEvents = {
+export type CursorEvents = {
     "button-down": (which: MouseButton, event: Touch | MouseEvent, cursor: Cursor) => void;
     "button-up": (which: MouseButton, event: Touch | MouseEvent, cursor: Cursor) => void;
     move: (x: number, y: number) => void;
@@ -14,10 +14,7 @@ type CursorEvents = {
 };
 type CursorButtonInt = 0 | 1 | 2 | 3 | 4 | 10;
 export default class Cursor {
-    private static actionDict;
-    private static reverseActionDict;
     private static buttonToAction;
-    private static actionToButtonID;
     object: HTMLElement;
     events: Emitter<CursorEvents, true>;
     position: Point;

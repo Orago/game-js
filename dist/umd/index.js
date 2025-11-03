@@ -31,47 +31,25 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@orago/ecs", "./brush/boxes.js", "./brush/brush.js", "./brush/colorImage.js", "./collision.js", "./engine.js", "./input/cursor.js", "./input/gamepad.js", "./input/inputmap.js", "./input/keyboard.js", "./plugins/legacy.js", "./repeater.js", "./shapes.js", "./sprites.js", "./input/symbols.js"], factory);
+        define(["require", "exports", "@orago/ecs", "./util/boxes.js", "./util/collision.js", "./util/shapes.js", "./util/shapes.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Action = exports.Spritesheet = exports.Sprites = exports.Shapes = exports.Repeater = exports.LegacySystem = exports.LegacyEntity = exports.Keyboard = exports.InputMap = exports.Gamepads = exports.Cursor = exports.Engine = exports.Collision = exports.ColorImage = exports.ChainableCanvas = exports.BrushCanvas = exports.BoxUtil = exports.ECS = void 0;
-    exports.ECS = __importStar(require("@orago/ecs"));
-    exports.BoxUtil = __importStar(require("./brush/boxes.js"));
-    var brush_js_1 = require("./brush/brush.js");
-    Object.defineProperty(exports, "BrushCanvas", { enumerable: true, get: function () { return __importDefault(brush_js_1).default; } });
-    Object.defineProperty(exports, "ChainableCanvas", { enumerable: true, get: function () { return brush_js_1.ChainableCanvas; } });
-    exports.ColorImage = __importStar(require("./brush/colorImage.js"));
-    var collision_js_1 = require("./collision.js");
+    exports.Bound = exports.Rect = exports.Box = exports.Shapes = exports.Collision = exports.BoxUtil = exports.Ecs = void 0;
+    exports.Ecs = __importStar(require("@orago/ecs"));
+    exports.BoxUtil = __importStar(require("./util/boxes.js"));
+    var collision_js_1 = require("./util/collision.js");
     Object.defineProperty(exports, "Collision", { enumerable: true, get: function () { return collision_js_1.Collision; } });
-    var engine_js_1 = require("./engine.js");
-    Object.defineProperty(exports, "Engine", { enumerable: true, get: function () { return __importDefault(engine_js_1).default; } });
-    var cursor_js_1 = require("./input/cursor.js");
-    Object.defineProperty(exports, "Cursor", { enumerable: true, get: function () { return __importDefault(cursor_js_1).default; } });
-    var gamepad_js_1 = require("./input/gamepad.js");
-    Object.defineProperty(exports, "Gamepads", { enumerable: true, get: function () { return gamepad_js_1.Gamepads; } });
-    var inputmap_js_1 = require("./input/inputmap.js");
-    Object.defineProperty(exports, "InputMap", { enumerable: true, get: function () { return inputmap_js_1.InputMap; } });
-    var keyboard_js_1 = require("./input/keyboard.js");
-    Object.defineProperty(exports, "Keyboard", { enumerable: true, get: function () { return __importDefault(keyboard_js_1).default; } });
-    var legacy_js_1 = require("./plugins/legacy.js");
-    Object.defineProperty(exports, "LegacyEntity", { enumerable: true, get: function () { return legacy_js_1.LegacyEntity; } });
-    Object.defineProperty(exports, "LegacySystem", { enumerable: true, get: function () { return legacy_js_1.LegacySystem; } });
-    var repeater_js_1 = require("./repeater.js");
-    Object.defineProperty(exports, "Repeater", { enumerable: true, get: function () { return __importDefault(repeater_js_1).default; } });
-    exports.Shapes = __importStar(require("./shapes.js"));
-    var sprites_js_1 = require("./sprites.js");
-    Object.defineProperty(exports, "Sprites", { enumerable: true, get: function () { return __importDefault(sprites_js_1).default; } });
-    Object.defineProperty(exports, "Spritesheet", { enumerable: true, get: function () { return sprites_js_1.Spritesheet; } });
-    exports.Action = __importStar(require("./input/symbols.js"));
+    exports.Shapes = __importStar(require("./util/shapes.js"));
+    var shapes_js_1 = require("./util/shapes.js");
+    Object.defineProperty(exports, "Box", { enumerable: true, get: function () { return shapes_js_1.Box; } });
+    Object.defineProperty(exports, "Rect", { enumerable: true, get: function () { return shapes_js_1.Rect; } });
+    Object.defineProperty(exports, "Bound", { enumerable: true, get: function () { return shapes_js_1.Bound; } });
 });

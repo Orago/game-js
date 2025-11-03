@@ -17,21 +17,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     const ecs_1 = require("@orago/ecs");
     class LegacySignature extends ecs_1.Component {
     }
-    ;
     const sig = new LegacySignature();
     class LegacySystem extends ecs_1.System {
         constructor(ecs, world) {
             super();
             this.world = world;
-            this.componentsRequired = new Set([LegacySignature]);
+            this.components = new Set([LegacySignature]);
             this.world = world;
         }
         update(entities) {
             for (const entity of Array.from(entities).sort((a, b) => a.priority - b.priority)) {
-                entity
-                    .events
-                    .emit('update')
-                    .emit('render');
+                entity.events.emit("update").emit("render");
             }
         }
     }
@@ -41,15 +37,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             super();
             this.events = new emitter_1.default();
             this.priority = 0;
-            ecs.addComponent(this, sig);
+            ecs.components.add(this, sig);
         }
         ref(fn) {
             fn.bind(this)(this);
             return this;
         }
         tick() {
-            this.events.emit('update');
-            this.events.emit('render');
+            this.events.emit("update");
+            this.events.emit("render");
         }
     }
     exports.LegacyEntity = LegacyEntity;

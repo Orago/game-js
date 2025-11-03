@@ -17,10 +17,10 @@ type Mat3 = [
     number,
     number
 ];
-type GL2DCanvas = HTMLCanvasElement & ({
+type GL2DCanvas = HTMLCanvasElement & {
     gl2d: WebGLCanvas;
     $getContext: HTMLCanvasElement["getContext"];
-});
+};
 interface WGLOptions {
     force?: boolean;
 }

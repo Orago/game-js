@@ -50,7 +50,7 @@ export default class Keyboard {
     }
     attatch(node) {
         this.dispose();
-        this.object = node;
+        this.object = VNode.from(node);
         this.event_group = new VNodeEventGroup(this.object);
         this.event_group
             .on("keydown", (event) => {
@@ -74,11 +74,11 @@ export default class Keyboard {
         if (this.event_group != undefined) {
             this.event_group.clear();
         }
-        if (this.alive !== true) {
-            return;
-        }
-        this.alive = false;
         this.pressed = {};
+        this.alive = false;
+        // if (this.alive !== true) {
+        // 	return;
+        // }
     }
     simulateKeyDown(keycode) {
         keycode = Keyboard.formatKeycode(keycode);
@@ -119,10 +119,12 @@ export default class Keyboard {
     }
     applyKeys(keys) {
         for (const [key, value] of Object.entries(keys)) {
-            if (value === true)
+            if (value === true) {
                 this.simulateKeyDown(key);
-            else
+            }
+            else {
                 this.simulateKeyUp(key);
+            }
         }
     }
 }

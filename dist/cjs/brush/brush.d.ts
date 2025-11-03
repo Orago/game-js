@@ -1,8 +1,8 @@
 import type { Point } from "@orago/lib/vector";
 import type { Rectangle } from "../shapes.js";
 import Emitter from "@orago/lib/emitter";
-import { ChainableCanvas } from "./chainableCanvas.js";
-export { ChainableCanvas } from "./chainableCanvas.js";
+import { ChainableCanvas } from "./chainable-canvas.js";
+export { ChainableCanvas } from "./chainable-canvas.js";
 type ArrayRect = [x: number, y: number, w: number, h: number];
 export default class BrushCanvas {
     resolution: number;

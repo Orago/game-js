@@ -150,7 +150,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             engine.dom.focus();
         }
         constructor(brush) {
-            this.ecs = new ecs_1.ECS();
+            this.ecs = new ecs_1.Ecs();
             this.legacy = new legacy_js_1.LegacySystem(this.ecs, this);
             /** List of renderable objects */
             this.objects = new Set();
@@ -169,7 +169,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 return entity;
             };
             this.brush = brush;
-            this.ecs.addSystem(this.legacy);
+            this.ecs.systems.add(this.legacy);
             this.brush.canvas.setAttribute("tabindex", "1");
             this.dom.append(this.brush.canvas, this.ui);
             this.cursor = new cursor_js_1.default(this.brush.canvas);
@@ -205,11 +205,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             this.keyboard.events.all.clear();
             this.cursor.init();
             /* Queue for deletion */
-            this.ecs.killEntities();
-            this.ecs.killSystems();
+            this.ecs.entities.clear();
+            this.ecs.systems.clear();
             /* Do final run / deletion */
             this.ecs.update();
-            this.ecs.addSystem(this.legacy);
+            this.ecs.systems.add(this.legacy);
             /* Wipe the canvas */
             this.brush.clear();
             for (const object of Array.from(this.objects)) {
@@ -220,6 +220,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     Engine.screenToWorld = screenToWorld;
     Engine.worldToScreen = worldToScreen;
     Engine.Object = EngineObject;
-    Engine.ECS = ecs_1.ECS;
+    Engine.ECS = ecs_1.Ecs;
     exports.default = Engine;
 });

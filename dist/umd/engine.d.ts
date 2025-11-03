@@ -1,5 +1,5 @@
 import type { Point } from "@orago/lib/vector";
-import { ECS } from "@orago/ecs";
+import { Ecs } from "@orago/ecs";
 import BrushCanvas from "./brush/brush.js";
 import { Collision } from "./collision.js";
 import Cursor from "./input/cursor.js";
@@ -58,9 +58,9 @@ export default class Engine {
     static screenToWorld: typeof screenToWorld;
     static worldToScreen: typeof worldToScreen;
     static Object: typeof EngineObject;
-    static ECS: typeof ECS;
+    static ECS: typeof Ecs;
     static display(engine: Engine, parent: VNode | HTMLElement): void;
-    ecs: ECS;
+    ecs: Ecs;
     legacy: LegacySystem;
     /** List of renderable objects */
     objects: Set<EngineObject>;
@@ -71,8 +71,8 @@ export default class Engine {
     keyboard: Keyboard;
     ticks: Repeater;
     frame: number;
-    dom: VNode;
-    ui: VNode;
+    dom: VNode<HTMLElement>;
+    ui: VNode<HTMLElement>;
     constructor(brush: BrushCanvas);
     collision: typeof Collision;
     object: (data: EngineObjectData, ref: (arg0: LegacyEntity) => void) => LegacyEntity;

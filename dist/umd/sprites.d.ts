@@ -39,7 +39,7 @@ export default class Sprites {
         width: number;
         height: number;
     }): ImageType;
-    canvas: import("./brush/chainableCanvas.js").ChainableCanvas;
+    canvas: import("./brush/chainable-canvas.js").ChainableCanvas;
     /**
      * Host domain and or path
      * it's essentially just a url prefix
@@ -50,7 +50,7 @@ export default class Sprites {
     readonly cache: Map<string, Sprite>;
     /** Seconds */
     cache_duration: number;
-    readonly spriteSheets: Map<string, Spritesheet>;
+    readonly sheets: Map<string, Spritesheet>;
     constructor(options: {
         host?: string;
         cacheDuration?: number;

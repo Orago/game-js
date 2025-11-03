@@ -1,6 +1,6 @@
 {
 	"name": "@orago/game",
-	"version": "0.0.69",
+	"version": "0.0.81",
 	"description": "Orago's Game library",
 	"type": "module",
 	"scripts": {
@@ -16,18 +16,18 @@
 	"author": "Orago",
 	"license": "ISC",
 	"exports": {
-		"./*": {
-			"default": {
-				"import": "./dist/esm/*.js",
-				"require": "./dist/cjs/*.js",
-				"types": "./dist/types/*.d.ts"
-			}
-		},
 		".": {
 			"default": {
+				"types": "./dist/types/index.d.ts",
 				"import": "./dist/esm/index.js",
-				"require": "./dist/cjs/index.js",
-				"types": "./dist/types/index.d.ts"
+				"require": "./dist/cjs/index.js"
+			}
+		},
+		"./client": {
+			"default": {
+				"types": "./dist/types/client/index.d.ts",
+				"import": "./dist/esm/client/index.js",
+				"require": "./dist/cjs/client/index.js"
 			}
 		}
 	},
@@ -39,16 +39,17 @@
 		}
 	},
 	"dependencies": {
-		"@orago/dom": "^0.0.28",
-		"@orago/ecs": "^0.0.11",
-		"@orago/lib": "^0.0.27"
+		"@orago/ecs": "^0.0.20",
+		"@orago/lib": "^0.0.36"
+	},
+	"optionalDependencies": {
+		"@orago/dom": "^0.0.47"
 	},
 	"devDependencies": {
 		"@rollup/plugin-node-resolve": "15.2.3",
 		"@rollup/plugin-typescript": "11.1.6",
 		"@types/uuid": "^9.0.8",
-		"rollup": "4.18.1",
-		"tslib": "^2.8.1",
+		"rollup": "^4.52.4",
 		"typescript": "^5.7.2"
 	}
 }
