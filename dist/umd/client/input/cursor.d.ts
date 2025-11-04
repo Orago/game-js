@@ -6,6 +6,7 @@ type CursorCalled = (event: Touch | MouseEvent, cursor: Cursor) => void;
 export type CursorEvents = {
     "button-down": (which: MouseButton, event: Touch | MouseEvent, cursor: Cursor) => void;
     "button-up": (which: MouseButton, event: Touch | MouseEvent, cursor: Cursor) => void;
+    "button-change": (which: MouseButton, state: boolean, event: Touch | MouseEvent) => void;
     move: (x: number, y: number) => void;
     start: (event: Touch | MouseEvent) => void;
     end: (event: Touch | MouseEvent) => void;
@@ -15,7 +16,7 @@ export type CursorEvents = {
 type CursorButtonInt = 0 | 1 | 2 | 3 | 4 | 10;
 export default class Cursor {
     private static buttonToAction;
-    object: HTMLElement;
+    element: HTMLElement;
     events: Emitter<CursorEvents, true>;
     position: Point;
     start: Point;
@@ -24,11 +25,13 @@ export default class Cursor {
     mouse_down: boolean;
     touching: boolean;
     start_time: number;
+    alive: boolean;
     private bound_events;
-    constructor(object?: HTMLElement);
-    reconnect(object: HTMLElement): void;
+    constructor(element?: HTMLElement);
+    reconnect(element: HTMLElement): void;
     hasButton(which: MouseButton): boolean;
-    init(): void;
+    init(): this;
+    reset(): this;
     dispose(): void;
     setPosition(x: number, y: number): void;
     getPosition(x: number, y: number): Point;

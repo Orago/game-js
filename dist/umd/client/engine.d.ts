@@ -1,7 +1,8 @@
 import { VNode } from "@orago/dom";
 import { Ecs } from "@orago/ecs";
-import type { Point } from "@orago/lib/vector";
+import { Emitter, Vector } from "@orago/lib";
 import { Collision } from "../util/collision.js";
+import { ObjectManager, PluginManager } from "./base.js";
 import type BrushCanvas from "./brush/brush.js";
 import Cursor from "./input/cursor.js";
 import Keyboard from "./input/keyboard.js";
@@ -15,74 +16,54 @@ interface EngineObjectData {
     priority?: number;
     lifetime?: number;
 }
-declare function screenToWorld(screen: Point, options?: {
-    center?: Point;
-    offset?: Point;
+declare function screenToWorld(screen: Vector.Point, options?: {
+    center?: Vector.Point;
+    offset?: Vector.Point;
     zoom?: number;
-}): Point;
-declare function worldToScreen(world: Point, options?: {
-    center?: Point;
-    offset?: Point;
+}): Vector.Point;
+declare function worldToScreen(world: Vector.Point, options?: {
+    center?: Vector.Point;
+    offset?: Vector.Point;
     zoom?: number;
-}): Point;
-/**
- * Engine Object
- * ! SHOULD NOT BE USED ON IT"S OWN
- * @class
- */
-declare class EngineObject extends LegacyEntity {
+}): Vector.Point;
+interface EngineCamera {
     x: number;
     y: number;
-    width: number;
-    height: number;
-    enabled: boolean;
-    visible: boolean;
-    engine: Engine;
-    constructor(engineRef: Engine, data?: EngineObjectData);
-    ref(fn: (arg0: this) => void): this;
-    tick(): void;
-    removeType(): void;
-    addTo(...tags: any[]): this;
-    toScreen(): {
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-    };
-    get canvas(): BrushCanvas;
-    collides(restriction?: (arg0: EngineObject | null, arg1: EngineObject | null) => boolean): boolean;
-    enable(): void;
-    disable(): void;
+    zoom: number;
 }
 export default class Engine {
     static screenToWorld: typeof screenToWorld;
     static worldToScreen: typeof worldToScreen;
-    static Object: typeof EngineObject;
     static ECS: typeof Ecs;
     static display(engine: Engine, parent: VNode | HTMLElement): void;
     ecs: Ecs;
     legacy: LegacySystem;
     /** List of renderable objects */
-    objects: Set<EngineObject>;
-    offset: Point;
-    zoom: number;
+    readonly camera: EngineCamera;
     brush: BrushCanvas;
     cursor: Cursor;
     keyboard: Keyboard;
-    ticks: Repeater;
+    repeater: Repeater;
     frame: number;
+    events: Emitter<{
+        pause: (paused: boolean) => void;
+    }, true>;
     dom: VNode<HTMLElement>;
     ui: VNode<HTMLElement>;
+    plugins: PluginManager;
+    objects: ObjectManager;
+    paused: boolean;
     constructor(brush: BrushCanvas);
     collision: typeof Collision;
     object: (data: EngineObjectData, ref: (arg0: LegacyEntity) => void) => LegacyEntity;
-    screenToWorld(point: Point, options?: {
+    screenToWorld(point: Vector.Point, options?: {
         center?: boolean;
-    }): Point;
-    worldToScreen(point: Point, options?: {
+    }): Vector.Point;
+    worldToScreen(point: Vector.Point, options?: {
         center?: boolean;
-    }): Point;
+    }): Vector.Point;
     setCursor(url: string): this;
+    pause(state?: boolean): void;
     destroy(): void;
 }
 export {};

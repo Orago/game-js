@@ -51,7 +51,7 @@ export default class Sprites {
     /** Seconds */
     cache_duration: number;
     readonly sheets: Map<string, Spritesheet>;
-    constructor(options: {
+    constructor(options?: {
         host?: string;
         cacheDuration?: number;
     });

@@ -30,7 +30,7 @@ export class VelocityComponent extends Component {
 	}
 }
 
-export class SizeComponent extends Component {
+export class BoxComponent extends Component {
 	constructor(public width: number, public height: number) {
 		super();
 		this.width = width;
@@ -66,6 +66,7 @@ export class PhysicsSystem extends System {
 		}
 	}
 }
+
 interface PositionedBox {
 	x: number;
 	y: number;
@@ -136,7 +137,6 @@ export class HurtboxComponent extends Component {
 
 export class HitDetectionSystem extends System {
 	components = new Set<Function>([PositionComponent]);
-
 	hit = new Signal<(a: Entity, B: Entity, hit: HitboxComponent) => void>();
 
 	update(entities: Set<Entity>) {

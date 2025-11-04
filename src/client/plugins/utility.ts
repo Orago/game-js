@@ -13,8 +13,8 @@ export class EngineClampPlugin extends EnginePlugin {
 	}
 
 	clamp(engine: Engine) {
-		const half_w = engine.brush.width / engine.zoom / 2;
-		const half_h = engine.brush.height / engine.zoom / 2;
+		const half_w = engine.brush.width / engine.camera.zoom / 2;
+		const half_h = engine.brush.height / engine.camera.zoom / 2;
 		const camera = engine.camera;
 
 		camera.x = Math.min(

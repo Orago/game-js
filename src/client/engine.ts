@@ -1,16 +1,13 @@
 import { VNode } from "@orago/dom";
 import { Ecs } from "@orago/ecs";
-import type { Point } from "@orago/lib/vector";
+import { Emitter, Vector } from "@orago/lib";
 import { Collision } from "../util/collision.js";
+import { ObjectManager, PluginManager } from "./base.js";
 import type BrushCanvas from "./brush/brush.js";
 import Cursor from "./input/cursor.js";
 import Keyboard from "./input/keyboard.js";
 import { LegacyEntity, LegacySystem } from "./plugins/legacy.js";
 import { Repeater } from "./repeater.js";
-import { EnginePlugin } from "./plugins.js";
-import { Emitter, Vector } from "@orago/lib";
-
-// const zoomIncrement = .2;
 
 interface EngineObjectData {
 	x?: number;
@@ -26,13 +23,13 @@ interface EngineObjectData {
 }
 
 function screenToWorld(
-	screen: Point,
+	screen: Vector.Point,
 	options?: {
-		center?: Point;
-		offset?: Point;
+		center?: Vector.Point;
+		offset?: Vector.Point;
 		zoom?: number;
 	}
-): Point {
+): Vector.Point {
 	const center = options?.center ?? { x: 0, y: 0 };
 	const offset = options?.offset ?? { x: 0, y: 0 };
 	const zoom = options?.zoom ?? 1;
@@ -44,13 +41,13 @@ function screenToWorld(
 }
 
 function worldToScreen(
-	world: Point,
+	world: Vector.Point,
 	options?: {
-		center?: Point;
-		offset?: Point;
+		center?: Vector.Point;
+		offset?: Vector.Point;
 		zoom?: number;
 	}
-): Point {
+): Vector.Point {
 	const center = options?.center ?? { x: 0, y: 0 };
 	const offset = options?.offset ?? { x: 0, y: 0 };
 	const zoom = options?.zoom ?? 1;
@@ -61,171 +58,6 @@ function worldToScreen(
 	};
 }
 
-/**
- * Engine Object
- * ! SHOULD NOT BE USED ON IT"S OWN
- * @class
- */
-class EngineObject extends LegacyEntity {
-	// id = uuidV4();
-	public x = 0;
-	public y = 0;
-	public width = 0;
-	public height = 0;
-
-	public enabled = true;
-	public visible = true;
-	public engine: Engine;
-	// options: {
-	// 	zoom: boolean;
-	// 	offset: boolean;
-	// } = {
-	// 		zoom: false,
-	// 		offset: false,
-	// 	};
-
-	// events = new Emitter();
-
-	constructor(engineRef: Engine, data: EngineObjectData = {}) {
-		super(engineRef.ecs);
-		this.engine = engineRef;
-
-		if (typeof data === "object") {
-			if (typeof data.x === "number") this.x = data.x;
-			if (typeof data.y === "number") this.y = data.y;
-			if (typeof data.width === "number") this.width = data.width;
-			if (typeof data.height === "number") this.height = data.height;
-			if (typeof data.priority === "number")
-				this.priority = data.priority;
-
-			if (typeof data.lifetime === "number") {
-				const ends_at = Date.now() + data.lifetime;
-
-				this.events.on("update", () => {
-					Date.now() > ends_at && this.removeType();
-				});
-			}
-		}
-	}
-
-	ref(fn: (arg0: this) => void): this {
-		fn.bind(this)(this);
-
-		return this;
-	}
-
-	tick() {
-		this.events.emit("update");
-		this.events.emit("render");
-	}
-
-	removeType() {
-		this.events.emit("remove");
-		this.events.all.clear();
-
-		if (this.engine instanceof Engine) {
-			this.engine.objects.delete(this);
-		}
-	}
-
-	addTo(...tags: any[]): this {
-		// this.events.emit("add");
-
-		// if (this.engine instanceof World) {
-		// 	this.engine.objects.add(this);
-		// }
-
-		// tags.forEach(tag => tag?.isObjGroup == true && tag.add(this));
-
-		return this;
-	}
-
-	toScreen() {
-		const pos = this.engine.worldToScreen({ x: this.x, y: this.y });
-
-		return {
-			x: pos.x,
-			y: pos.y,
-			width: this.width * this.engine.zoom,
-			height: this.height * this.engine.zoom,
-		};
-	}
-
-	get canvas() {
-		return this.engine.brush;
-	}
-
-	collides(
-		restriction: (
-			arg0: EngineObject | null,
-			arg1: EngineObject | null
-		) => boolean = () => false
-	): boolean {
-		for (const other_obj of this.engine.objects.values()) {
-			if (this != other_obj && restriction(this, other_obj)) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	enable() {
-		this.visible = true;
-		this.enabled = true;
-	}
-
-	disable() {
-		this.visible = false;
-		this.enabled = false;
-	}
-}
-
-class PluginManager {
-	list: Set<EnginePlugin> = new Set();
-	/** Handling order */
-	ordered_list: EnginePlugin[] = [];
-	/** Shouldn't be accessed outside of engine */
-
-	temp0: {
-		render: EnginePlugin[];
-		update: EnginePlugin[];
-	} = {
-		render: [],
-		update: [],
-	};
-
-	constructor(private engine: Engine) {
-		this.engine = engine;
-	}
-
-	/**
-	 * Rebuilds the plugin list
-	 */
-	public changed() {
-		this.ordered_list = Array.from(this.list.values()).sort(
-			(a, b) => (a.order ?? 0) - (b.order ?? 0)
-		);
-	}
-
-	add(plugin: EnginePlugin): void {
-		if (this.list.has(plugin)) {
-			return;
-		}
-		plugin.onAdd?.(this.engine);
-		this.list.add(plugin);
-		this.changed();
-	}
-
-	remove(plugin: EnginePlugin): void {
-		if (this.list.has(plugin) != true) {
-			return;
-		}
-		plugin.onRemove?.(this.engine);
-		this.list.delete(plugin);
-		this.changed();
-	}
-}
 
 interface EngineCamera {
 	x: number;
@@ -236,7 +68,6 @@ interface EngineCamera {
 export default class Engine {
 	static screenToWorld = screenToWorld;
 	static worldToScreen = worldToScreen;
-	static Object = EngineObject;
 	static ECS: typeof Ecs = Ecs;
 
 	static display(engine: Engine, parent: VNode | HTMLElement) {
@@ -263,31 +94,40 @@ export default class Engine {
 	public legacy = new LegacySystem(this.ecs, this);
 
 	/** List of renderable objects */
-	public objects: Set<EngineObject> = new Set();
 	public readonly camera: EngineCamera = { x: 0, y: 0, zoom: 1 };
-	/**
-	 * Replaced by engine.camera
-	 * @deprecated
-	 */
-	public readonly offset: Point = this.camera;
-	/**
-	 * Replaced by engine.camera.zoom
-	 * @deprecated
-	 */
-	public get zoom(): number {
-		return this.camera.zoom;
-	}
+	// /**
+	//  * Replaced by engine.camera
+	//  * @deprecated
+	//  */
+	// public readonly offset: Vector.Point = this.camera;
+	// /**
+	//  * Replaced by engine.camera.zoom
+	//  * @deprecated
+	//  */
+	// public get zoom(): number {
+	// 	return this.camera.zoom;
+	// }
 
 	public brush: BrushCanvas;
 	public cursor: Cursor;
 	public keyboard: Keyboard;
-	public ticks: Repeater;
+	public repeater: Repeater = new Repeater(64);
 	public frame: number = 0;
+
+	events: Emitter<
+		{
+			pause: (paused: boolean) => void;
+		},
+		true
+	> = new Emitter();
 
 	public dom = new VNode("div");
 	public ui = new VNode("div");
 
 	public plugins: PluginManager = new PluginManager(this);
+	public objects: ObjectManager = new ObjectManager(this);
+
+	public paused: boolean = false;
 
 	constructor(brush: BrushCanvas) {
 		this.brush = brush;
@@ -302,17 +142,22 @@ export default class Engine {
 		// 	this.cursor = new Cursor(this.dom.element);
 		// this.keyboard = new Keyboard(this.dom.element as HTMLElement);
 
-		this.ticks = new Repeater(64, () => {
+		this.repeater.tick.on(() => {
 			for (const plugin of this.plugins.ordered_list) {
 				plugin.onUpdate?.(this);
 				plugin.onRender?.(this);
 			}
 
+			for (const object of this.objects.ordered_list) {
+				object.onUpdate?.(this);
+				object.onRender?.(this);
+			}
+
 			this.ecs.update();
-			this.frame = this?.ticks?.frame;
+			this.frame = this?.repeater?.frame;
 		});
 
-		this.ticks.start();
+		this.repeater.start();
 	}
 
 	public collision = Collision;
@@ -333,30 +178,30 @@ export default class Engine {
 	};
 
 	public screenToWorld(
-		point: Point,
+		point: Vector.Point,
 		options?: {
 			center?: boolean;
 		}
-	): Point {
+	): Vector.Point {
 		return screenToWorld(point, {
 			center:
 				options?.center === true ? this.brush.center() : { x: 0, y: 0 },
 			offset: this.camera,
-			zoom: this.zoom,
+			zoom: this.camera.zoom,
 		});
 	}
 
 	public worldToScreen(
-		point: Point,
+		point: Vector.Point,
 		options?: {
 			center?: boolean;
 		}
-	): Point {
+	): Vector.Point {
 		return worldToScreen(point, {
 			center:
 				options?.center === true ? this.brush.center() : { x: 0, y: 0 },
 			offset: this.camera,
-			zoom: this.zoom,
+			zoom: this.camera.zoom,
 		});
 	}
 
@@ -365,21 +210,40 @@ export default class Engine {
 		return this;
 	}
 
+	public pause(state?: boolean) {
+		if (state != undefined && this.paused == state) {
+			return;
+		}
+
+		this.paused = state ?? !this.paused;
+		this.repeater.pause(this.paused);
+
+		// is now paused
+		if (this.paused == true) {
+			this.keyboard.dispose();
+			this.cursor.dispose();
+		} else {
+			this.keyboard.init();
+			this.cursor.init();
+		}
+
+		this.events.emit("pause", this.paused);
+	}
+
 	public destroy() {
 		this.keyboard.events.all.clear();
-		this.cursor.init();
+		this.cursor.reset();
 
 		/* Queue for deletion */
 		this.ecs.entities.clear();
 		this.ecs.systems.clear();
 		/* Do final run / deletion */
+		this.plugins.clear();
+		this.objects.clear();
 		this.ecs.update();
 		this.ecs.systems.add(this.legacy);
+
 		/* Wipe the canvas */
 		this.brush.clear();
-
-		for (const object of Array.from(this.objects)) {
-			object.removeType();
-		}
 	}
 }

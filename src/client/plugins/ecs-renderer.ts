@@ -104,11 +104,8 @@ export class TextRenderComponent extends RenderComponent {
 		const obj = this.preloadCanvas();
 		const canvas = obj.canvas;
 		const ctx = obj.ctx;
-
 		const size = this.options.size;
-
 		const font_state = (ctx.font = `${size}px ${this.options.font}`);
-
 		const metrics = ctx.measureText(this.text);
 		canvas.width = metrics.width;
 		canvas.height = size;
@@ -199,7 +196,7 @@ export class RenderSystem extends Ecs.System {
 		let last_matrix: string | null = null;
 
 		for (const comp of components) {
-			let current_matrix = comp.transform.getMatrix();
+			let current_matrix = Meowtrix.identity();
 
 			if (comp.engine_flags & EngineFlags.OFFSET) {
 				current_matrix = Meowtrix.multiply(
@@ -210,6 +207,15 @@ export class RenderSystem extends Ecs.System {
 					)
 				);
 			}
+
+			if (comp.engine_flags & EngineFlags.SCALE) {
+				current_matrix = Meowtrix.multiply(
+					current_matrix,
+					Meowtrix.scale(this.engine.camera.zoom)
+				);
+			}
+
+			current_matrix = Meowtrix.multiply(current_matrix, comp.transform.getMatrix())
 
 			const matrix_key = current_matrix.join(",");
 

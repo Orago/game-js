@@ -1,32 +1,28 @@
-import { VNode } from "@orago/dom";
 import Emitter from "@orago/lib/emitter";
 import { KeyboardAction } from "./symbols.js";
-type KeyboardEvents = {
+export type KeyboardEvents = {
+    "key-change": (key: KeyboardAction, state: boolean) => void;
     keydown: (char: KeyboardAction) => void;
     keyup: (char: KeyboardAction) => void;
 };
 type KeyboardUnionMode = "both" | "split" | "joint";
-declare class VNodeEventGroup {
-    private node;
-    map: Map<string, Function>;
-    constructor(node: VNode);
-    on(event: string, callback: Function): this;
-    off(event: string, callback?: Function): this;
-    clear(): this;
-}
 export default class Keyboard {
     static formatKeycode(value: string): KeyboardAction;
-    object: VNode;
+    element: HTMLElement;
     readonly events: Emitter<KeyboardEvents, true>;
     pressed: Partial<Record<KeyboardAction, boolean>>;
-    alive: boolean;
     union: KeyboardUnionMode;
-    event_group?: VNodeEventGroup;
+    alive: boolean;
+    private bound_events;
     constructor(element?: HTMLElement);
-    attatch(node: VNode | HTMLElement): void;
-    init(): void;
-    get stop(): () => void;
+    private changeKeyState;
+    init(): this;
+    reset(): void;
     dispose(): void;
+    /**
+     * @deprecated
+     */
+    get stop(): () => void;
     simulateKeyDown(keycode: KeyboardAction): void;
     simulateKeyUp(keycode: KeyboardAction): void;
     anyPressed(...args: KeyboardAction[]): boolean;
@@ -34,5 +30,6 @@ export default class Keyboard {
     intPressed: (key: KeyboardAction) => 0 | 1;
     mapInt(...keys: KeyboardAction[]): Record<string, number>;
     applyKeys(keys: Partial<Record<KeyboardAction, boolean>>): void;
+    on: Record<string, (evt: Event) => any>;
 }
 export {};

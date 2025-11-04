@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Repeater = exports.FPS = void 0;
+const lib_1 = require("@orago/lib");
 class FPS {
     constructor(sampleSize) {
         this.value = 0;
@@ -33,7 +34,8 @@ class FPS {
 }
 exports.FPS = FPS;
 class Repeater {
-    constructor(fpsLimit, callback) {
+    constructor(fpsLimit) {
+        this.tick = new lib_1.Signal();
         this.frame = -1;
         this.paused = true;
         this.fpsLimit = -1;
@@ -43,7 +45,6 @@ class Repeater {
         this.delta = 0;
         this.fpsLimit = fpsLimit;
         this.delay = 1000 / fpsLimit;
-        this.callback = callback;
         this._fpsHandler = new FPS();
     }
     loop(timestamp) {
@@ -62,7 +63,7 @@ class Repeater {
                 this.delta = 0;
             }
             this.timestamp = timestamp;
-            this.callback(this);
+            this.tick.emit(this);
         }
         this.RafRef = requestAnimationFrame(this.loop.bind(this));
     }
@@ -94,10 +95,12 @@ class Repeater {
      * Pauses
      */
     pause(paused = !this.paused == true) {
-        this.paused = paused;
-        if (this.paused !== true) {
+        if (paused !== true) {
             this.start();
             return;
+        }
+        else {
+            this.paused = paused;
         }
         if (typeof this.RafRef === "number") {
             cancelAnimationFrame(this.RafRef);

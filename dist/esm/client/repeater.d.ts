@@ -1,3 +1,4 @@
+import { Signal } from "@orago/lib";
 export declare class FPS {
     value: number;
     currentIndex: number;
@@ -8,6 +9,7 @@ export declare class FPS {
     tick(): number;
 }
 export declare class Repeater {
+    tick: Signal<(repeater: Repeater) => void>;
     frame: number;
     paused: boolean;
     RafRef: number | undefined;
@@ -19,8 +21,7 @@ export declare class Repeater {
     timestamp: number;
     delta: number;
     private readonly _fpsHandler;
-    callback: (repeater: Repeater) => void;
-    constructor(fpsLimit: number, callback: Repeater["callback"]);
+    constructor(fpsLimit: number);
     loop(timestamp: number): void;
     get setFps(): number;
     get fps(): number;

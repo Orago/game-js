@@ -1,3 +1,4 @@
+import { Signal } from "@orago/lib";
 export class FPS {
     constructor(sampleSize) {
         this.value = 0;
@@ -29,7 +30,8 @@ export class FPS {
     }
 }
 export class Repeater {
-    constructor(fpsLimit, callback) {
+    constructor(fpsLimit) {
+        this.tick = new Signal();
         this.frame = -1;
         this.paused = true;
         this.fpsLimit = -1;
@@ -39,7 +41,6 @@ export class Repeater {
         this.delta = 0;
         this.fpsLimit = fpsLimit;
         this.delay = 1000 / fpsLimit;
-        this.callback = callback;
         this._fpsHandler = new FPS();
     }
     loop(timestamp) {
@@ -58,7 +59,7 @@ export class Repeater {
                 this.delta = 0;
             }
             this.timestamp = timestamp;
-            this.callback(this);
+            this.tick.emit(this);
         }
         this.RafRef = requestAnimationFrame(this.loop.bind(this));
     }
@@ -90,10 +91,12 @@ export class Repeater {
      * Pauses
      */
     pause(paused = !this.paused == true) {
-        this.paused = paused;
-        if (this.paused !== true) {
+        if (paused !== true) {
             this.start();
             return;
+        }
+        else {
+            this.paused = paused;
         }
         if (typeof this.RafRef === "number") {
             cancelAnimationFrame(this.RafRef);

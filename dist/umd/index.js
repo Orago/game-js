@@ -37,12 +37,15 @@ var __importStar = (this && this.__importStar) || (function () {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@orago/ecs", "./util/boxes.js", "./util/collision.js", "./util/shapes.js", "./util/shapes.js"], factory);
+        define(["require", "exports", "./util/meowtrix.js", "@orago/ecs", "./util/boxes.js", "./util/collision.js", "./util/shapes.js", "./util/shapes.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Bound = exports.Rect = exports.Box = exports.Shapes = exports.Collision = exports.BoxUtil = exports.Ecs = void 0;
+    exports.Bound = exports.Rect = exports.Box = exports.Shapes = exports.Collision = exports.BoxUtil = exports.Ecs = exports.MeowtrixCss = exports.Meowtrix = void 0;
+    var meowtrix_js_1 = require("./util/meowtrix.js");
+    Object.defineProperty(exports, "Meowtrix", { enumerable: true, get: function () { return meowtrix_js_1.Meowtrix; } });
+    Object.defineProperty(exports, "MeowtrixCss", { enumerable: true, get: function () { return meowtrix_js_1.MeowtrixCss; } });
     exports.Ecs = __importStar(require("@orago/ecs"));
     exports.BoxUtil = __importStar(require("./util/boxes.js"));
     var collision_js_1 = require("./util/collision.js");

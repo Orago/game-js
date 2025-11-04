@@ -568,9 +568,9 @@ export class Meowtrix {
 			return Meowtrix.identity();
 		} else if (matrices.length === 1) {
 			return matrices[0];
+		} else {
+			return matrices.reduce((acc, m) => Meowtrix.multiply(acc, m));
 		}
-
-		return matrices.reduce((acc, m) => Meowtrix.multiply(acc, m));
 	}
 }
 
@@ -608,9 +608,6 @@ export class Transform {
 		);
 		let r: Matrix3D;
 
-		// if (this.rotation_origin == undefined) {
-		// 	r = Meowtrix.rotateZ(this.rotation.z);
-		// } else {
 		const px = (this.rotation_origin?.x ?? this.origin.x) * this.scale.x;
 		const py = (this.rotation_origin?.y ?? this.origin.y) * this.scale.y;
 
@@ -620,7 +617,6 @@ export class Transform {
 			Meowtrix.rotateZ(this.rotation.z), // rotate
 			Meowtrix.translate(-px, -py) // move back
 		);
-		// }
 
 		const s = Meowtrix.combine(
 			// Meowtrix.translate(-this.origin.x, -this.origin.y),
@@ -633,13 +629,12 @@ export class Transform {
 		);
 		// const s = Meowtrix.scale(this.scale.x, this.scale.y, this.scale.z);
 
-		// Local matrix = translation * rotation * scale
+		//? local matrix order = translation * rotation * scale
 		this.matrix = Meowtrix.combine(origin_offset, t, r, s);
-
 		this.dirty = false;
 	}
 
-	/** Mark the transform as dirty so its matrix updates next frame. */
+	// Mark the transform as dirty so its matrix updates next frame.
 	markDirty(): void {
 		this.dirty = true;
 	}

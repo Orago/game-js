@@ -55,19 +55,20 @@ export default class Keyboard {
 	public static formatKeycode(value: string): KeyboardAction {
 		return value as KeyboardAction;
 	}
-
-	public object: VNode;
+	public element: HTMLElement;
 	public readonly events: Emitter<KeyboardEvents, true> = new Emitter();
 
-	/* Keys pressed */
+	// state management
 	public pressed: Partial<Record<KeyboardAction, boolean>> = {};
-	public alive: boolean = false;
 	public union: KeyboardUnionMode = "both";
-	public event_group?: VNodeEventGroup;
+
+	// systems management
+	public alive: boolean = false;
+	private bound_events: Set<[HTMLElement, string, (event: Event) => any]> =
+		new Set();
 
 	constructor(element: HTMLElement = document.body) {
-		this.object = new VNode(element);
-		this.event_group = new VNodeEventGroup(this.object);
+		this.element = element;
 	}
 
 	private changeKeyState(key: KeyboardAction, state: boolean) {
@@ -80,45 +81,46 @@ export default class Keyboard {
 		}
 	}
 
-	attatch(node: VNode | HTMLElement) {
-		this.dispose();
-		this.object = new VNode(node);
-		this.event_group = new VNodeEventGroup(this.object);
-
-		this.event_group
-			.on("keydown", (event: KeyboardEvent) => {
-				this.simulateKeyDown(event.code as KeyboardAction);
-			})
-			.on("keyup", (event: KeyboardEvent) => {
-				this.simulateKeyUp(event.code as KeyboardAction);
-			});
-	}
-
 	init(): this {
 		if (this.alive !== false) {
 			return this;
 		}
 
 		this.alive = true;
-		this.attatch(this.object);
+		this.reset();
 		return this;
 	}
 
-	public get stop() {
-		return this.dispose;
+	public reset() {
+		this.dispose();
+
+		for (const [method, func] of Object.entries(this.on)) {
+			const fn = func.bind(this);
+			this.bound_events.add([this.element, method, fn]);
+			this.element.addEventListener(method, fn);
+		}
 	}
 
 	public dispose() {
-		if (this.event_group != undefined) {
-			this.event_group.clear();
-		}
-
 		this.pressed = {};
 		this.alive = false;
+
+		for (const bound_event of this.bound_events) {
+			const [element, method, fn] = bound_event;
+			element.removeEventListener(method, fn);
+			this.bound_events.delete(bound_event);
+		}
 
 		// if (this.alive !== true) {
 		// 	return;
 		// }
+	}
+
+	/**
+	 * @deprecated
+	 */
+	public get stop() {
+		return this.dispose;
 	}
 
 	public simulateKeyDown(keycode: KeyboardAction) {
@@ -188,4 +190,15 @@ export default class Keyboard {
 			}
 		}
 	}
+
+	public on: Record<string, (evt: Event) => any> = {
+		keydown: (event: Event) => {
+			this.simulateKeyDown(
+				(event as KeyboardEvent).code as KeyboardAction
+			);
+		},
+		keyup: (event: Event) => {
+			this.simulateKeyUp((event as KeyboardEvent).code as KeyboardAction);
+		},
+	};
 }

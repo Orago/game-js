@@ -1,4 +1,3 @@
-import { VNode } from "@orago/dom";
 import Emitter from "@orago/lib/emitter";
 const unions = {
     ShiftLeft: "Shift",
@@ -39,58 +38,81 @@ export default class Keyboard {
     }
     constructor(element = document.body) {
         this.events = new Emitter();
-        /* Keys pressed */
+        // state management
         this.pressed = {};
-        this.alive = false;
         this.union = "both";
+        // systems management
+        this.alive = false;
+        this.bound_events = new Set();
         this.isPressed = (key) => { var _a; return ((_a = this.pressed) === null || _a === void 0 ? void 0 : _a[key]) == true; };
         this.intPressed = (key) => this.isPressed(key) ? 1 : 0;
-        this.object = new VNode(element);
-        this.event_group = new VNodeEventGroup(this.object);
+        this.on = {
+            keydown: (event) => {
+                this.simulateKeyDown(event.code);
+            },
+            keyup: (event) => {
+                this.simulateKeyUp(event.code);
+            },
+        };
+        this.element = element;
     }
-    attatch(node) {
-        this.dispose();
-        this.object = VNode.from(node);
-        this.event_group = new VNodeEventGroup(this.object);
-        this.event_group
-            .on("keydown", (event) => {
-            this.simulateKeyDown(event.code);
-        })
-            .on("keyup", (event) => {
-            this.simulateKeyUp(event.code);
-        });
+    changeKeyState(key, state) {
+        this.events.emit("key-change", key, state);
+        // Keydown
+        if (state == true) {
+            this.events.emit("keydown", key);
+        }
+        else {
+            this.events.emit("keyup", key);
+        }
     }
     init() {
         if (this.alive !== false) {
-            return;
+            return this;
         }
         this.alive = true;
-        this.attatch(this.object);
+        this.reset();
+        return this;
     }
-    get stop() {
-        return this.dispose;
+    reset() {
+        this.dispose();
+        for (const [method, func] of Object.entries(this.on)) {
+            const fn = func.bind(this);
+            this.bound_events.add([this.element, method, fn]);
+            this.element.addEventListener(method, fn);
+        }
     }
     dispose() {
-        if (this.event_group != undefined) {
-            this.event_group.clear();
-        }
         this.pressed = {};
         this.alive = false;
+        for (const bound_event of this.bound_events) {
+            const [element, method, fn] = bound_event;
+            element.removeEventListener(method, fn);
+            this.bound_events.delete(bound_event);
+        }
         // if (this.alive !== true) {
         // 	return;
         // }
+    }
+    /**
+     * @deprecated
+     */
+    get stop() {
+        return this.dispose;
     }
     simulateKeyDown(keycode) {
         keycode = Keyboard.formatKeycode(keycode);
         this.pressed[keycode] = true;
         const alt = unions === null || unions === void 0 ? void 0 : unions[keycode];
         if (this.union != "split") {
-            if (alt != null)
+            if (alt != null) {
                 this.simulateKeyDown(alt);
+            }
         }
         if (this.union == "joint" && alt != undefined) {
             return;
         }
+        this.changeKeyState(keycode, true);
         this.events.emit("keydown", keycode);
     }
     simulateKeyUp(keycode) {
@@ -98,13 +120,15 @@ export default class Keyboard {
         delete this.pressed[keycode];
         const alt = unions === null || unions === void 0 ? void 0 : unions[keycode];
         if (this.union != "split") {
-            if (alt != null)
+            if (alt != null) {
                 this.simulateKeyUp(alt);
+            }
         }
         if (this.union == "joint" && alt != undefined) {
             return;
         }
         // this.events.emit("Up-" + keycode as any);
+        this.changeKeyState(keycode, false);
         this.events.emit("keyup", keycode);
     }
     anyPressed(...args) {

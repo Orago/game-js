@@ -33,8 +33,9 @@ export default class Cursor {
         return cursorActionDict[value];
     }
     // private _mobile_mode?: 0 | 2;
-    constructor(object = document.body) {
+    constructor(element = document.body) {
         this.events = new Emitter();
+        // state management
         this.position = { x: 0, y: 0 };
         this.start = { x: 0, y: 0 };
         this.end = { x: 0, y: 0 };
@@ -42,6 +43,8 @@ export default class Cursor {
         this.mouse_down = false;
         this.touching = false;
         this.start_time = 0;
+        // systems management
+        this.alive = false;
         this.bound_events = new Set();
         this.on = {
             click: (e) => e.preventDefault(),
@@ -56,32 +59,43 @@ export default class Cursor {
             mousedown: (e) => this.events.emit("start", e),
             touchstart: (e) => isTouchEvent(e) && this.events.emit("start", e.touches[0]),
         };
-        this.object = object;
-        this.init();
+        this.element = element;
+        this.reset();
     }
-    reconnect(object) {
-        this.object = object;
-        this.init();
+    reconnect(element) {
+        this.element = element;
+        this.reset();
     }
     hasButton(which) {
         return this.buttons.has(reverseCursorActionDict[which]);
     }
     init() {
+        if (this.alive !== false) {
+            return this;
+        }
+        this.alive = true;
+        this.reset();
+        return this;
+    }
+    reset() {
         this.dispose();
         for (const [method, func] of Object.entries(this.on)) {
             const fn = func.bind(this);
-            this.bound_events.add([method, fn]);
-            this.object.addEventListener(method, fn);
+            this.bound_events.add([this.element, method, fn]);
+            this.element.addEventListener(method, fn);
         }
         this.events
             .on("move", (x, y) => this.setPosition(x, y))
             .on("start", (e) => this.onStart(e))
             .on("end", (e) => this.onEnd(e));
+        return this;
     }
     dispose() {
         this.events.all.clear();
+        this.alive = false;
         for (const bound_event of this.bound_events) {
-            this.object.removeEventListener(bound_event[0], bound_event[1]);
+            const [element, method, fn] = bound_event;
+            element.removeEventListener(method, fn);
             this.bound_events.delete(bound_event);
         }
     }
@@ -89,8 +103,7 @@ export default class Cursor {
         this.position = this.getPosition(x, y);
     }
     getPosition(x, y) {
-        const { object } = this;
-        const b = object.getBoundingClientRect();
+        const b = this.element.getBoundingClientRect();
         return {
             x: Math.floor(((x - b.left) / (b.right - b.left)) * b.width),
             y: Math.floor(((y - b.top) / (b.bottom - b.top)) * b.height),
@@ -98,30 +111,17 @@ export default class Cursor {
     }
     onStart(event) {
         this.start_time = performance.now();
-        if (isTouch(event)) {
-            this.events.emit("button-down", "Touch", event, this);
+        const is_touch = isTouch(event);
+        const button = is_touch
+            ? "Touch"
+            : Cursor.buttonToAction(event.button);
+        this.events.emit("button-down", button, event, this);
+        this.events.emit("button-change", button, true, event);
+        if (is_touch) {
             this.buttons.add(10);
-            // setTimeout(() => {
-            // 	if (this.down == true && this._mobile_mode == 0) {
-            // 		this.events.emit("context", event, this);
-            // 		this.events.emit("button-down", "Right", event, this);
-            // 		this.buttons.add(this._mobile_mode = 2);
-            // 	}
-            // 	else {
-            // 		this.events.emit("click", event, this);
-            // 		this.events.emit("button-down", "Left", event, this);
-            // 		this.buttons.add(this._mobile_mode = 0);
-            // 	}
-            // }, holdTime);
         }
         else {
-            this.events.emit("button-down", Cursor.buttonToAction(event.button), event, this);
             this.buttons.add(event.button);
-            // switch (event.button) {
-            // 	case 0: this.events.emit("click", event, this); break;
-            // 	case 1: this.events.emit("middle", event, this); break;
-            // 	case 2: this.events.emit("context", event, this); break;
-            // }
         }
         this.position = this.getPosition(event.clientX, event.clientY);
         this.start = this.getPosition(event.clientX, event.clientY);
@@ -129,19 +129,16 @@ export default class Cursor {
         this.events.emit("touch", event, this);
     }
     onEnd(event) {
-        if (isTouch(event)) {
-            this.events.emit("button-up", "Touch", event, this);
+        const is_touch = isTouch(event);
+        const button = is_touch
+            ? "Touch"
+            : Cursor.buttonToAction(event.button);
+        this.events.emit("button-up", button, event, this);
+        this.events.emit("button-change", button, false, event);
+        if (is_touch) {
             this.buttons.delete(10);
-            // if (this._mobile_mode != undefined)
-            // 	this.buttons.delete(this._mobile_mode);
-            // delete this._mobile_mode;
-            // 	case 0: this.events.emit("click-release", event, this); break;
-            // 	case 1: this.events.emit("middle-release", event, this); break;
-            // 	case 2: this.events.emit("context-release", event, this); break;
-            // }
         }
         else {
-            this.events.emit("button-up", Cursor.buttonToAction(event.button), event, this);
             this.buttons.delete(event.button);
         }
         this.end = this.getPosition(event.clientX, event.clientY);

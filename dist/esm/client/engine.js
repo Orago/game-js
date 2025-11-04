@@ -1,6 +1,8 @@
 import { VNode } from "@orago/dom";
 import { Ecs } from "@orago/ecs";
+import { Emitter } from "@orago/lib";
 import { Collision } from "../util/collision.js";
+import { ObjectManager, PluginManager } from "./base.js";
 import Cursor from "./input/cursor.js";
 import Keyboard from "./input/keyboard.js";
 import { LegacyEntity, LegacySystem } from "./plugins/legacy.js";
@@ -25,99 +27,6 @@ function worldToScreen(world, options) {
         y: (world.y - offset.y) * zoom + center.y,
     };
 }
-/**
- * Engine Object
- * ! SHOULD NOT BE USED ON IT"S OWN
- * @class
- */
-class EngineObject extends LegacyEntity {
-    // options: {
-    // 	zoom: boolean;
-    // 	offset: boolean;
-    // } = {
-    // 		zoom: false,
-    // 		offset: false,
-    // 	};
-    // events = new Emitter();
-    constructor(engineRef, data = {}) {
-        super(engineRef.ecs);
-        // id = uuidV4();
-        this.x = 0;
-        this.y = 0;
-        this.width = 0;
-        this.height = 0;
-        this.enabled = true;
-        this.visible = true;
-        this.engine = engineRef;
-        if (typeof data === "object") {
-            if (typeof data.x === "number")
-                this.x = data.x;
-            if (typeof data.y === "number")
-                this.y = data.y;
-            if (typeof data.width === "number")
-                this.width = data.width;
-            if (typeof data.height === "number")
-                this.height = data.height;
-            if (typeof data.priority === "number")
-                this.priority = data.priority;
-            if (typeof data.lifetime === "number") {
-                const ends_at = Date.now() + data.lifetime;
-                this.events.on("update", () => Date.now() > ends_at && this.removeType());
-            }
-        }
-    }
-    ref(fn) {
-        fn.bind(this)(this);
-        return this;
-    }
-    tick() {
-        this.events.emit("update");
-        this.events.emit("render");
-    }
-    removeType() {
-        this.events.emit("remove");
-        this.events.all.clear();
-        if (this.engine instanceof Engine) {
-            this.engine.objects.delete(this);
-        }
-    }
-    addTo(...tags) {
-        // this.events.emit("add");
-        // if (this.engine instanceof World) {
-        // 	this.engine.objects.add(this);
-        // }
-        // tags.forEach(tag => tag?.isObjGroup == true && tag.add(this));
-        return this;
-    }
-    toScreen() {
-        const pos = this.engine.worldToScreen({ x: this.x, y: this.y });
-        return {
-            x: pos.x,
-            y: pos.y,
-            width: this.width * this.engine.zoom,
-            height: this.height * this.engine.zoom,
-        };
-    }
-    get canvas() {
-        return this.engine.brush;
-    }
-    collides(restriction = () => false) {
-        for (const other_obj of this.engine.objects.values()) {
-            if (this != other_obj && restriction(this, other_obj)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    enable() {
-        this.visible = true;
-        this.enabled = true;
-    }
-    disable() {
-        this.visible = false;
-        this.enabled = false;
-    }
-}
 class Engine {
     static display(engine, parent) {
         var _a;
@@ -139,12 +48,15 @@ class Engine {
         this.ecs = new Ecs();
         this.legacy = new LegacySystem(this.ecs, this);
         /** List of renderable objects */
-        this.objects = new Set();
-        this.offset = { x: 0, y: 0 };
-        this.zoom = 3;
+        this.camera = { x: 0, y: 0, zoom: 1 };
+        this.repeater = new Repeater(64);
         this.frame = 0;
-        this.dom = VNode.new.div;
-        this.ui = VNode.new.div;
+        this.events = new Emitter();
+        this.dom = new VNode("div");
+        this.ui = new VNode("div");
+        this.plugins = new PluginManager(this);
+        this.objects = new ObjectManager(this);
+        this.paused = false;
         this.collision = Collision;
         this.object = (data, ref) => {
             const entity = new LegacyEntity(this.ecs);
@@ -162,49 +74,72 @@ class Engine {
         this.keyboard = new Keyboard(this.dom.element);
         // 	this.cursor = new Cursor(this.dom.element);
         // this.keyboard = new Keyboard(this.dom.element as HTMLElement);
-        this.ticks = new Repeater(64, () => {
-            var _a;
+        this.repeater.tick.on(() => {
+            var _a, _b, _c, _d, _e;
+            for (const plugin of this.plugins.ordered_list) {
+                (_a = plugin.onUpdate) === null || _a === void 0 ? void 0 : _a.call(plugin, this);
+                (_b = plugin.onRender) === null || _b === void 0 ? void 0 : _b.call(plugin, this);
+            }
+            for (const object of this.objects.ordered_list) {
+                (_c = object.onUpdate) === null || _c === void 0 ? void 0 : _c.call(object, this);
+                (_d = object.onRender) === null || _d === void 0 ? void 0 : _d.call(object, this);
+            }
             this.ecs.update();
-            this.frame = (_a = this === null || this === void 0 ? void 0 : this.ticks) === null || _a === void 0 ? void 0 : _a.frame;
+            this.frame = (_e = this === null || this === void 0 ? void 0 : this.repeater) === null || _e === void 0 ? void 0 : _e.frame;
         });
-        this.ticks.start();
+        this.repeater.start();
     }
     screenToWorld(point, options) {
         return screenToWorld(point, {
             center: (options === null || options === void 0 ? void 0 : options.center) === true ? this.brush.center() : { x: 0, y: 0 },
-            offset: this.offset,
-            zoom: this.zoom,
+            offset: this.camera,
+            zoom: this.camera.zoom,
         });
     }
     worldToScreen(point, options) {
         return worldToScreen(point, {
             center: (options === null || options === void 0 ? void 0 : options.center) === true ? this.brush.center() : { x: 0, y: 0 },
-            offset: this.offset,
-            zoom: this.zoom,
+            offset: this.camera,
+            zoom: this.camera.zoom,
         });
     }
     setCursor(url) {
         this.dom.style.update({ cursor: `url(${url}), pointer` });
         return this;
     }
+    pause(state) {
+        if (state != undefined && this.paused == state) {
+            return;
+        }
+        this.paused = state !== null && state !== void 0 ? state : !this.paused;
+        this.repeater.pause(this.paused);
+        // is now paused
+        if (this.paused == true) {
+            this.keyboard.dispose();
+            this.cursor.dispose();
+        }
+        else {
+            this.keyboard.init();
+            this.cursor.init();
+        }
+        this.events.emit("pause", this.paused);
+    }
     destroy() {
         this.keyboard.events.all.clear();
-        this.cursor.init();
+        this.cursor.reset();
         /* Queue for deletion */
         this.ecs.entities.clear();
         this.ecs.systems.clear();
         /* Do final run / deletion */
+        this.plugins.clear();
+        this.objects.clear();
         this.ecs.update();
         this.ecs.systems.add(this.legacy);
         /* Wipe the canvas */
         this.brush.clear();
-        for (const object of Array.from(this.objects)) {
-            object.removeType();
-        }
     }
 }
 Engine.screenToWorld = screenToWorld;
 Engine.worldToScreen = worldToScreen;
-Engine.Object = EngineObject;
 Engine.ECS = Ecs;
 export default Engine;
