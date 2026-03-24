@@ -172,14 +172,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                     .on("plugin:add", (engine) => {
                     const cursor = engine.cursor;
                     cursor.element.addEventListener("touchmove", touchMove);
-                    cursor.element.addEventListener("touchstart", touchStart);
-                    cursor.element.addEventListener("touchend", touchEnd);
+                    // cursor.element.addEventListener("touchstart", touchStart);
+                    // cursor.element.addEventListener("touchend", touchEnd);
                 })
                     .on("plugin:remove", (engine) => {
                     const cursor = engine.cursor;
                     cursor.element.removeEventListener("touchmove", touchMove);
-                    cursor.element.removeEventListener("touchstart", touchStart);
-                    cursor.element.removeEventListener("touchend", touchEnd);
+                    // cursor.element.removeEventListener(
+                    // 	"touchstart",
+                    // 	touchStart
+                    // );
+                    // cursor.element.removeEventListener("touchend", touchEnd);
                 });
             }
         }
@@ -268,8 +271,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             this.setZoom(this.engine.camera.zoom * zoom, pos);
         }
         handleWheel(event) {
-            var _a;
-            console.log("grr", (_a = this.engine) === null || _a === void 0 ? void 0 : _a.camera, this.modes);
             if (this.engine == undefined || this.modes.zoom != true) {
                 return;
             }

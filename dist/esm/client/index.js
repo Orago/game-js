@@ -1,3 +1,5 @@
+export { WGLParticleSystem } from "./plugins/particles.js";
+export { ImagePacker } from "./util/image-packer.js";
 export { EnginePlugin, PluginManager, EngineObject, ObjectManager, } from "./base.js";
 export * as Ecs from "@orago/ecs";
 export { default as BrushCanvas, ChainableCanvas } from "./brush/brush.js";
@@ -11,5 +13,6 @@ export { default as Keyboard } from "./input/keyboard.js";
 export * as Action from "./input/symbols.js";
 export { EcsRenderer } from "./plugins/index.js";
 export { LegacyEntity, LegacySystem } from "./plugins/legacy.js";
-export { default as Repeater } from "./repeater.js";
+export { default as Ticker } from "./repeater.js";
 export { default as Sprites, Spritesheet } from "./sprites.js";
+export * as WGL from "./wgl/program.js";

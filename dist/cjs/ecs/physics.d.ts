@@ -4,11 +4,20 @@ export declare class PositionComponent extends Component {
     x: number;
     y: number;
     constructor(x: number, y: number);
+    set(x: number, y: number): void;
+    from(options: {
+        x?: number;
+        y?: number;
+    }): void;
 }
 export declare class VelocityComponent extends Component {
     x: number;
     y: number;
     drag: number;
+    drag2: {
+        x: number;
+        y: number;
+    };
     gravity: {
         x: number;
         y: number;

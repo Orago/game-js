@@ -8,8 +8,8 @@ export declare class FPS {
     constructor(sampleSize?: number);
     tick(): number;
 }
-export declare class Repeater {
-    tick: Signal<(repeater: Repeater) => void>;
+export declare class Ticker {
+    tick: Signal<(repeater: Ticker) => void>;
     frame: number;
     paused: boolean;
     RafRef: number | undefined;
@@ -35,4 +35,4 @@ export declare class Repeater {
      */
     pause(paused?: boolean): void;
 }
-export default Repeater;
+export default Ticker;

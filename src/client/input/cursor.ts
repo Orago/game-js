@@ -1,28 +1,29 @@
 import type { Point } from "@orago/lib/vector";
 import Emitter from "@orago/lib/emitter";
-import { MouseButton } from "./symbols";
+import type { MouseButton } from "./symbols.js";
 
 type CursorInput = Touch | MouseEvent;
-type CursorCalled = (event: Touch | MouseEvent, cursor: Cursor) => void;
+// type CursorCalled = (event: Touch | MouseEvent, cursor: Cursor) => void;
+type CursorCalled = () => void;
 // type CursorAction = "click" | "middle" | "context";
 
 // type ActionPress = Record<CursorAction, CursorCalled> & Record<`${CursorAction}-release`, CursorCalled>;
 
 export type CursorEvents = {
 	"button-down": (
-		which: MouseButton,
-		event: Touch | MouseEvent,
-		cursor: Cursor
+		which: MouseButton
+		// event: Touch | MouseEvent,
+		// cursor: Cursor
 	) => void;
 	"button-up": (
-		which: MouseButton,
-		event: Touch | MouseEvent,
-		cursor: Cursor
+		which: MouseButton
+		// event: Touch | MouseEvent,
+		// cursor: Cursor
 	) => void;
 	"button-change": (
 		which: MouseButton,
-		state: boolean,
-		event: Touch | MouseEvent
+		state: boolean
+		// event: Touch | MouseEvent
 	) => void;
 	move: (x: number, y: number) => void;
 	start: (event: Touch | MouseEvent) => void;
@@ -31,8 +32,6 @@ export type CursorEvents = {
 	touch: CursorCalled;
 	release: CursorCalled;
 };
-
-type CursorButtonInt = 0 | 1 | 2 | 3 | 4 | 10;
 
 function isTouchEvent(input: any): input is TouchEvent {
 	const __TouchEvent =
@@ -64,16 +63,16 @@ export enum CursorButton {
 	TOUCH = 10,
 }
 
-const cursorActionDict: Record<CursorButtonInt, MouseButton> = {
-	0: "Left",
-	1: "Middle",
-	2: "Right",
-	3: "Back",
-	4: "Forward",
-	10: "Touch",
+const cursorActionDict: Record<CursorButton, MouseButton> = {
+	[CursorButton.LEFT]: "Left",
+	[CursorButton.MIDDLE]: "Middle",
+	[CursorButton.RIGHT]: "Right",
+	[CursorButton.BACK]: "Back",
+	[CursorButton.FORWARD]: "Forward",
+	[CursorButton.TOUCH]: "Touch",
 };
 
-const reverseCursorActionDict: Record<MouseButton, CursorButtonInt> =
+const reverseCursorActionDict: Record<MouseButton, CursorButton> =
 	Object.fromEntries(
 		Object.entries(cursorActionDict).map((e) => [e[1], Number(e[0])])
 	) as any;
@@ -83,8 +82,14 @@ export default class Cursor {
 	// private static actionDict = cursorActionDict;
 	// private static reverseActionDict = reverseCursorActionDict;
 
-	private static buttonToAction(value: CursorButtonInt) {
+	public static buttonToAction(value: CursorButton) {
 		return cursorActionDict[value];
+	}
+
+	public static getButtonID(event: CursorInput): CursorButton {
+		return isTouch(event)
+			? CursorButton.TOUCH
+			: (event.button as CursorButton);
 	}
 
 	// private static actionToButtonID(value: MouseButton) {
@@ -96,8 +101,8 @@ export default class Cursor {
 
 	// state management
 	public position: Point = { x: 0, y: 0 };
-	public start: Point = { x: 0, y: 0 };
-	public end: Point = { x: 0, y: 0 };
+	public start_position: Point = { x: 0, y: 0 };
+	public end_position: Point = { x: 0, y: 0 };
 	public buttons: Set<CursorButton> = new Set();
 	public mouse_down: boolean = false;
 	public touching: boolean = false;
@@ -133,10 +138,18 @@ export default class Cursor {
 		return this;
 	}
 
-	toggleButton(button_int: CursorButton, state: boolean) {
+	toggleButton(button_int: CursorButton, down: boolean) {
 		const button: MouseButton = Cursor.buttonToAction(button_int);
-		this.events.emit("button-down", button, event, this);
-		this.events.emit("button-change", button, true, event);
+
+		if (down == true) {
+			this.buttons.add(button_int);
+			this.events.emit("button-down", button);
+		} else {
+			this.buttons.delete(button_int);
+			this.events.emit("button-up", button);
+		}
+
+		this.events.emit("button-change", button, true);
 	}
 
 	public reset(): this {
@@ -180,49 +193,25 @@ export default class Cursor {
 	}
 
 	public onStart(event: CursorInput): void {
+		const button_id = Cursor.getButtonID(event);
+
 		this.start_time = performance.now();
-		const is_touch = isTouch(event);
-
-		const button: MouseButton = is_touch
-			? "Touch"
-			: Cursor.buttonToAction(event.button as CursorButtonInt);
-
-		this.events.emit("button-down", button, event, this);
-		this.events.emit("button-change", button, true, event);
-
-		if (is_touch) {
-			this.buttons.add(10);
-		} else {
-			this.buttons.add(event.button as CursorButtonInt);
-		}
-
 		this.position = this.getPosition(event.clientX, event.clientY);
-		this.start = this.getPosition(event.clientX, event.clientY);
+		this.start_position = this.getPosition(event.clientX, event.clientY);
 		this.mouse_down = true;
 
-		this.events.emit("touch", event, this);
+		this.toggleButton(button_id, true);
+		this.events.emit("touch");
 	}
 
 	public onEnd(event: CursorInput) {
-		const is_touch = isTouch(event);
+		const button_id = Cursor.getButtonID(event);
 
-		const button: MouseButton = is_touch
-			? "Touch"
-			: Cursor.buttonToAction(event.button as CursorButtonInt);
-
-		this.events.emit("button-up", button, event, this);
-		this.events.emit("button-change", button, false, event);
-
-		if (is_touch) {
-			this.buttons.delete(10);
-		} else {
-			this.buttons.delete(event.button as CursorButtonInt);
-		}
-
-		this.end = this.getPosition(event.clientX, event.clientY);
+		this.end_position = this.getPosition(event.clientX, event.clientY);
 		this.mouse_down = false;
 
-		this.events.emit("release", event, this);
+		this.toggleButton(button_id, false);
+		this.events.emit("release");
 	}
 
 	public on: Record<string, (evt: Event) => any> = {

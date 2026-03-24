@@ -1,3 +1,5 @@
+export { WGLParticleSystem } from "./plugins/particles.js";
+export { ImagePacker } from "./util/image-packer.js";
 export {
 	EnginePlugin,
 	PluginManager,
@@ -16,5 +18,7 @@ export { default as Keyboard, type KeyboardEvents } from "./input/keyboard.js";
 export * as Action from "./input/symbols.js";
 export { EcsRenderer } from "./plugins/index.js";
 export { LegacyEntity, LegacySystem } from "./plugins/legacy.js";
-export { default as Repeater } from "./repeater.js";
+export { default as Ticker } from "./repeater.js";
 export { default as Sprites, Spritesheet } from "./sprites.js";
+export * as WGL from "./wgl/program.js";
+export { type Camera } from "./engine.js";

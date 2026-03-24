@@ -41,8 +41,8 @@ export class FPS {
 	}
 }
 
-export class Repeater {
-	public tick: Signal<(repeater: Repeater) => void> = new Signal();
+export class Ticker {
+	public tick: Signal<(repeater: Ticker) => void> = new Signal();
 	public frame: number = -1;
 	public paused: boolean = true;
 	public RafRef: number | undefined;
@@ -137,4 +137,4 @@ export class Repeater {
 	}
 }
 
-export default Repeater;
+export default Ticker;

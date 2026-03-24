@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Repeater = exports.FPS = void 0;
+exports.Ticker = exports.FPS = void 0;
 const lib_1 = require("@orago/lib");
 class FPS {
     constructor(sampleSize) {
@@ -33,7 +33,7 @@ class FPS {
     }
 }
 exports.FPS = FPS;
-class Repeater {
+class Ticker {
     constructor(fpsLimit) {
         this.tick = new lib_1.Signal();
         this.frame = -1;
@@ -109,5 +109,5 @@ class Repeater {
         this.frame = -1;
     }
 }
-exports.Repeater = Repeater;
-exports.default = Repeater;
+exports.Ticker = Ticker;
+exports.default = Ticker;

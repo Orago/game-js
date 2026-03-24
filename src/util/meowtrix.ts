@@ -572,16 +572,80 @@ export class Meowtrix {
 			return matrices.reduce((acc, m) => Meowtrix.multiply(acc, m));
 		}
 	}
+
+	matrix: Matrix3D = Meowtrix.identity();
+	stack: Matrix3D[] = [];
+
+	constructor() {}
+
+	multiply(matrixB: Matrix): this {
+		this.stack.push(Meowtrix.format(matrixB));
+		return this;
+	}
+
+	rotate(axis: "x" | "y" | "z", angle: number): this {
+		if (axis == "x") {
+			this.stack.push(Meowtrix.rotateX(angle));
+		} else if (axis == "y") {
+			this.stack.push(Meowtrix.rotateY(angle));
+		} else if (axis == "z") {
+			this.stack.push(Meowtrix.rotateZ(angle));
+		}
+		return this;
+	}
+
+	scale(axis: "x" | "y" | "z", angle: number): this {
+		if (axis == "x") {
+			this.stack.push(Meowtrix.rotateX(angle));
+		} else if (axis == "y") {
+			this.stack.push(Meowtrix.rotateY(angle));
+		} else if (axis == "z") {
+			this.stack.push(Meowtrix.rotateZ(angle));
+		}
+		return this;
+	}
+
+	scale2(x: number, y: number): this {
+		this.stack.push(Meowtrix.scale(x, y));
+		return this;
+	}
+
+	translate(options: { x?: number; y?: number; z?: number }): this {
+		const x = options.x ?? 0;
+		const y = options.y ?? 0;
+		const z = options.z ?? 0;
+
+		this.stack.push(Meowtrix.translate3d(x, y, z));
+
+		return this;
+	}
+
+	consume() {
+		this.matrix = this.stack.reduce(Meowtrix.multiply);
+		return this;
+	}
 }
 
+export interface TransformExport {
+	position: [x: number, y: number, z: number];
+	scale: [x: number, y: number, z: number];
+	rotation: [x: number, y: number, z: number];
+	origin: [x: number, y: number];
+	rotation_origin?: [x: number, y: number];
+}
 export class Transform {
+	static exportMatrix(matrix: Matrix3D) {
+		const exported: TransformExport = {
+			position: Meowtrix.getPosition(matrix),
+			scale: Meowtrix.getScale(matrix),
+			rotation: Meowtrix.getRotation(matrix),
+			origin: [0, 0],
+		};
+		return exported;
+	}
 	position = { x: 0, y: 0, z: 0 };
 	scale = { x: 1, y: 1, z: 1 };
 	rotation = { z: 0 }; // (You can extend to 3D if needed)
-	rotation_origin?: {
-		x?: number;
-		y?: number;
-	};
 
 	origin: {
 		x: number;
@@ -590,8 +654,70 @@ export class Transform {
 		x: 0,
 		y: 0,
 	};
-	matrix: Matrix3D = Meowtrix.identity();
+	rotation_origin?: {
+		x?: number;
+		y?: number;
+	};
+
+	// matrix: Matrix3D = Meowtrix.identity();
 	private dirty = true;
+
+	constructor(public matrix: Matrix3D = Meowtrix.identity()) {}
+
+	import(options: TransformExport): this {
+		this.position = {
+			x: options.position[0],
+			y: options.position[1],
+			z: options.position[2],
+		};
+		this.scale = {
+			x: options.scale[0],
+			y: options.scale[1],
+			z: options.scale[2],
+		};
+		this.rotation = { z: options.rotation[2] };
+		this.origin = {
+			x: options.origin[0],
+			y: options.origin[1],
+		};
+		if (options.rotation_origin != undefined) {
+			this.rotation_origin = {
+				x: options.rotation_origin[0],
+				y: options.rotation_origin[1],
+			};
+		}
+
+		return this;
+	}
+
+	export() {
+		const exported: {
+			position: [x: number, y: number, z: number];
+			scale: [x: number, y: number, z: number];
+			rotation: [x: number, y: number, z: number];
+			rotation_origin?: [x: number, y: number];
+			origin: [x: number, y: number];
+		} = {
+			position: [this.position.x, this.position.y, this.position.z],
+			scale: [this.scale.x, this.scale.y, this.scale.z],
+			rotation: [0, 0, this.rotation.z],
+			origin: [0, 0],
+		};
+
+		if (this.rotation_origin?.x != undefined) {
+			exported.rotation_origin ??= [0, 0];
+			exported.rotation_origin[0] = this.rotation_origin.x;
+		}
+		if (this.rotation_origin?.y != undefined) {
+			exported.rotation_origin ??= [0, 0];
+			exported.rotation_origin[1] = this.rotation_origin.y;
+		}
+		return exported;
+	}
+
+	clone() {
+		return new Transform().import(this.export());
+	}
 
 	/**
 	 * Recompute the matrix only when dirty.
@@ -704,7 +830,17 @@ export class Transform {
 	}
 }
 
-export class MeowtrixCss {
+export class MeowtrixDom {
+	static getCanvasMatrix(matrix: Matrix3D) {
+		const a = matrix[0];
+		const b = matrix[1];
+		const c = matrix[4];
+		const d = matrix[5];
+		const e = matrix[12];
+		const f = matrix[13];
+
+		return [a, b, c, d, e, f] as const;
+	}
 	/**
 	 * Converts a CSS Transform to array.
 	 * @param source A `string` containing a `matrix` or `matrix3d` property value.

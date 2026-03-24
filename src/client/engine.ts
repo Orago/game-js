@@ -1,13 +1,13 @@
 import { VNode } from "@orago/dom";
 import { Ecs } from "@orago/ecs";
-import { Emitter, Vector } from "@orago/lib";
+import { Emitter, Point } from "@orago/lib";
 import { Collision } from "../util/collision.js";
 import { ObjectManager, PluginManager } from "./base.js";
 import type BrushCanvas from "./brush/brush.js";
 import Cursor from "./input/cursor.js";
 import Keyboard from "./input/keyboard.js";
 import { LegacyEntity, LegacySystem } from "./plugins/legacy.js";
-import { Repeater } from "./repeater.js";
+import { Ticker } from "./repeater.js";
 
 interface EngineObjectData {
 	x?: number;
@@ -23,13 +23,13 @@ interface EngineObjectData {
 }
 
 function screenToWorld(
-	screen: Vector.Point,
+	screen: Point,
 	options?: {
-		center?: Vector.Point;
-		offset?: Vector.Point;
+		center?: Point;
+		offset?: Point;
 		zoom?: number;
 	}
-): Vector.Point {
+): Point {
 	const center = options?.center ?? { x: 0, y: 0 };
 	const offset = options?.offset ?? { x: 0, y: 0 };
 	const zoom = options?.zoom ?? 1;
@@ -41,13 +41,13 @@ function screenToWorld(
 }
 
 function worldToScreen(
-	world: Vector.Point,
+	world: Point,
 	options?: {
-		center?: Vector.Point;
-		offset?: Vector.Point;
+		center?: Point;
+		offset?: Point;
 		zoom?: number;
 	}
-): Vector.Point {
+): Point {
 	const center = options?.center ?? { x: 0, y: 0 };
 	const offset = options?.offset ?? { x: 0, y: 0 };
 	const zoom = options?.zoom ?? 1;
@@ -58,8 +58,7 @@ function worldToScreen(
 	};
 }
 
-
-interface EngineCamera {
+export interface Camera {
 	x: number;
 	y: number;
 	zoom: number;
@@ -94,7 +93,7 @@ export default class Engine {
 	public legacy = new LegacySystem(this.ecs, this);
 
 	/** List of renderable objects */
-	public readonly camera: EngineCamera = { x: 0, y: 0, zoom: 1 };
+	public readonly camera: Camera = { x: 0, y: 0, zoom: 1 };
 	// /**
 	//  * Replaced by engine.camera
 	//  * @deprecated
@@ -111,7 +110,7 @@ export default class Engine {
 	public brush: BrushCanvas;
 	public cursor: Cursor;
 	public keyboard: Keyboard;
-	public repeater: Repeater = new Repeater(64);
+	public tick: Ticker = new Ticker(64);
 	public frame: number = 0;
 
 	events: Emitter<
@@ -142,7 +141,7 @@ export default class Engine {
 		// 	this.cursor = new Cursor(this.dom.element);
 		// this.keyboard = new Keyboard(this.dom.element as HTMLElement);
 
-		this.repeater.tick.on(() => {
+		this.tick.tick.on(() => {
 			for (const plugin of this.plugins.ordered_list) {
 				plugin.onUpdate?.(this);
 				plugin.onRender?.(this);
@@ -154,10 +153,10 @@ export default class Engine {
 			}
 
 			this.ecs.update();
-			this.frame = this?.repeater?.frame;
+			this.frame = this?.tick?.frame;
 		});
 
-		this.repeater.start();
+		this.tick.start();
 	}
 
 	public collision = Collision;
@@ -178,11 +177,11 @@ export default class Engine {
 	};
 
 	public screenToWorld(
-		point: Vector.Point,
+		point: Point,
 		options?: {
 			center?: boolean;
 		}
-	): Vector.Point {
+	): Point {
 		return screenToWorld(point, {
 			center:
 				options?.center === true ? this.brush.center() : { x: 0, y: 0 },
@@ -192,11 +191,11 @@ export default class Engine {
 	}
 
 	public worldToScreen(
-		point: Vector.Point,
+		point: Point,
 		options?: {
 			center?: boolean;
 		}
-	): Vector.Point {
+	): Point {
 		return worldToScreen(point, {
 			center:
 				options?.center === true ? this.brush.center() : { x: 0, y: 0 },
@@ -216,7 +215,7 @@ export default class Engine {
 		}
 
 		this.paused = state ?? !this.paused;
-		this.repeater.pause(this.paused);
+		this.tick.pause(this.paused);
 
 		// is now paused
 		if (this.paused == true) {

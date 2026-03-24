@@ -40,12 +40,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "./base.js", "@orago/ecs", "./brush/brush.js", "./brush/color-image.js", "./brush/render.js", "./engine.js", "./input/cursor.js", "./input/gamepad.js", "./input/input-map.js", "./input/keyboard.js", "./input/symbols.js", "./plugins/index.js", "./plugins/legacy.js", "./repeater.js", "./sprites.js"], factory);
+        define(["require", "exports", "./plugins/particles.js", "./util/image-packer.js", "./base.js", "@orago/ecs", "./brush/brush.js", "./brush/color-image.js", "./brush/render.js", "./engine.js", "./input/cursor.js", "./input/gamepad.js", "./input/input-map.js", "./input/keyboard.js", "./input/symbols.js", "./plugins/index.js", "./plugins/legacy.js", "./repeater.js", "./sprites.js", "./wgl/program.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Spritesheet = exports.Sprites = exports.Repeater = exports.LegacySystem = exports.LegacyEntity = exports.EcsRenderer = exports.Action = exports.Keyboard = exports.InputMapHandler = exports.InputMap = exports.Gamepads = exports.Cursor = exports.Engine = exports.CanvasRender = exports.ColorImage = exports.ChainableCanvas = exports.BrushCanvas = exports.Ecs = exports.ObjectManager = exports.EngineObject = exports.PluginManager = exports.EnginePlugin = void 0;
+    exports.WGL = exports.Spritesheet = exports.Sprites = exports.Ticker = exports.LegacySystem = exports.LegacyEntity = exports.EcsRenderer = exports.Action = exports.Keyboard = exports.InputMapHandler = exports.InputMap = exports.Gamepads = exports.Cursor = exports.Engine = exports.CanvasRender = exports.ColorImage = exports.ChainableCanvas = exports.BrushCanvas = exports.Ecs = exports.ObjectManager = exports.EngineObject = exports.PluginManager = exports.EnginePlugin = exports.ImagePacker = exports.WGLParticleSystem = void 0;
+    var particles_js_1 = require("./plugins/particles.js");
+    Object.defineProperty(exports, "WGLParticleSystem", { enumerable: true, get: function () { return particles_js_1.WGLParticleSystem; } });
+    var image_packer_js_1 = require("./util/image-packer.js");
+    Object.defineProperty(exports, "ImagePacker", { enumerable: true, get: function () { return image_packer_js_1.ImagePacker; } });
     var base_js_1 = require("./base.js");
     Object.defineProperty(exports, "EnginePlugin", { enumerable: true, get: function () { return base_js_1.EnginePlugin; } });
     Object.defineProperty(exports, "PluginManager", { enumerable: true, get: function () { return base_js_1.PluginManager; } });
@@ -76,8 +80,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     Object.defineProperty(exports, "LegacyEntity", { enumerable: true, get: function () { return legacy_js_1.LegacyEntity; } });
     Object.defineProperty(exports, "LegacySystem", { enumerable: true, get: function () { return legacy_js_1.LegacySystem; } });
     var repeater_js_1 = require("./repeater.js");
-    Object.defineProperty(exports, "Repeater", { enumerable: true, get: function () { return __importDefault(repeater_js_1).default; } });
+    Object.defineProperty(exports, "Ticker", { enumerable: true, get: function () { return __importDefault(repeater_js_1).default; } });
     var sprites_js_1 = require("./sprites.js");
     Object.defineProperty(exports, "Sprites", { enumerable: true, get: function () { return __importDefault(sprites_js_1).default; } });
     Object.defineProperty(exports, "Spritesheet", { enumerable: true, get: function () { return sprites_js_1.Spritesheet; } });
+    exports.WGL = __importStar(require("./wgl/program.js"));
 });

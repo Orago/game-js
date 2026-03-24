@@ -10,7 +10,10 @@ interface InputMapData {
 	gamepad?: GamepadAction[];
 	gamepad_deadzone?: number;
 
-	/** Dangerous */
+	/**
+	 * Dangerous
+	 * @deprecated
+	 */
 	simulated?: boolean;
 }
 
@@ -25,7 +28,8 @@ interface ActionState {
 	// just_pressed: boolean;
 	// just_released: boolean;
 	sources: number; // currently pressed sources
-	simulated?: boolean; // dangerous
+	/** Dangerous */
+	simulated?: boolean;
 }
 type MappedKeys = Record<string, InputMapData>;
 type Evt<K, Strict extends boolean> = Strict extends true
@@ -38,10 +42,14 @@ export class InputMap<
 > {
 	current_maps: Map<Evt<T, Strict>, InputMapData> = new Map();
 	current_states: Record<Evt<T, Strict>, ActionState> = {} as any;
-	allowed_gamepads?: number[];
 	active: boolean = true;
 
 	private onceing: Set<Evt<T, Strict>> = new Set();
+
+	/**
+	 * This should only be modified by the engine itself
+	 */
+	check_hook?: Function;
 
 	/**
 	 *
@@ -80,6 +88,10 @@ export class InputMap<
 			return false;
 		}
 
+		if (this.check_hook != undefined) {
+			this.check_hook();
+		}
+
 		const current_state = this.current_states[name];
 
 		if (current_state.simulated == true) {
@@ -112,18 +124,58 @@ export class InputMap<
 	}
 }
 
-export class InputMapHandler {
+export class InputMapHandler<MP extends InputMap> {
 	keyboard?: Keyboard;
 	cursor?: Cursor;
 
 	hooks: {
 		keyboard?: KeyboardEvents["key-change"];
 		cursor?: CursorEvents["button-change"];
-		gamepad?: number;
+		gamepad_poll?: number;
 	} = {};
 
-	constructor(public input_map: InputMap) {
+	allowed_gamepads: number[] = [];
+
+	constructor(public input_map: MP) {
 		this.input_map = input_map;
+		this.input_map.check_hook = () => {
+			this.tick();
+		};
+	}
+
+	tick() {
+		if (this.cursor) {
+			this.tickCursor(this.cursor);
+		}
+
+		if (this.keyboard) {
+			this.tickKeyboard(this.keyboard);
+		}
+
+		if (this.allowed_gamepads.length > 0) {
+			this.updateGamepads();
+		}
+	}
+
+	tickKeyboard(keyboard: Keyboard) {
+		const pressed_keys = new Set(
+			Object.keys(keyboard.pressed) as KeyboardAction[]
+		);
+
+		for (const [name, data] of this.input_map.current_maps) {
+			if (data.keyboard == undefined) {
+				continue;
+			}
+			const is_pressed = data.keyboard.some((key) =>
+				pressed_keys.has(key)
+			);
+
+			if (is_pressed) {
+				this.input_map.addSource(name, InputSource.KEYBOARD);
+			} else {
+				this.input_map.removeSource(name, InputSource.KEYBOARD);
+			}
+		}
 	}
 
 	setKeyboard(keyboard: Keyboard): this {
@@ -156,21 +208,32 @@ export class InputMapHandler {
 		}
 	}
 
+	tickCursor(cursor: Cursor) {
+		const pressed_actions = new Set(
+			Array.from(cursor.buttons).map(Cursor.buttonToAction)
+		);
+
+		for (const [name, data] of this.input_map.current_maps) {
+			if (data.cursor == undefined) {
+				continue;
+			}
+			const is_pressed = data.cursor.some((action) =>
+				pressed_actions.has(action)
+			);
+
+			if (is_pressed) {
+				this.input_map.addSource(name, InputSource.CURSOR);
+			} else {
+				this.input_map.removeSource(name, InputSource.CURSOR);
+			}
+		}
+	}
+
 	setCursor(cursor: Cursor): this {
 		this.removeCursor();
 
 		this.cursor = cursor;
-		this.hooks.cursor = (button, state) => {
-			for (const [name, data] of this.input_map.current_maps) {
-				if (data.cursor != undefined && data.cursor.includes(button)) {
-					if (state == true) {
-						this.input_map.addSource(name, InputSource.CURSOR);
-					} else {
-						this.input_map.removeSource(name, InputSource.CURSOR);
-					}
-				}
-			}
-		};
+		this.hooks.cursor = () => this.tickCursor(cursor);
 		this.cursor.events.on("button-change", this.hooks.cursor);
 
 		return this;
@@ -191,8 +254,8 @@ export class InputMapHandler {
 		const gamepads = Gamepads.getAll()
 			.filter(
 				(_, i) =>
-					this.input_map.allowed_gamepads == null ||
-					this.input_map.allowed_gamepads.includes(i)
+					this.allowed_gamepads == null ||
+					this.allowed_gamepads.includes(i)
 			)
 			.filter((_) => _ != null);
 
@@ -217,15 +280,15 @@ export class InputMapHandler {
 
 	enableGamepads(poll_interval: number) {
 		this.removeGamepads();
-		this.hooks.gamepad = setInterval(() => {
+		this.hooks.gamepad_poll = setInterval(() => {
 			this.updateGamepads();
 		}, poll_interval);
 	}
 
 	removeGamepads() {
-		if (this.hooks.gamepad != undefined) {
-			clearInterval(this.hooks.gamepad);
-			delete this.hooks.gamepad;
+		if (this.hooks.gamepad_poll != undefined) {
+			clearInterval(this.hooks.gamepad_poll);
+			delete this.hooks.gamepad_poll;
 		}
 	}
 }

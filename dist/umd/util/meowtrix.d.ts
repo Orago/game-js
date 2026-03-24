@@ -208,7 +208,16 @@ export declare class Meowtrix {
      */
     static combine(...matrices: Matrix3D[]): Matrix3D;
 }
+export interface TransformExport {
+    position: [x: number, y: number, z: number];
+    scale: [x: number, y: number, z: number];
+    rotation: [x: number, y: number, z: number];
+    origin: [x: number, y: number];
+    rotation_origin?: [x: number, y: number];
+}
 export declare class Transform {
+    matrix: Matrix3D;
+    static exportMatrix(matrix: Matrix3D): TransformExport;
     position: {
         x: number;
         y: number;
@@ -222,16 +231,25 @@ export declare class Transform {
     rotation: {
         z: number;
     };
-    rotation_origin?: {
-        x?: number;
-        y?: number;
-    };
     origin: {
         x: number;
         y: number;
     };
-    matrix: Matrix3D;
+    rotation_origin?: {
+        x?: number;
+        y?: number;
+    };
     private dirty;
+    constructor(matrix?: Matrix3D);
+    import(options: TransformExport): this;
+    export(): {
+        position: [x: number, y: number, z: number];
+        scale: [x: number, y: number, z: number];
+        rotation: [x: number, y: number, z: number];
+        rotation_origin?: [x: number, y: number];
+        origin: [x: number, y: number];
+    };
+    clone(): Transform;
     /**
      * Recompute the matrix only when dirty.
      */

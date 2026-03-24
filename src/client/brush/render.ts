@@ -1,4 +1,4 @@
-type RenderableImage = HTMLImageElement | HTMLCanvasElement | OffscreenCanvas;
+export type Renderable = HTMLImageElement | HTMLCanvasElement | OffscreenCanvas | ImageBitmap;
 type Context2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 type ArrayRect = [x?: number, y?: number, w?: number, h?: number];
 
@@ -14,35 +14,32 @@ interface CircleOptions {
 export class CanvasRender {
 	public static Image(
 		context: Context2D,
-		image: RenderableImage,
+		source: Renderable,
 		from: ArrayRect = [],
 		to: ArrayRect = []
 	): void {
 		if (
-			(image instanceof HTMLImageElement ||
-				image instanceof HTMLCanvasElement ||
-				image instanceof OffscreenCanvas) != true
+			(source instanceof HTMLImageElement ||
+				source instanceof HTMLCanvasElement ||
+				source instanceof OffscreenCanvas || source instanceof ImageBitmap) != true
 		) {
 			return;
 		}
 
-		const [preX = 0, preY = 0, preW = image.width, preH = image.height] =
+		const [pre_x = 0, pre_y = 0, pre_w = source.width, pre_h = source.height] =
 			Array.isArray(from) ? from : [];
 
-		const [x = 0, y = 0, w = image.width, h = image.height] = Array.isArray(
-			to
-		)
-			? to
-			: [];
+		const [x = 0, y = 0, w = source.width, h = source.height] =
+			Array.isArray(to) ? to : [];
 
 		try {
 			context.drawImage(
-				image,
+				source,
 
-				preX,
-				preY,
-				preW,
-				preH,
+				pre_x,
+				pre_y,
+				pre_w,
+				pre_h,
 
 				x,
 				y,

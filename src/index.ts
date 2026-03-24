@@ -1,4 +1,8 @@
-export { Meowtrix, MeowtrixCss } from "./util/meowtrix.js";
+export {
+	Meowtrix,
+	MeowtrixDom as MeowtrixCss,
+	Transform,
+} from "./util/meowtrix.js";
 
 export * as Ecs from "@orago/ecs";
 export * as BoxUtil from "./util/boxes.js";
@@ -8,8 +12,8 @@ export {
 	Box,
 	Rect,
 	Bound,
-	RectangleLike,
-	CircleLike,
-	PositionedRectangleLike,
-	BoundsLike,
+	type RectangleLike,
+	type CircleLike,
+	type PositionedRectangleLike,
+	type BoundsLike,
 } from "./util/shapes.js";

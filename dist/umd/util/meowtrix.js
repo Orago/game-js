@@ -465,7 +465,17 @@
     }
     exports.Meowtrix = Meowtrix;
     class Transform {
-        constructor() {
+        static exportMatrix(matrix) {
+            const exported = {
+                position: Meowtrix.getPosition(matrix),
+                scale: Meowtrix.getScale(matrix),
+                rotation: Meowtrix.getRotation(matrix),
+                origin: [0, 0],
+            };
+            return exported;
+        }
+        constructor(matrix = Meowtrix.identity()) {
+            this.matrix = matrix;
             this.position = { x: 0, y: 0, z: 0 };
             this.scale = { x: 1, y: 1, z: 1 };
             this.rotation = { z: 0 }; // (You can extend to 3D if needed)
@@ -473,8 +483,53 @@
                 x: 0,
                 y: 0,
             };
-            this.matrix = Meowtrix.identity();
+            // matrix: Matrix3D = Meowtrix.identity();
             this.dirty = true;
+        }
+        import(options) {
+            this.position = {
+                x: options.position[0],
+                y: options.position[1],
+                z: options.position[2],
+            };
+            this.scale = {
+                x: options.scale[0],
+                y: options.scale[1],
+                z: options.scale[2],
+            };
+            this.rotation = { z: options.rotation[2] };
+            this.origin = {
+                x: options.origin[0],
+                y: options.origin[1],
+            };
+            if (options.rotation_origin != undefined) {
+                this.rotation_origin = {
+                    x: options.rotation_origin[0],
+                    y: options.rotation_origin[1],
+                };
+            }
+            return this;
+        }
+        export() {
+            var _a, _b, _c, _d;
+            const exported = {
+                position: [this.position.x, this.position.y, this.position.z],
+                scale: [this.scale.x, this.scale.y, this.scale.z],
+                rotation: [0, 0, this.rotation.z],
+                origin: [0, 0],
+            };
+            if (((_a = this.rotation_origin) === null || _a === void 0 ? void 0 : _a.x) != undefined) {
+                (_b = exported.rotation_origin) !== null && _b !== void 0 ? _b : (exported.rotation_origin = [0, 0]);
+                exported.rotation_origin[0] = this.rotation_origin.x;
+            }
+            if (((_c = this.rotation_origin) === null || _c === void 0 ? void 0 : _c.y) != undefined) {
+                (_d = exported.rotation_origin) !== null && _d !== void 0 ? _d : (exported.rotation_origin = [0, 0]);
+                exported.rotation_origin[1] = this.rotation_origin.y;
+            }
+            return exported;
+        }
+        clone() {
+            return new Transform().import(this.export());
         }
         /**
          * Recompute the matrix only when dirty.

@@ -1,4 +1,4 @@
-type RenderableImage = HTMLImageElement | HTMLCanvasElement | OffscreenCanvas;
+export type TRenderableImage = HTMLImageElement | HTMLCanvasElement | OffscreenCanvas;
 type Context2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 type ArrayRect = [x?: number, y?: number, w?: number, h?: number];
 interface CircleOptions {
@@ -10,7 +10,7 @@ interface CircleOptions {
     strokeWidth?: number;
 }
 export declare class CanvasRender {
-    static Image(context: Context2D, image: RenderableImage, from?: ArrayRect, to?: ArrayRect): void;
+    static Image(context: Context2D, image: TRenderableImage, from?: ArrayRect, to?: ArrayRect): void;
     static text(context: Context2D, text: string, { x, y, w }: {
         x: number;
         y: number;

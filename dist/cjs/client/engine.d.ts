@@ -7,7 +7,7 @@ import type BrushCanvas from "./brush/brush.js";
 import Cursor from "./input/cursor.js";
 import Keyboard from "./input/keyboard.js";
 import { LegacyEntity, LegacySystem } from "./plugins/legacy.js";
-import { Repeater } from "./repeater.js";
+import { Ticker } from "./repeater.js";
 interface EngineObjectData {
     x?: number;
     y?: number;
@@ -26,7 +26,7 @@ declare function worldToScreen(world: Vector.Point, options?: {
     offset?: Vector.Point;
     zoom?: number;
 }): Vector.Point;
-interface EngineCamera {
+export interface Camera {
     x: number;
     y: number;
     zoom: number;
@@ -39,11 +39,11 @@ export default class Engine {
     ecs: Ecs;
     legacy: LegacySystem;
     /** List of renderable objects */
-    readonly camera: EngineCamera;
+    readonly camera: Camera;
     brush: BrushCanvas;
     cursor: Cursor;
     keyboard: Keyboard;
-    repeater: Repeater;
+    tick: Ticker;
     frame: number;
     events: Emitter<{
         pause: (paused: boolean) => void;

@@ -29,33 +29,113 @@ export class RenderingComponent extends Ecs.Component {
 	}
 }
 
-enum EngineFlags {
-	// ALL = -1,
-	NONE = 0,
-	OFFSET = 1 << 0,
-	SCALE = 1 << 1,
+enum RenderComponentFlagNames {
+	NONE = "NONE",
+	ENGINE_OFFSET = "ENGINE_OFFSET",
+	ENGINE_SCALE = "ENGINE_SCALE",
+	POSITION = "POSITION",
+}
+
+type FlagName = `${RenderComponentFlagNames}` | RenderComponentFlagNames;
+
+type StaticFlagOptions = FlagName[] | number | "all";
+type FlagOptions =
+	//? static options
+	| StaticFlagOptions
+	//? generator
+	| ((flags: typeof RenderComponentFlagNames) => StaticFlagOptions);
+
+interface RenderComponentUpdateOptions {
+	layer?: number;
+	flags?: FlagOptions;
+	transform?: (transform: Transform) => void;
 }
 
 export class RenderComponent {
-	static Flags = EngineFlags;
-	static makeFlags(flags: EngineFlags[]) {
-		let current = EngineFlags.NONE;
+	public static readonly Flags: Record<RenderComponentFlagNames, number> = {
+		[RenderComponentFlagNames.NONE]: 0,
+		[RenderComponentFlagNames.ENGINE_OFFSET]: 1 << 0,
+		[RenderComponentFlagNames.ENGINE_SCALE]: 1 << 1,
+		[RenderComponentFlagNames.POSITION]: 1 << 2,
+	};
 
-		for (const flag of flags) {
-			current |= flag;
+	public static isValidFlag(name: string): name is RenderComponentFlagNames {
+		return (
+			RenderComponent.Flags[name as keyof typeof RenderComponent.Flags] !=
+			undefined
+		);
+	}
+
+	public static makeFlags(flags: FlagOptions): number {
+		let current: number = RenderComponent.Flags.NONE;
+
+		if (flags == "all") {
+			return -1;
 		}
 
-		return current;
+		switch (typeof flags) {
+			case "number": {
+				return flags;
+			}
+			case "function": {
+				return this.makeFlags(flags(RenderComponentFlagNames));
+			}
+			case "object": {
+				if (Array.isArray(flags)) {
+					for (const flag of flags) {
+						const flag_value = RenderComponent.Flags[flag];
+
+						if (
+							typeof flag == "string" &&
+							flag_value != undefined
+						) {
+							current |= flag_value;
+						}
+					}
+				}
+
+				return current;
+			}
+
+			default: {
+				return current;
+			}
+		}
 	}
 
 	transform = new Transform();
 
-	rotation: [x: number, y: number] = [0, 0];
-	scale: [x: number, y: number] = [1, 1];
-	translate: [x: number, y: number, z: number] = [0, 0, 0];
+	// rotation: [x: number, y: number] = [0, 0];
+	// scale: [x: number, y: number] = [1, 1];
+	// translate: [x: number, y: number, z: number] = [0, 0, 0];
 	layer: number = 1;
 
-	engine_flags: number = 0;
+	flags: number = 0;
+
+	constructor(options?: RenderComponentUpdateOptions) {
+		if (options != undefined) {
+			this.update(options);
+		}
+	}
+
+	setFlags(flags: FlagOptions) {
+		this.flags = RenderComponent.makeFlags(flags);
+	}
+
+	update(options: RenderComponentUpdateOptions) {
+		if (options?.layer != undefined) {
+			this.layer = options.layer;
+		}
+
+		if (options?.flags != undefined) {
+			this.flags = RenderComponent.makeFlags(options.flags);
+		}
+
+		if (options?.transform != undefined) {
+			this.transform = new Transform();
+			options.transform(this.transform);
+		}
+	}
 }
 
 export class TextRenderComponent extends RenderComponent {
@@ -73,8 +153,12 @@ export class TextRenderComponent extends RenderComponent {
 	public width: number = 0;
 	public height: number = 0;
 
-	constructor(public text: string, public size: number) {
-		super();
+	constructor(
+		public text: string,
+		public size: number,
+		options?: RenderComponentUpdateOptions
+	) {
+		super(options);
 
 		this.options = {
 			font: "sans-serif",
@@ -138,13 +222,19 @@ export class RectangleRenderComponent extends RenderComponent {
 	constructor(
 		public width: number,
 		public height: number = width,
-		color?: string
+		options?: RenderComponentUpdateOptions & { color?: string }
 	) {
-		super();
+		super(options);
 		this.width = width;
 		this.height = height;
+	}
 
-		this.color = color;
+	update(options: RenderComponentUpdateOptions & { color?: string }): void {
+		super.update(options);
+
+		if (options.color != undefined) {
+			this.color = options.color;
+		}
 	}
 }
 
@@ -157,6 +247,12 @@ export class ImageRenderComponent extends RenderComponent {
 		super();
 		this.image = image;
 	}
+}
+
+interface BundleRenderComponent {
+	render: RenderComponent;
+	entity: Ecs.Entity;
+	position?: PositionComponent;
 }
 
 export class RenderSystem extends Ecs.System {
@@ -173,16 +269,100 @@ export class RenderSystem extends Ecs.System {
 	}
 
 	update(entities: Set<Ecs.Entity>): void {
-		const components: RenderComponent[] = [];
+		const components: BundleRenderComponent[] = [];
 
 		for (const entity of entities) {
 			const rendering_component =
 				entity.components.get(RenderingComponent);
+			const c_position = entity.components.get(PositionComponent);
 
-			components.push(...rendering_component.visuals);
+			components.push(
+				...Array.from(rendering_component.visuals).map((v) => ({
+					render: v,
+					entity,
+					position: c_position,
+				}))
+			);
 		}
 
-		this.render(components);
+		this.render2(components);
+	}
+
+	render2(entities: BundleRenderComponent[]) {
+		entities.sort((a, b) => a.render.layer - b.render.layer);
+
+		if (this.clear == true) {
+			this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		}
+		this.ctx.save();
+
+		let last_matrix: string | null = null;
+
+		for (const { render: comp, position } of entities) {
+			let current_matrix = Meowtrix.identity();
+
+			if (comp.flags & RenderComponent.Flags.ENGINE_OFFSET) {
+				const translated = this.engine.worldToScreen(
+					this.engine.camera
+				);
+				current_matrix = Meowtrix.multiply(
+					current_matrix,
+					Meowtrix.translate(
+						-this.engine.camera.x,
+						-this.engine.camera.y
+					)
+				);
+			}
+
+			if (
+				comp.flags & RenderComponent.Flags.POSITION &&
+				position != undefined
+			) {
+				current_matrix = Meowtrix.multiply(
+					current_matrix,
+					Meowtrix.translate(position.x, position.y)
+				);
+			}
+
+			// comp.transform.setPosition(
+
+			// clone.scale = {
+			// 	x: comp.transform.scale.x * this.engine.camera.zoom,
+			// 	y: comp.transform.scale.y * this.engine.camera.zoom,
+			// 	z: comp.transform.scale.z * this.engine.camera.zoom,
+			// };
+
+			if (comp.flags & RenderComponent.Flags.ENGINE_SCALE) {
+				current_matrix = Meowtrix.multiply(
+					current_matrix,
+					Meowtrix.scale(this.engine.camera.zoom)
+				);
+			}
+
+			current_matrix = Meowtrix.multiply(
+				current_matrix,
+				comp.transform.getMatrix()
+			);
+
+			const matrix_key = current_matrix.join(",");
+
+			// update matrix when change is noticed
+			if (matrix_key !== last_matrix) {
+				const new_matrix = getCanvasMatrix(current_matrix);
+				this.ctx.setTransform(...new_matrix);
+				last_matrix = matrix_key;
+			}
+
+			if (comp instanceof RectangleRenderComponent) {
+				this.drawRectangle(comp);
+			} else if (comp instanceof TextRenderComponent) {
+				this.drawText(comp);
+			} else if (comp instanceof ImageRenderComponent) {
+				this.drawImage(comp);
+			}
+		}
+
+		this.ctx.restore();
 	}
 
 	render(components: RenderComponent[]) {
@@ -198,7 +378,7 @@ export class RenderSystem extends Ecs.System {
 		for (const comp of components) {
 			let current_matrix = Meowtrix.identity();
 
-			if (comp.engine_flags & EngineFlags.OFFSET) {
+			if (comp.flags & RenderComponent.Flags.ENGINE_OFFSET) {
 				current_matrix = Meowtrix.multiply(
 					current_matrix,
 					Meowtrix.translate(
@@ -208,14 +388,17 @@ export class RenderSystem extends Ecs.System {
 				);
 			}
 
-			if (comp.engine_flags & EngineFlags.SCALE) {
+			if (comp.flags & RenderComponent.Flags.ENGINE_SCALE) {
 				current_matrix = Meowtrix.multiply(
 					current_matrix,
 					Meowtrix.scale(this.engine.camera.zoom)
 				);
 			}
 
-			current_matrix = Meowtrix.multiply(current_matrix, comp.transform.getMatrix())
+			current_matrix = Meowtrix.multiply(
+				current_matrix,
+				comp.transform.getMatrix()
+			);
 
 			const matrix_key = current_matrix.join(",");
 
@@ -256,17 +439,18 @@ export class RenderSystem extends Ecs.System {
 			this.ctx.globalAlpha = comp.opacity;
 		}
 
-		this.ctx.drawImage(
-			comp.image,
-			src[0],
-			src[1],
-			src[2],
-			src[3],
-			dst[0],
-			dst[1],
-			dst[2],
-			dst[3]
-		);
+		if (comp.image.width != 0)
+			this.ctx.drawImage(
+				comp.image,
+				src[0],
+				src[1],
+				src[2],
+				src[3],
+				dst[0],
+				dst[1],
+				dst[2],
+				dst[3]
+			);
 
 		if (comp.opacity !== undefined) {
 			this.ctx.globalAlpha = 1;

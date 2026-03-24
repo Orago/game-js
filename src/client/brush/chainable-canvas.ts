@@ -22,7 +22,6 @@ interface GeneratedFontOptions {
 
 type ChainableCallback = (chain: ChainableCanvas) => void;
 
-
 class ChainableConfig {
 	canvas: HTMLCanvasElement = document.createElement("canvas");
 	ctx: CanvasRenderingContext2D;
@@ -32,17 +31,15 @@ class ChainableConfig {
 	w = 0;
 	h = 0;
 
-	constructor(
-		data: {
-			canvas?: HTMLCanvasElement;
-			ctx: CanvasRenderingContext2D;
-			color?: string;
-			x?: number;
-			y?: number;
-			w?: number;
-			h?: number;
-		}
-	) {
+	constructor(data: {
+		canvas?: HTMLCanvasElement;
+		ctx: CanvasRenderingContext2D;
+		color?: string;
+		x?: number;
+		y?: number;
+		w?: number;
+		h?: number;
+	}) {
 		this.ctx = data.ctx;
 
 		if (data.canvas != null) this.canvas = data.canvas;
@@ -67,16 +64,11 @@ export class ChainableCanvas {
 	canvas: AnyCanvas;
 	ctx: AnyContext2D;
 
-	constructor(
-		brush: {
-			canvas: AnyCanvas;
-			ctx: AnyContext2D;
-		}
-	) {
+	constructor(brush: { canvas: AnyCanvas; ctx: AnyContext2D }) {
 		this.stack.push(
 			new ChainableConfig({
 				canvas: brush.canvas,
-				ctx: brush.ctx
+				ctx: brush.ctx,
 			})
 		);
 
@@ -97,10 +89,22 @@ export class ChainableCanvas {
 		return this.stack[this.stack.length - 1];
 	}
 
-	x(x: number): this { this.last_config.x = x; return this; }
-	y(y: number): this { this.last_config.y = y; return this; }
-	w(w: number): this { this.last_config.w = w; return this; }
-	h(h: number): this { this.last_config.h = h; return this; }
+	x(x: number): this {
+		this.last_config.x = x;
+		return this;
+	}
+	y(y: number): this {
+		this.last_config.y = y;
+		return this;
+	}
+	w(w: number): this {
+		this.last_config.w = w;
+		return this;
+	}
+	h(h: number): this {
+		this.last_config.h = h;
+		return this;
+	}
 
 	pos(x: number, y: number): this {
 		const config = this.last_config;
@@ -130,7 +134,7 @@ export class ChainableCanvas {
 		if (typeof center != "object") {
 			center = {
 				x: config.w / 2,
-				y: config.h / 2
+				y: config.h / 2,
 			};
 		}
 
@@ -142,9 +146,7 @@ export class ChainableCanvas {
 			config.y + center.y
 		);
 
-		this.last_config.ctx.rotate(
-			rotation * Math.PI / 180
-		);
+		this.last_config.ctx.rotate((rotation * Math.PI) / 180);
 
 		config.x = -center.x;
 		config.y = -center.y;
@@ -162,12 +164,7 @@ export class ChainableCanvas {
 		fromPos?: ArrayRect,
 		toPos: ArrayRect = this.last_config.rect
 	): this {
-		CanvasRender.Image(
-			this.last_config.ctx,
-			image,
-			fromPos,
-			toPos
-		);
+		CanvasRender.Image(this.last_config.ctx, image, fromPos, toPos);
 
 		return this;
 	}
@@ -178,26 +175,24 @@ export class ChainableCanvas {
 	text(text: string): this {
 		const [x, y] = this.last_config.rect;
 
-		CanvasRender.text(
-			this.last_config.ctx,
-			text,
-			{ x, y }
-		);
+		CanvasRender.text(this.last_config.ctx, text, { x, y });
 
 		return this;
 	}
 
 	textWidth(text: string): number {
-		return this.last_config.ctx.measureText(text).width
+		return this.last_config.ctx.measureText(text).width;
 	}
 
 	circle(override?: OverrideCircleOptions): this {
 		const [x, y, w] = this.last_config.rect;
 
-		CanvasRender.circle(
-			this.last_config.ctx,
-			{ x, y, radius: w, ...override }
-		);
+		CanvasRender.circle(this.last_config.ctx, {
+			x,
+			y,
+			radius: w,
+			...override,
+		});
 
 		return this;
 	}
@@ -212,23 +207,26 @@ export class ChainableCanvas {
 	}
 
 	/** Sets color */
-	color(color: string): this { this.last_config.ctx.fillStyle = color; return this; }
-	font(newFont: string): this { this.last_config.ctx.font = newFont; return this; }
+	color(color: string): this {
+		this.last_config.ctx.fillStyle = color;
+		return this;
+	}
+	font(newFont: string): this {
+		this.last_config.ctx.font = newFont;
+		return this;
+	}
 
 	generatedFont({
 		font = "Arial",
 		weight = "normal",
-		size = 16
+		size = 16,
 	}: GeneratedFontOptions = {}): this {
 		return this.font(`${weight} ${size}px ${font}`);
 	}
 
 	/** Draws a rect to the screen */
 	get rect(): this {
-		this.last_config.ctx
-			.fillRect(
-				...this.last_config.rect
-			);
+		this.last_config.ctx.fillRect(...this.last_config.rect);
 
 		return this;
 	}
@@ -236,10 +234,8 @@ export class ChainableCanvas {
 	/** Saves the current canvas state */
 	get save(): this {
 		this.last_config.ctx.save();
-		this.stack.push(
-			new ChainableConfig(this.last_config)
-		);
-		this.update_config()
+		this.stack.push(new ChainableConfig(this.last_config));
+		this.update_config();
 
 		return this;
 	}
@@ -248,8 +244,7 @@ export class ChainableCanvas {
 	get restore(): this {
 		this.last_config.ctx.restore();
 
-		if (this.stack.length > 1)
-			this.stack.pop();
+		if (this.stack.length > 1) this.stack.pop();
 
 		this.update_config();
 
@@ -266,8 +261,7 @@ export class ChainableCanvas {
 	get clear_stack(): this {
 		let context = this;
 
-		while (this.stack.length > 1)
-			context = this.restore;
+		while (this.stack.length > 1) context = this.restore;
 
 		return context;
 	}
@@ -289,7 +283,7 @@ export class ChainableCanvas {
 	}
 
 	/**
-	 * Flips Y rendering 
+	 * Flips Y rendering
 	 * ! Mutates
 	 */
 	get flipY(): this {
@@ -311,7 +305,12 @@ export class ChainableCanvas {
 
 	/** Clears the canvas */
 	get clear(): this {
-		this.last_config.ctx.clearRect(0, 0, this.last_config.canvas.width, this.last_config.canvas.height);
+		this.last_config.ctx.clearRect(
+			0,
+			0,
+			this.last_config.canvas.width,
+			this.last_config.canvas.height
+		);
 		return this;
 	}
 
@@ -325,7 +324,11 @@ export class ChainableCanvas {
 		return this.last_config.canvas.toDataURL();
 	}
 
-	temporaryOffset(x: number, y: number, callback: (chain: ChainableCanvas) => void) {
+	temporaryOffset(
+		x: number,
+		y: number,
+		callback: (chain: ChainableCanvas) => void
+	) {
 		const ctx = this.last_config.ctx;
 		const _ = ctx.getTransform();
 		ctx.setTransform(_.a, _.b, _.c, _.d, _.e + x, _.f + y);
@@ -334,11 +337,209 @@ export class ChainableCanvas {
 		return this;
 	}
 
-	temporaryRotate(args: Parameters<ChainableCanvas["rotate"]>, callback: ChainableCallback) {
-		this.temp(chain => {
+	temporaryRotate(
+		args: Parameters<ChainableCanvas["rotate"]>,
+		callback: ChainableCallback
+	) {
+		this.temp((chain) => {
 			chain.rotate(...args);
 			callback(this);
 		});
 		return this;
 	}
 }
+
+interface EtchState {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+	fill: string;
+	smoothing: boolean;
+}
+
+type EtchCallback<T extends Etch> = (etch: T) => void;
+
+class Etch {
+	static identity(): EtchState {
+		return {
+			x: 0,
+			y: 0,
+			width: 0,
+			height: 0,
+			fill: "black",
+			smoothing: true,
+		};
+	}
+	static cloneState(state: EtchState): EtchState {
+		return {
+			x: state.x,
+			y: state.y,
+			width: state.width,
+			height: state.height,
+			fill: state.fill,
+			smoothing: state.smoothing,
+		};
+	}
+
+	state: EtchState = Etch.identity();
+	canvas: HTMLCanvasElement;
+	ctx: CanvasRenderingContext2D;
+
+	constructor(brush: { canvas: Etch["canvas"]; ctx: Etch["ctx"] }) {
+		this.canvas = brush.canvas;
+		this.ctx = brush.ctx;
+	}
+
+	ref(func: (arg0: this) => void): this {
+		func(this);
+		return this;
+	}
+
+	//#region //* Selections
+	/**
+	 * Selects a region
+	 */
+	select(x: number, y: number, width: number, height: number): this {
+		this.state.x = x;
+		this.state.y = y;
+		this.state.width = width;
+		this.state.height = height;
+		return this;
+	}
+
+	selectAll(): this {
+		return this.select(0, 0, this.canvas.width, this.canvas.height);
+	}
+
+	/**
+	 * Changes the offset for all etch renders
+	 */
+	position(x: number, y: number): this {
+		return this.select(x, y, this.state.width, this.state.height);
+	}
+
+	/**
+	 * Changes the size for all etch renders
+	 */
+	size(width: number, height: number): this {
+		return this.select(this.state.x, this.state.y, width, height);
+	}
+	//#endregion
+
+	//#region //* Transform
+	rotate(
+		rotation: number,
+		center: Point = {
+			x: this.state.width / 2,
+			y: this.state.height / 2,
+		}
+	): this {
+		const state = this.state;
+		this.ctx.translate(state.x + center.x, state.y + center.y);
+		this.ctx.rotate((rotation * Math.PI) / 180);
+		state.x = -center.x;
+		state.y = -center.y;
+		return this;
+	}
+
+	flip(axis: "x" | "y"): this {
+		const state = this.state;
+		switch (axis) {
+			case "x": {
+				this.ctx.scale(-1, 1);
+				state.x = state.x * -1 - state.width;
+				break;
+			}
+			case "y": {
+				this.ctx.scale(1, -1);
+				state.y = state.y * -1 - state.height;
+				return this;
+				break;
+			}
+		}
+
+		return this;
+	}
+
+	opacity(value: number): this;
+	opacity(): number;
+	opacity(value: number | undefined = undefined): this | number {
+		if (value === undefined) {
+			return this.ctx.globalAlpha;
+		} else {
+			this.ctx.globalAlpha = value;
+			return this;
+		}
+	}
+	//#endregion
+
+	//#region //* Utility
+	resizeCanvas(width: number, height: number): this {
+		const smoothing = this.ctx.imageSmoothingEnabled;
+		this.canvas.width = width;
+		this.canvas.height = height;
+		this.size(width, height);
+		this.ctx.imageSmoothingEnabled = smoothing;
+		return this;
+	}
+
+	temp(callback: EtchCallback<this>) {
+		const state = Etch.cloneState(this.state);
+		this.ctx.save();
+		callback(this);
+		this.ctx.restore();
+		this.state = state;
+		return this;
+	}
+	smoothing(value: boolean): this;
+	smoothing(): boolean;
+	smoothing(value: boolean | undefined = undefined): this | boolean {
+		if (value === undefined) {
+			return this.ctx.imageSmoothingEnabled;
+		} else {
+			this.state.smoothing = value;
+			this.ctx.imageSmoothingEnabled = value;
+			return this;
+		}
+	}
+
+	//#endregion
+
+	//#region //* Fonts
+	font(newFont: string): this {
+		this.ctx.font = newFont;
+		return this;
+	}
+
+	generatedFont({
+		font = "Arial",
+		weight = "normal",
+		size = 16,
+	}: GeneratedFontOptions = {}): this {
+		return this.font(`${weight} ${size}px ${font}`);
+	}
+	//#endregion
+
+	//#region //* Rendering
+
+	/**
+	 * Clears selected region
+	 */
+	clear(): this {
+		this.ctx.clearRect(
+			this.state.x,
+			this.state.y,
+			this.state.width,
+			this.state.height
+		);
+		return this;
+	}
+
+	rectangle(options?: {}) {}
+
+	//#endregion
+}
+
+export { Etch };
+export type { EtchState };

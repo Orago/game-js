@@ -1,7 +1,7 @@
 import { Emitter, type Vector } from "@orago/lib";
 import { EnginePlugin } from "../base.js";
 import Engine from "../engine.js";
-import Cursor, { CursorButton } from "../input/cursor.js";
+import { MouseButton } from "../input/symbols.js";
 
 function getMidpoint(points: Vector.Point[]) {
 	const midpoint = {
@@ -189,10 +189,10 @@ export class PanningPlugin extends EnginePlugin {
 			controls = ["pc", "mobile"];
 		}
 
-		const touchStart = (button: CursorButton) =>
-			(button == "MIDDLE" || button == "Touch") &&
+		const touchStart = (button: MouseButton) =>
+			(button == "Middle" || button == "Touch") &&
 			(this.pan.active = true);
-		const touchEnd = (button: CursorButton) =>
+		const touchEnd = (button: MouseButton) =>
 			(button == "Middle" || button == "Touch") && this.interactionEnd();
 
 		if (controls.includes("pc")) {
@@ -234,17 +234,17 @@ export class PanningPlugin extends EnginePlugin {
 				.on("plugin:add", (engine) => {
 					const cursor = engine.cursor;
 					cursor.element.addEventListener("touchmove", touchMove);
-					cursor.element.addEventListener("touchstart", touchStart);
-					cursor.element.addEventListener("touchend", touchEnd);
+					// cursor.element.addEventListener("touchstart", touchStart);
+					// cursor.element.addEventListener("touchend", touchEnd);
 				})
 				.on("plugin:remove", (engine) => {
 					const cursor = engine.cursor;
 					cursor.element.removeEventListener("touchmove", touchMove);
-					cursor.element.removeEventListener(
-						"touchstart",
-						touchStart
-					);
-					cursor.element.removeEventListener("touchend", touchEnd);
+					// cursor.element.removeEventListener(
+					// 	"touchstart",
+					// 	touchStart
+					// );
+					// cursor.element.removeEventListener("touchend", touchEnd);
 				});
 		}
 	}

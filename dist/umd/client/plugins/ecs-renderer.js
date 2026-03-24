@@ -37,35 +37,84 @@
         }
     }
     exports.RenderingComponent = RenderingComponent;
-    var EngineFlags;
-    (function (EngineFlags) {
-        // ALL = -1,
-        EngineFlags[EngineFlags["NONE"] = 0] = "NONE";
-        EngineFlags[EngineFlags["OFFSET"] = 1] = "OFFSET";
-        EngineFlags[EngineFlags["SCALE"] = 2] = "SCALE";
-    })(EngineFlags || (EngineFlags = {}));
+    var RenderComponentFlagNames;
+    (function (RenderComponentFlagNames) {
+        RenderComponentFlagNames["NONE"] = "NONE";
+        RenderComponentFlagNames["ENGINE_OFFSET"] = "ENGINE_OFFSET";
+        RenderComponentFlagNames["ENGINE_SCALE"] = "ENGINE_SCALE";
+        RenderComponentFlagNames["POSITION"] = "POSITION";
+    })(RenderComponentFlagNames || (RenderComponentFlagNames = {}));
     class RenderComponent {
-        constructor() {
-            this.transform = new meowtrix_js_1.Transform();
-            this.rotation = [0, 0];
-            this.scale = [1, 1];
-            this.translate = [0, 0, 0];
-            this.layer = 1;
-            this.engine_flags = 0;
+        static isValidFlag(name) {
+            return (RenderComponent.Flags[name] !=
+                undefined);
         }
         static makeFlags(flags) {
-            let current = EngineFlags.NONE;
-            for (const flag of flags) {
-                current |= flag;
+            let current = RenderComponent.Flags.NONE;
+            if (flags == "all") {
+                return -1;
             }
-            return current;
+            switch (typeof flags) {
+                case "number": {
+                    return flags;
+                }
+                case "function": {
+                    return this.makeFlags(flags(RenderComponentFlagNames));
+                }
+                case "object": {
+                    if (Array.isArray(flags)) {
+                        for (const flag of flags) {
+                            const flag_value = RenderComponent.Flags[flag];
+                            if (typeof flag == "string" &&
+                                flag_value != undefined) {
+                                current |= flag_value;
+                            }
+                        }
+                    }
+                    return current;
+                }
+                default: {
+                    return current;
+                }
+            }
+        }
+        constructor(options) {
+            this.transform = new meowtrix_js_1.Transform();
+            // rotation: [x: number, y: number] = [0, 0];
+            // scale: [x: number, y: number] = [1, 1];
+            // translate: [x: number, y: number, z: number] = [0, 0, 0];
+            this.layer = 1;
+            this.flags = 0;
+            if (options != undefined) {
+                this.update(options);
+            }
+        }
+        setFlags(flags) {
+            this.flags = RenderComponent.makeFlags(flags);
+        }
+        update(options) {
+            if ((options === null || options === void 0 ? void 0 : options.layer) != undefined) {
+                this.layer = options.layer;
+            }
+            if ((options === null || options === void 0 ? void 0 : options.flags) != undefined) {
+                this.flags = RenderComponent.makeFlags(options.flags);
+            }
+            if ((options === null || options === void 0 ? void 0 : options.transform) != undefined) {
+                this.transform = new meowtrix_js_1.Transform();
+                options.transform(this.transform);
+            }
         }
     }
     exports.RenderComponent = RenderComponent;
-    RenderComponent.Flags = EngineFlags;
+    RenderComponent.Flags = {
+        [RenderComponentFlagNames.NONE]: 0,
+        [RenderComponentFlagNames.ENGINE_OFFSET]: 1 << 0,
+        [RenderComponentFlagNames.ENGINE_SCALE]: 1 << 1,
+        [RenderComponentFlagNames.POSITION]: 1 << 2,
+    };
     class TextRenderComponent extends RenderComponent {
-        constructor(text, size) {
-            super();
+        constructor(text, size, options) {
+            super(options);
             this.text = text;
             this.size = size;
             this.font = "sans-serif";
@@ -119,13 +168,18 @@
     }
     exports.TextRenderComponent = TextRenderComponent;
     class RectangleRenderComponent extends RenderComponent {
-        constructor(width, height = width, color) {
-            super();
+        constructor(width, height = width, options) {
+            super(options);
             this.width = width;
             this.height = height;
             this.width = width;
             this.height = height;
-            this.color = color;
+        }
+        update(options) {
+            super.update(options);
+            if (options.color != undefined) {
+                this.color = options.color;
+            }
         }
     }
     exports.RectangleRenderComponent = RectangleRenderComponent;
@@ -150,9 +204,60 @@
             const components = [];
             for (const entity of entities) {
                 const rendering_component = entity.components.get(RenderingComponent);
-                components.push(...rendering_component.visuals);
+                const c_position = entity.components.get(physics_js_1.PositionComponent);
+                components.push(...Array.from(rendering_component.visuals).map((v) => ({
+                    render: v,
+                    entity,
+                    position: c_position,
+                })));
             }
-            this.render(components);
+            this.render2(components);
+        }
+        render2(entities) {
+            entities.sort((a, b) => a.render.layer - b.render.layer);
+            if (this.clear == true) {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+            this.ctx.save();
+            let last_matrix = null;
+            for (const { render: comp, position } of entities) {
+                let current_matrix = meowtrix_js_1.Meowtrix.identity();
+                if (comp.flags & RenderComponent.Flags.ENGINE_OFFSET) {
+                    const translated = this.engine.worldToScreen(this.engine.camera);
+                    current_matrix = meowtrix_js_1.Meowtrix.multiply(current_matrix, meowtrix_js_1.Meowtrix.translate(-this.engine.camera.x, -this.engine.camera.y));
+                }
+                if (comp.flags & RenderComponent.Flags.POSITION &&
+                    position != undefined) {
+                    current_matrix = meowtrix_js_1.Meowtrix.multiply(current_matrix, meowtrix_js_1.Meowtrix.translate(position.x, position.y));
+                }
+                // comp.transform.setPosition(
+                // clone.scale = {
+                // 	x: comp.transform.scale.x * this.engine.camera.zoom,
+                // 	y: comp.transform.scale.y * this.engine.camera.zoom,
+                // 	z: comp.transform.scale.z * this.engine.camera.zoom,
+                // };
+                if (comp.flags & RenderComponent.Flags.ENGINE_SCALE) {
+                    current_matrix = meowtrix_js_1.Meowtrix.multiply(current_matrix, meowtrix_js_1.Meowtrix.scale(this.engine.camera.zoom));
+                }
+                current_matrix = meowtrix_js_1.Meowtrix.multiply(current_matrix, comp.transform.getMatrix());
+                const matrix_key = current_matrix.join(",");
+                // update matrix when change is noticed
+                if (matrix_key !== last_matrix) {
+                    const new_matrix = getCanvasMatrix(current_matrix);
+                    this.ctx.setTransform(...new_matrix);
+                    last_matrix = matrix_key;
+                }
+                if (comp instanceof RectangleRenderComponent) {
+                    this.drawRectangle(comp);
+                }
+                else if (comp instanceof TextRenderComponent) {
+                    this.drawText(comp);
+                }
+                else if (comp instanceof ImageRenderComponent) {
+                    this.drawImage(comp);
+                }
+            }
+            this.ctx.restore();
         }
         render(components) {
             components.sort((a, b) => a.layer - b.layer);
@@ -163,10 +268,10 @@
             let last_matrix = null;
             for (const comp of components) {
                 let current_matrix = meowtrix_js_1.Meowtrix.identity();
-                if (comp.engine_flags & EngineFlags.OFFSET) {
+                if (comp.flags & RenderComponent.Flags.ENGINE_OFFSET) {
                     current_matrix = meowtrix_js_1.Meowtrix.multiply(current_matrix, meowtrix_js_1.Meowtrix.translate(-this.engine.camera.x, -this.engine.camera.y));
                 }
-                if (comp.engine_flags & EngineFlags.SCALE) {
+                if (comp.flags & RenderComponent.Flags.ENGINE_SCALE) {
                     current_matrix = meowtrix_js_1.Meowtrix.multiply(current_matrix, meowtrix_js_1.Meowtrix.scale(this.engine.camera.zoom));
                 }
                 current_matrix = meowtrix_js_1.Meowtrix.multiply(current_matrix, comp.transform.getMatrix());

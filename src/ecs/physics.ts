@@ -1,5 +1,5 @@
 import { Component, Entity, System } from "@orago/ecs";
-import { Signal } from "@orago/lib";
+import { Signal, Point } from "@orago/lib";
 
 export class PositionComponent extends Component {
 	constructor(public x: number, public y: number) {
@@ -7,13 +7,33 @@ export class PositionComponent extends Component {
 		this.x = x;
 		this.y = y;
 	}
+
+	set(x: number, y: number) {
+		this.x = x;
+		this.y = y;
+	}
+
+	from(options: { x?: number; y?: number }) {
+		if (options.x != undefined) {
+			this.x = options.x;
+		}
+		if (options.y != undefined) {
+			this.y = options.y;
+		}
+	}
 }
 
 export class VelocityComponent extends Component {
 	public x: number;
 	public y: number;
 
-	public drag: number = 1;
+	public drag: {
+		x: number;
+		y: number;
+	} = {
+		x: 0,
+		y: 0,
+	};
 
 	public gravity: {
 		x: number;
@@ -33,14 +53,17 @@ export class VelocityComponent extends Component {
 export class BoxComponent extends Component {
 	constructor(public width: number, public height: number) {
 		super();
-		this.width = width;
-		this.height = height;
 	}
 }
 
 export class PhysicsSystem extends System {
 	components = new Set<Function>([PositionComponent, VelocityComponent]);
 	priority: number = 100;
+
+	gravity: Point = {
+		x: 0,
+		y: 0,
+	};
 
 	constructor() {
 		super();
@@ -50,14 +73,14 @@ export class PhysicsSystem extends System {
 		const position = entity.components.get(PositionComponent);
 		const velocity = entity.components.get(VelocityComponent);
 
-		velocity.x += velocity.gravity.x;
-		velocity.y += velocity.gravity.y;
+		velocity.x += velocity.gravity.x + this.gravity.x;
+		velocity.y += velocity.gravity.y + this.gravity.y;
 
 		position.x += velocity.x;
 		position.y += velocity.y;
 
-		velocity.x *= velocity.drag;
-		velocity.y *= velocity.drag;
+		velocity.x *= velocity.drag.x;
+		velocity.y *= velocity.drag.y;
 	}
 
 	update(entities: Set<Entity>): void {
@@ -90,7 +113,6 @@ export class HitboxComponent extends Component {
 		}
 	) {
 		super();
-		this.boxes = boxes;
 		this.active = options?.active != false;
 
 		if (options?.knockback != undefined) {
@@ -121,8 +143,6 @@ export class HurtboxComponent extends Component {
 		}
 	) {
 		super();
-
-		this.boxes = boxes;
 		this.active = options?.active != false;
 
 		if (options?.tags != undefined) {
@@ -136,8 +156,9 @@ export class HurtboxComponent extends Component {
 }
 
 export class HitDetectionSystem extends System {
-	components = new Set<Function>([PositionComponent]);
-	hit = new Signal<(a: Entity, B: Entity, hit: HitboxComponent) => void>();
+	components: Set<Function> = new Set([PositionComponent]);
+	hit: Signal<(a: Entity, B: Entity, hit: HitboxComponent) => void> =
+		new Signal();
 
 	update(entities: Set<Entity>) {
 		const hitboxes = [];

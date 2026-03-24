@@ -29,7 +29,7 @@ export class FPS {
         return this.value;
     }
 }
-export class Repeater {
+export class Ticker {
     constructor(fpsLimit) {
         this.tick = new Signal();
         this.frame = -1;
@@ -105,4 +105,4 @@ export class Repeater {
         this.frame = -1;
     }
 }
-export default Repeater;
+export default Ticker;

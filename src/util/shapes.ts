@@ -1,16 +1,25 @@
-import { type Vector } from "@orago/lib";
+import type { Point } from "@orago/lib";
 
-type Point = Vector.Point;
-
+/**
+ * @deprecated
+ */
 export interface RectangleLike {
 	width: number;
 	height: number;
 }
-
+/**
+ * @deprecated
+ */
 export type CircleLike = { r: number } & Point;
 
+/**
+ * @deprecated
+ */
 export type PositionedRectangleLike = RectangleLike & Point;
 
+/**
+ * @deprecated
+ */
 export type BoundsLike = [x1: number, y1: number, x2: number, y2: number];
 
 export class Rect {
@@ -169,10 +178,10 @@ export class Box extends Rect {
 export class Bound {
 	public static toPositionalRect(bound: Bound): Box {
 		const [x1, y1, x2, y2] = bound;
-		const x = Math.min(x1, x2); // Get the minimum x-coordinate as the top-left corner x
-		const y = Math.min(y1, y2); // Get the minimum y-coordinate as the top-left corner y
-		const w = Math.abs(x2 - x1); // Calculate the width as the absolute difference between x2 and x1
-		const h = Math.abs(y2 - y1); // Calculate the height as the absolute difference between y2 and y1
+		const x = Math.min(x1, x2);
+		const y = Math.min(y1, y2);
+		const w = Math.abs(x2 - x1);
+		const h = Math.abs(y2 - y1);
 		return new Box(x, y, w, h);
 	}
 

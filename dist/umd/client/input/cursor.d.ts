@@ -1,27 +1,36 @@
 import type { Point } from "@orago/lib/vector";
 import Emitter from "@orago/lib/emitter";
-import { MouseButton } from "./symbols";
+import type { MouseButton } from "./symbols.js";
 type CursorInput = Touch | MouseEvent;
-type CursorCalled = (event: Touch | MouseEvent, cursor: Cursor) => void;
+type CursorCalled = () => void;
 export type CursorEvents = {
-    "button-down": (which: MouseButton, event: Touch | MouseEvent, cursor: Cursor) => void;
-    "button-up": (which: MouseButton, event: Touch | MouseEvent, cursor: Cursor) => void;
-    "button-change": (which: MouseButton, state: boolean, event: Touch | MouseEvent) => void;
+    "button-down": (which: MouseButton) => void;
+    "button-up": (which: MouseButton) => void;
+    "button-change": (which: MouseButton, state: boolean) => void;
     move: (x: number, y: number) => void;
     start: (event: Touch | MouseEvent) => void;
     end: (event: Touch | MouseEvent) => void;
     touch: CursorCalled;
     release: CursorCalled;
 };
-type CursorButtonInt = 0 | 1 | 2 | 3 | 4 | 10;
+export declare enum CursorButton {
+    LEFT = 0,
+    MIDDLE = 1,
+    RIGHT = 2,
+    BACK = 3,
+    FORWARD = 4,
+    TOUCH = 10
+}
 export default class Cursor {
-    private static buttonToAction;
+    static Button: typeof CursorButton;
+    static buttonToAction(value: CursorButton): MouseButton;
+    static getButtonID(event: CursorInput): CursorButton;
     element: HTMLElement;
     events: Emitter<CursorEvents, true>;
     position: Point;
-    start: Point;
-    end: Point;
-    buttons: Set<CursorButtonInt>;
+    start_position: Point;
+    end_position: Point;
+    buttons: Set<CursorButton>;
     mouse_down: boolean;
     touching: boolean;
     start_time: number;
@@ -31,6 +40,7 @@ export default class Cursor {
     reconnect(element: HTMLElement): void;
     hasButton(which: MouseButton): boolean;
     init(): this;
+    toggleButton(button_int: CursorButton, down: boolean): void;
     reset(): this;
     dispose(): void;
     setPosition(x: number, y: number): void;

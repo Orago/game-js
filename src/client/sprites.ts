@@ -1,4 +1,6 @@
 import BrushCanvas from "./brush/brush.js";
+import { Renderable } from "./brush/render.js";
+import { ImagePacker, TImageBox } from "./util/image-packer.js";
 
 const rerenderCanvas = new BrushCanvas({
 	inputCanvas: document.createElement("canvas"),
@@ -23,6 +25,7 @@ export function getDataUrl(image: ImageType | HTMLCanvasElement): string {
 		return "";
 	}
 }
+
 export function cloneToCanvas(image: ImageType): HTMLCanvasElement {
 	const rerender_canvas = new BrushCanvas({
 		inputCanvas: document.createElement("canvas"),
@@ -146,7 +149,7 @@ export class Spritesheet {
 	}
 }
 
-class Sprite {
+class SpriteOld {
 	img: ImageType;
 
 	constructor(image: ImageType) {
@@ -154,14 +157,14 @@ class Sprite {
 	}
 }
 
-class BlankSprite extends Sprite {
+class BlankSprite extends SpriteOld {
 	constructor() {
 		super(new Image());
 	}
 }
 
 export default class Sprites {
-	public static Slice(
+	public static slice(
 		image: ImageType,
 		bounds: {
 			x: number;
@@ -171,21 +174,16 @@ export default class Sprites {
 		}
 	): ImageType {
 		const result = new Image();
-		const g: [number, number, number, number] = [
-			bounds.x,
-			bounds.y,
-			bounds.width,
-			bounds.height,
-		];
 
 		result.src = chainable
 			.canvasSize(bounds.width, bounds.height)
 			.clear.rendering("source-over")
-			.image(image, g)
+			.image(image, [bounds.x, bounds.y, bounds.width, bounds.height])
 			.canvas.toDataURL();
 
 		return result;
 	}
+	public static Slice = Sprites.slice;
 
 	public canvas = new BrushCanvas().chainable;
 
@@ -196,7 +194,7 @@ export default class Sprites {
 	public host: string = "";
 	public sprites = new Map();
 	public loading = new Set();
-	public readonly cache: Map<string, Sprite> = new Map();
+	public readonly cache: Map<string, SpriteOld> = new Map();
 
 	/** Seconds */
 	public cache_duration = 3600; /* 1 hour */
@@ -251,7 +249,7 @@ export default class Sprites {
 		return result;
 	}
 
-	loadSingle(url: string, onLoad?: Function): Sprite {
+	loadSingle(url: string, onLoad?: Function): SpriteOld {
 		const res = new BlankSprite();
 
 		if (this.loading.has(url)) {
@@ -303,8 +301,8 @@ export default class Sprites {
 			}
 
 			const opts = sheet.config.sprites[url];
-			const img = Sprites.Slice(sheet.sprite, opts);
-			const sprite = new Sprite(img);
+			const img = Sprites.slice(sheet.sprite, opts);
+			const sprite = new SpriteOld(img);
 
 			this.cache.set(url, sprite);
 
@@ -322,7 +320,7 @@ export default class Sprites {
 		return await this.promise(url);
 	}
 
-	async loadSinglePromise(url: string): Promise<Sprite["img"]> {
+	async loadSinglePromise(url: string): Promise<SpriteOld["img"]> {
 		const sprite = new BlankSprite();
 
 		sprite.img.crossOrigin = "anonymous";
@@ -347,5 +345,255 @@ export default class Sprites {
 
 		// const cached = this.cache.get(url);
 		// return cached ? cached.img : await this.loadSinglePromise(url);
+	}
+}
+
+class Sprite {
+	public static slice(
+		image: ImageType | HTMLCanvasElement,
+		bounds: {
+			x: number;
+			y: number;
+			width: number;
+			height: number;
+		}
+	): ImageType {
+		const result = new Image();
+		const g: [number, number, number, number] = [
+			bounds.x,
+			bounds.y,
+			bounds.width,
+			bounds.height,
+		];
+
+		result.src = chainable
+			.canvasSize(bounds.width, bounds.height)
+			.clear.rendering("source-over")
+			.image(image, g)
+			.canvas.toDataURL();
+
+		return result;
+	}
+}
+
+export class TextureSheet {
+	sprites: Map<string, [x: number, y: number, w: number, h: number]> =
+		new Map();
+	texture: HTMLCanvasElement = document.createElement("canvas");
+	ctx = this.texture.getContext("2d")!;
+
+	constructor(public id: string) {}
+
+	set(list: [id: string, image: HTMLImageElement][]) {
+		const boxes = list.map((item) => ({
+			image: item[1],
+			width: item[1].width,
+			height: item[1].height,
+		}));
+
+		const result = ImagePacker.pack(this.texture, this.ctx, boxes, 1);
+
+		this.sprites.clear();
+
+		for (const obj of result.packed.boxes) {
+			for (const [id, image] of list) {
+				if (obj.image == image) {
+					// this.sprites[id] = [obj.x, obj.y, obj.width, obj.height];
+					this.sprites.set(id, [obj.x, obj.y, obj.width, obj.height]);
+				}
+			}
+		}
+	}
+
+	getImage(id: string): HTMLImageElement {
+		const [x, y, w, h] = this.sprites.get(id) ?? [0, 0, 0, 0];
+
+		return Sprite.slice(this.texture, { x, y, width: w, height: h });
+	}
+
+	getAll() {
+		const list: [id: string, image: HTMLImageElement][] = [];
+
+		for (const [id, offset] of this.sprites.entries()) {
+			const image = Sprite.slice(this.texture, {
+				x: offset[0],
+				y: offset[1],
+				width: offset[2],
+				height: offset[3],
+			});
+
+			list.push([id, image]);
+		}
+
+		return list;
+	}
+
+	inject(id: string, image: HTMLImageElement) {
+		const list = this.getAll();
+
+		list.push([id, image]);
+
+		this.set(list);
+	}
+}
+
+class SpriteN extends HTMLImageElement {}
+
+export class Textures {
+	public static tempPromised(promise: Promise<HTMLImageElement>) {
+		const image = new Image();
+
+		promise.then((result) => {
+			image.src = chainable
+				.canvasSize(result.width, result.height)
+				.clear.rendering("source-over")
+				.image(result, [0, 0, result.width, result.height])
+				.canvas.toDataURL();
+		});
+
+		return image;
+	}
+	public cache: {
+		// sprites: Set<RenderableImage>;
+		sheets: Set<TextureSheet>;
+		url_map: Map<string, string>;
+		loading: Map<string, HTMLImageElement>;
+	} = {
+		// sprites: new Set(),
+		sheets: new Set(),
+		url_map: new Map(),
+		loading: new Map(),
+	};
+
+	public options: {
+		host: string;
+	} = {
+		host: "",
+	};
+
+	private index_counter: number = 0;
+
+	constructor(options?: { host?: string; cacheDuration?: number }) {
+		if (options?.host) this.options.host = options.host;
+		// if (options?.cacheDuration) this.cacheDuration = options.cacheDuration;
+	}
+
+	getDefaultSheet(): TextureSheet {
+		const id = "$default";
+
+		for (const sheet of this.cache.sheets) {
+			if (sheet.id == id) {
+				return sheet;
+			}
+		}
+
+		const sheet = new TextureSheet(id);
+		this.cache.sheets.add(sheet);
+		return sheet;
+	}
+
+	private resolveUrl(url: string): string {
+		return url.startsWith("/") ? this.options.host + url : url;
+	}
+
+	/**
+	 * return sheet id or undefined
+	 */
+	has(url: string): string | undefined {
+		const id = this.cache.url_map.get(url);
+
+		if (id == undefined) {
+			return undefined;
+		}
+		for (const sheet of this.cache.sheets) {
+			if (sheet.sprites.has(id)) {
+				return sheet.id;
+			}
+		}
+		return undefined;
+
+		// return this.cache.has(this.resolveUrl(url));
+	}
+
+	getCached(url: string): HTMLImageElement | undefined {
+		const id = this.cache.url_map.get(url);
+
+		if (id == undefined) {
+			return undefined;
+		}
+		for (const sheet of this.cache.sheets) {
+			if (sheet.sprites.has(id)) {
+				return sheet.getImage(id);
+			}
+		}
+
+		return undefined;
+	}
+
+	get(url: string): HTMLImageElement {
+		url = this.resolveUrl(url);
+
+		const cached = this.getCached(url);
+		if (cached) {
+			return cached;
+		} else {
+			return this.load(url);
+		}
+	}
+
+	private load(url: string): HTMLImageElement {
+		const current = this.cache.loading.get(url);
+
+		if (current != undefined) {
+			return current;
+		}
+
+		const index_id = `${this.index_counter++}`;
+
+		const img = new Image();
+		img.crossOrigin = "anonymous";
+		img.src = url;
+		this.cache.loading.set(url, img);
+		this.cache.url_map.set(url, index_id);
+
+		img.onload = () => {
+			this.cache.loading.delete(url);
+
+			const sheet = this.getDefaultSheet();
+			sheet.inject(index_id, img);
+		};
+
+		return img;
+	}
+
+	async fromCache(url: string): Promise<HTMLImageElement> {
+		const cached = this.getCached(url);
+		if (cached) {
+			return cached;
+		} else {
+			return this.loadAsync(url);
+		}
+	}
+
+	private async loadAsync(url: string): Promise<HTMLImageElement> {
+		url = this.resolveUrl(url);
+
+		const cached = this.getCached(url);
+		if (cached) {
+			return cached;
+		}
+		const index_id = `${this.index_counter++}`;
+		const img = new Image();
+		img.crossOrigin = "anonymous";
+		img.src = url;
+
+		await new Promise((resolve) => {
+			img.onload = resolve;
+			img.onerror = resolve;
+		});
+
+		this.getDefaultSheet().inject(index_id, img);
+		this.cache.url_map.set(url, index_id);
+		return img;
 	}
 }

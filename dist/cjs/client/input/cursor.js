@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.CursorButton = void 0;
 const emitter_1 = __importDefault(require("@orago/lib/emitter"));
 function isTouchEvent(input) {
     const __TouchEvent = typeof TouchEvent != "undefined" ? TouchEvent : window.TouchEvent;
@@ -22,13 +23,22 @@ function isTouch(input) {
         return typeof input === "object" && input instanceof __Touch;
     }
 }
+var CursorButton;
+(function (CursorButton) {
+    CursorButton[CursorButton["LEFT"] = 0] = "LEFT";
+    CursorButton[CursorButton["MIDDLE"] = 1] = "MIDDLE";
+    CursorButton[CursorButton["RIGHT"] = 2] = "RIGHT";
+    CursorButton[CursorButton["BACK"] = 3] = "BACK";
+    CursorButton[CursorButton["FORWARD"] = 4] = "FORWARD";
+    CursorButton[CursorButton["TOUCH"] = 10] = "TOUCH";
+})(CursorButton || (exports.CursorButton = CursorButton = {}));
 const cursorActionDict = {
-    0: "Left",
-    1: "Middle",
-    2: "Right",
-    3: "Back",
-    4: "Forward",
-    10: "Touch",
+    [CursorButton.LEFT]: "Left",
+    [CursorButton.MIDDLE]: "Middle",
+    [CursorButton.RIGHT]: "Right",
+    [CursorButton.BACK]: "Back",
+    [CursorButton.FORWARD]: "Forward",
+    [CursorButton.TOUCH]: "Touch",
 };
 const reverseCursorActionDict = Object.fromEntries(Object.entries(cursorActionDict).map((e) => [e[1], Number(e[0])]));
 class Cursor {
@@ -37,13 +47,18 @@ class Cursor {
     static buttonToAction(value) {
         return cursorActionDict[value];
     }
+    static getButtonID(event) {
+        return isTouch(event)
+            ? CursorButton.TOUCH
+            : event.button;
+    }
     // private _mobile_mode?: 0 | 2;
     constructor(element = document.body) {
         this.events = new emitter_1.default();
         // state management
         this.position = { x: 0, y: 0 };
-        this.start = { x: 0, y: 0 };
-        this.end = { x: 0, y: 0 };
+        this.start_position = { x: 0, y: 0 };
+        this.end_position = { x: 0, y: 0 };
         this.buttons = new Set();
         this.mouse_down = false;
         this.touching = false;
@@ -82,6 +97,18 @@ class Cursor {
         this.reset();
         return this;
     }
+    toggleButton(button_int, down) {
+        const button = Cursor.buttonToAction(button_int);
+        if (down == true) {
+            this.buttons.add(button_int);
+            this.events.emit("button-down", button);
+        }
+        else {
+            this.buttons.delete(button_int);
+            this.events.emit("button-up", button);
+        }
+        this.events.emit("button-change", button, true);
+    }
     reset() {
         this.dispose();
         for (const [method, func] of Object.entries(this.on)) {
@@ -115,40 +142,21 @@ class Cursor {
         };
     }
     onStart(event) {
+        const button_id = Cursor.getButtonID(event);
         this.start_time = performance.now();
-        const is_touch = isTouch(event);
-        const button = is_touch
-            ? "Touch"
-            : Cursor.buttonToAction(event.button);
-        this.events.emit("button-down", button, event, this);
-        this.events.emit("button-change", button, true, event);
-        if (is_touch) {
-            this.buttons.add(10);
-        }
-        else {
-            this.buttons.add(event.button);
-        }
         this.position = this.getPosition(event.clientX, event.clientY);
-        this.start = this.getPosition(event.clientX, event.clientY);
+        this.start_position = this.getPosition(event.clientX, event.clientY);
         this.mouse_down = true;
-        this.events.emit("touch", event, this);
+        this.toggleButton(button_id, true);
+        this.events.emit("touch");
     }
     onEnd(event) {
-        const is_touch = isTouch(event);
-        const button = is_touch
-            ? "Touch"
-            : Cursor.buttonToAction(event.button);
-        this.events.emit("button-up", button, event, this);
-        this.events.emit("button-change", button, false, event);
-        if (is_touch) {
-            this.buttons.delete(10);
-        }
-        else {
-            this.buttons.delete(event.button);
-        }
-        this.end = this.getPosition(event.clientX, event.clientY);
+        const button_id = Cursor.getButtonID(event);
+        this.end_position = this.getPosition(event.clientX, event.clientY);
         this.mouse_down = false;
-        this.events.emit("release", event, this);
+        this.toggleButton(button_id, false);
+        this.events.emit("release");
     }
 }
+Cursor.Button = CursorButton;
 exports.default = Cursor;

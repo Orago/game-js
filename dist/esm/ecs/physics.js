@@ -8,12 +8,28 @@ export class PositionComponent extends Component {
         this.x = x;
         this.y = y;
     }
+    set(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    from(options) {
+        if (options.x != undefined) {
+            this.x = options.x;
+        }
+        if (options.y != undefined) {
+            this.y = options.y;
+        }
+    }
 }
 export class VelocityComponent extends Component {
     constructor(velocity) {
         var _a, _b;
         super();
         this.drag = 1;
+        this.drag2 = {
+            x: 0,
+            y: 0,
+        };
         this.gravity = {
             x: 0,
             y: 0,
@@ -25,8 +41,6 @@ export class VelocityComponent extends Component {
 export class BoxComponent extends Component {
     constructor(width, height) {
         super();
-        this.width = width;
-        this.height = height;
         this.width = width;
         this.height = height;
     }
@@ -44,8 +58,8 @@ export class PhysicsSystem extends System {
         velocity.y += velocity.gravity.y;
         position.x += velocity.x;
         position.y += velocity.y;
-        velocity.x *= velocity.drag;
-        velocity.y *= velocity.drag;
+        velocity.x *= velocity.drag2.x;
+        velocity.y *= velocity.drag2.y;
     }
     update(entities) {
         for (const entity of entities) {
@@ -56,7 +70,6 @@ export class PhysicsSystem extends System {
 export class HitboxComponent extends Component {
     constructor(boxes, options) {
         super();
-        this.boxes = boxes;
         this.boxes = boxes;
         this.active = (options === null || options === void 0 ? void 0 : options.active) != false;
         if ((options === null || options === void 0 ? void 0 : options.knockback) != undefined) {
@@ -73,7 +86,6 @@ export class HitboxComponent extends Component {
 export class HurtboxComponent extends Component {
     constructor(boxes, options) {
         super();
-        this.boxes = boxes;
         this.boxes = boxes;
         this.active = (options === null || options === void 0 ? void 0 : options.active) != false;
         if ((options === null || options === void 0 ? void 0 : options.tags) != undefined) {

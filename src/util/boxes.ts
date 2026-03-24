@@ -1,4 +1,4 @@
-import type { RectangleLike } from "./shapes.js";
+import { Size } from "@orago/lib";
 
 export function gridFrame(
 	obj: { x: number; y: number },
@@ -11,8 +11,8 @@ export function gridFrame(
 }
 
 export function getFrameCount(
-	rect: RectangleLike,
-	gridSize: RectangleLike
+	rect: Size,
+	gridSize: Size
 ): number {
 	return (
 		(rect.width == gridSize.width ? 0 : rect.width) / gridSize.width +
@@ -32,8 +32,8 @@ export function gridsheetAnimation(
  * Returns an offset vector
  */
 export function calculateGridWrapOffset(
-	rect: RectangleLike,
-	gridSize: RectangleLike,
+	rect: Size,
+	gridSize: Size,
 	frame: number
 ): [x: number, y: number] {
 	const gridWidth = gridSize?.width ?? 0;

@@ -33,10 +33,11 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Bound = exports.Rect = exports.Box = exports.Shapes = exports.Collision = exports.BoxUtil = exports.Ecs = exports.MeowtrixCss = exports.Meowtrix = void 0;
+exports.Bound = exports.Rect = exports.Box = exports.Shapes = exports.Collision = exports.BoxUtil = exports.Ecs = exports.Transform = exports.MeowtrixCss = exports.Meowtrix = void 0;
 var meowtrix_js_1 = require("./util/meowtrix.js");
 Object.defineProperty(exports, "Meowtrix", { enumerable: true, get: function () { return meowtrix_js_1.Meowtrix; } });
 Object.defineProperty(exports, "MeowtrixCss", { enumerable: true, get: function () { return meowtrix_js_1.MeowtrixCss; } });
+Object.defineProperty(exports, "Transform", { enumerable: true, get: function () { return meowtrix_js_1.Transform; } });
 exports.Ecs = __importStar(require("@orago/ecs"));
 exports.BoxUtil = __importStar(require("./util/boxes.js"));
 var collision_js_1 = require("./util/collision.js");

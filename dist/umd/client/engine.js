@@ -63,7 +63,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             this.legacy = new legacy_js_1.LegacySystem(this.ecs, this);
             /** List of renderable objects */
             this.camera = { x: 0, y: 0, zoom: 1 };
-            this.repeater = new repeater_js_1.Repeater(64);
+            this.tick = new repeater_js_1.Ticker(64);
             this.frame = 0;
             this.events = new lib_1.Emitter();
             this.dom = new dom_1.VNode("div");
@@ -88,7 +88,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             this.keyboard = new keyboard_js_1.default(this.dom.element);
             // 	this.cursor = new Cursor(this.dom.element);
             // this.keyboard = new Keyboard(this.dom.element as HTMLElement);
-            this.repeater.tick.on(() => {
+            this.tick.tick.on(() => {
                 var _a, _b, _c, _d, _e;
                 for (const plugin of this.plugins.ordered_list) {
                     (_a = plugin.onUpdate) === null || _a === void 0 ? void 0 : _a.call(plugin, this);
@@ -99,9 +99,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                     (_d = object.onRender) === null || _d === void 0 ? void 0 : _d.call(object, this);
                 }
                 this.ecs.update();
-                this.frame = (_e = this === null || this === void 0 ? void 0 : this.repeater) === null || _e === void 0 ? void 0 : _e.frame;
+                this.frame = (_e = this === null || this === void 0 ? void 0 : this.tick) === null || _e === void 0 ? void 0 : _e.frame;
             });
-            this.repeater.start();
+            this.tick.start();
         }
         screenToWorld(point, options) {
             return screenToWorld(point, {
@@ -126,7 +126,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 return;
             }
             this.paused = state !== null && state !== void 0 ? state : !this.paused;
-            this.repeater.pause(this.paused);
+            this.tick.pause(this.paused);
             // is now paused
             if (this.paused == true) {
                 this.keyboard.dispose();
