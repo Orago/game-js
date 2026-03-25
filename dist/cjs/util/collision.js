@@ -22,4 +22,3 @@ class Collision {
     }
 }
 exports.Collision = Collision;
-//# sourceMappingURL=collision.js.map

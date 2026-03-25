@@ -36,28 +36,29 @@
             return new Rect(obj.width, obj.height);
         }
         static contains(parent, child) {
+            var _a, _b;
             const parentx2 = parent.x + parent.width;
             const parenty2 = parent.y + parent.height;
-            const childx2 = child.x + (child?.width ?? 0);
-            const childy2 = child.y + (child?.height ?? 0);
+            const childx2 = child.x + ((_a = child === null || child === void 0 ? void 0 : child.width) !== null && _a !== void 0 ? _a : 0);
+            const childy2 = child.y + ((_b = child === null || child === void 0 ? void 0 : child.height) !== null && _b !== void 0 ? _b : 0);
             return (parent.x <= child.x &&
                 parentx2 >= childx2 &&
                 parent.y <= child.y &&
                 parenty2 >= childy2);
         }
         static centerChild(parent, child) {
+            var _a, _b;
             return {
                 x: parent.x + (parent.width - child.width) / 2,
                 y: parent.y + (parent.height - child.height) / 2,
-                width: child.width ?? 0,
-                height: child.height ?? 0,
+                width: (_a = child.width) !== null && _a !== void 0 ? _a : 0,
+                height: (_b = child.height) !== null && _b !== void 0 ? _b : 0,
             };
         }
         static toBound(rect) {
-            return [rect?.x ?? 0, rect?.y ?? 0, rect.width, rect.height];
+            var _a, _b;
+            return [(_a = rect === null || rect === void 0 ? void 0 : rect.x) !== null && _a !== void 0 ? _a : 0, (_b = rect === null || rect === void 0 ? void 0 : rect.y) !== null && _b !== void 0 ? _b : 0, rect.width, rect.height];
         }
-        width;
-        height;
         constructor(width, height) {
             this.width = width;
             this.height = height;
@@ -88,8 +89,6 @@
                 return new Bound(0, 0, rect.width, rect.height);
             }
         }
-        x;
-        y;
         constructor(x, y, width = 0, height = 0) {
             super(width, height);
             this.x = x;
@@ -131,8 +130,8 @@
             const h = Math.abs(y2 - y1);
             return new Box(x, y, w, h);
         }
-        positions = [0, 0, 0, 0];
         constructor(x1 = 0, y1 = 0, x2 = 0, y2 = 0) {
+            this.positions = [0, 0, 0, 0];
             this.positions = [x1, y1, x2, y2];
         }
         clear() {
@@ -161,4 +160,3 @@
     }
     exports.Bound = Bound;
 });
-//# sourceMappingURL=shapes.js.map

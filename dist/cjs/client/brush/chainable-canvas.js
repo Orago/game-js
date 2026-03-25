@@ -3,14 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChainableCanvas = void 0;
 const render_js_1 = require("./render.js");
 class ChainableConfig {
-    canvas = document.createElement("canvas");
-    ctx;
-    color = "black";
-    x = 0;
-    y = 0;
-    w = 0;
-    h = 0;
     constructor(data) {
+        this.canvas = document.createElement("canvas");
+        this.color = "black";
+        this.x = 0;
+        this.y = 0;
+        this.w = 0;
+        this.h = 0;
         this.ctx = data.ctx;
         if (data.canvas != null)
             this.canvas = data.canvas;
@@ -33,11 +32,8 @@ class ChainableConfig {
  * ! Should not be used on it"s own
  */
 class ChainableCanvas {
-    stack = [];
-    last_config;
-    canvas;
-    ctx;
     constructor(brush) {
+        this.stack = [];
         this.stack.push(new ChainableConfig({
             canvas: brush.canvas,
             ctx: brush.ctx,
@@ -94,6 +90,7 @@ class ChainableCanvas {
     // get canvas() { return this.last_config.canvas; }
     // get ctx() { return this.last_config.ctx; }
     rotate(rotation, center) {
+        var _a, _b;
         const config = this.getConfig();
         if (typeof center != "object") {
             center = {
@@ -101,8 +98,8 @@ class ChainableCanvas {
                 y: config.h / 2,
             };
         }
-        center.x ??= config.w / 2;
-        center.y ??= config.h / 2;
+        (_a = center.x) !== null && _a !== void 0 ? _a : (center.x = config.w / 2);
+        (_b = center.y) !== null && _b !== void 0 ? _b : (center.y = config.h / 2);
         this.last_config.ctx.translate(config.x + center.x, config.y + center.y);
         this.last_config.ctx.rotate((rotation * Math.PI) / 180);
         config.x = -center.x;
@@ -133,12 +130,8 @@ class ChainableCanvas {
     }
     circle(override) {
         const [x, y, w] = this.last_config.rect;
-        render_js_1.CanvasRender.circle(this.last_config.ctx, {
-            x,
-            y,
-            radius: w,
-            ...override,
-        });
+        render_js_1.CanvasRender.circle(this.last_config.ctx, Object.assign({ x,
+            y, radius: w }, override));
         return this;
     }
     /**
@@ -256,4 +249,3 @@ class ChainableCanvas {
     }
 }
 exports.ChainableCanvas = ChainableCanvas;
-//# sourceMappingURL=chainable-canvas.js.map

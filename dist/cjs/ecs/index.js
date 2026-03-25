@@ -35,4 +35,3 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Physics = void 0;
 exports.Physics = __importStar(require("./physics.js"));
-//# sourceMappingURL=index.js.map

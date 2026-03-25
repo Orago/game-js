@@ -32,7 +32,7 @@ export default function potpack(boxes, padding = 0) {
     const spaces = [{ x: 0, y: 0, width: startWidth, height: Infinity }];
     let width = 0;
     let height = 0;
-    const new_boxes = sorted_boxes.map((e) => ({ ...e, x: 0, y: 0 }));
+    const new_boxes = sorted_boxes.map((e) => (Object.assign(Object.assign({}, e), { x: 0, y: 0 })));
     for (const box of new_boxes) {
         const pad_box_w = box.width + padding;
         const pad_box_h = box.height + padding;
@@ -110,4 +110,3 @@ export default function potpack(boxes, padding = 0) {
         boxes: new_boxes,
     };
 }
-//# sourceMappingURL=potpack.js.map

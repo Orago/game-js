@@ -19,11 +19,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     }
     const sig = new LegacySignature();
     class LegacySystem extends ecs_1.System {
-        world;
-        components = new Set([LegacySignature]);
         constructor(ecs, world) {
             super();
             this.world = world;
+            this.components = new Set([LegacySignature]);
             this.world = world;
         }
         update(entities) {
@@ -34,10 +33,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     }
     exports.LegacySystem = LegacySystem;
     class LegacyEntity extends ecs_1.Entity {
-        events = new emitter_1.default();
-        priority = 0;
         constructor(ecs) {
             super();
+            this.events = new emitter_1.default();
+            this.priority = 0;
             ecs.components.add(this, sig);
         }
         ref(fn) {
@@ -51,4 +50,3 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     }
     exports.LegacyEntity = LegacyEntity;
 });
-//# sourceMappingURL=legacy.js.map

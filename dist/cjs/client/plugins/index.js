@@ -39,4 +39,3 @@ Object.defineProperty(exports, "EngineClampPlugin", { enumerable: true, get: fun
 var panning_js_1 = require("./panning.js");
 Object.defineProperty(exports, "PanningPlugin", { enumerable: true, get: function () { return panning_js_1.PanningPlugin; } });
 exports.EcsRenderer = __importStar(require("./ecs-renderer.js"));
-//# sourceMappingURL=index.js.map

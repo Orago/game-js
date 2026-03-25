@@ -16,14 +16,13 @@
     const index_js_1 = require("../index.js");
     const image_packer_js_1 = require("../util/image-packer.js");
     class ParticleCache {
-        sprites = new Set();
-        indexed_sprites = new Map();
-        id_matches = new Map();
+        constructor() {
+            this.sprites = new Set();
+            this.indexed_sprites = new Map();
+            this.id_matches = new Map();
+        }
     }
     class ParticleComponent extends ecs_1.Component {
-        image;
-        source;
-        particle_id;
         constructor(image, source = [
             0,
             0,
@@ -42,17 +41,15 @@
     // 	}
     // }
     class WGLParticleSystem extends ecs_1.System {
-        engine;
-        wgl = new index_js_1.WGL.WglProgram();
-        cache = new ParticleCache();
-        components = new Set([
-            physics_js_1.PositionComponent,
-            ParticleComponent,
-        ]);
-        atlas;
         constructor(engine) {
             super();
             this.engine = engine;
+            this.wgl = new index_js_1.WGL.WglProgram();
+            this.cache = new ParticleCache();
+            this.components = new Set([
+                physics_js_1.PositionComponent,
+                ParticleComponent,
+            ]);
         }
         update(entities) {
             const instances = this.wgl.instances;
@@ -128,4 +125,3 @@
     }
     exports.WGLParticleSystem = WGLParticleSystem;
 });
-//# sourceMappingURL=particles.js.map

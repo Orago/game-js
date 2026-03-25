@@ -4,14 +4,13 @@ import { PositionComponent } from "../../ecs/physics.js";
 import { WGL } from "../index.js";
 import { ImagePacker } from "../util/image-packer.js";
 class ParticleCache {
-    sprites = new Set();
-    indexed_sprites = new Map();
-    id_matches = new Map();
+    constructor() {
+        this.sprites = new Set();
+        this.indexed_sprites = new Map();
+        this.id_matches = new Map();
+    }
 }
 export class ParticleComponent extends Component {
-    image;
-    source;
-    particle_id;
     constructor(image, source = [
         0,
         0,
@@ -29,17 +28,15 @@ export class ParticleComponent extends Component {
 // 	}
 // }
 export class WGLParticleSystem extends System {
-    engine;
-    wgl = new WGL.WglProgram();
-    cache = new ParticleCache();
-    components = new Set([
-        PositionComponent,
-        ParticleComponent,
-    ]);
-    atlas;
     constructor(engine) {
         super();
         this.engine = engine;
+        this.wgl = new WGL.WglProgram();
+        this.cache = new ParticleCache();
+        this.components = new Set([
+            PositionComponent,
+            ParticleComponent,
+        ]);
     }
     update(entities) {
         const instances = this.wgl.instances;
@@ -113,4 +110,3 @@ export class WGLParticleSystem extends System {
         return this.wgl.instances.addInstance();
     }
 }
-//# sourceMappingURL=particles.js.map

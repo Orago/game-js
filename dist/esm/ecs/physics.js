@@ -1,8 +1,6 @@
 import { Component, System } from "@orago/ecs";
 import { Signal } from "@orago/lib";
 export class PositionComponent extends Component {
-    x;
-    y;
     constructor(x, y) {
         super();
         this.x = x;
@@ -24,25 +22,22 @@ export class PositionComponent extends Component {
     }
 }
 export class VelocityComponent extends Component {
-    x;
-    y;
-    drag = {
-        x: 0,
-        y: 0,
-    };
-    gravity = {
-        x: 0,
-        y: 0,
-    };
     constructor(velocity) {
+        var _a, _b;
         super();
-        this.x = velocity?.x ?? 0;
-        this.y = velocity?.y ?? 0;
+        this.drag = {
+            x: 0,
+            y: 0,
+        };
+        this.gravity = {
+            x: 0,
+            y: 0,
+        };
+        this.x = (_a = velocity === null || velocity === void 0 ? void 0 : velocity.x) !== null && _a !== void 0 ? _a : 0;
+        this.y = (_b = velocity === null || velocity === void 0 ? void 0 : velocity.y) !== null && _b !== void 0 ? _b : 0;
     }
 }
 export class BoxComponent extends Component {
-    width;
-    height;
     constructor(width, height) {
         super();
         this.width = width;
@@ -50,14 +45,14 @@ export class BoxComponent extends Component {
     }
 }
 export class PhysicsSystem extends System {
-    components = new Set([PositionComponent, VelocityComponent]);
-    priority = 100;
-    gravity = {
-        x: 0,
-        y: 0,
-    };
     constructor() {
         super();
+        this.components = new Set([PositionComponent, VelocityComponent]);
+        this.priority = 100;
+        this.gravity = {
+            x: 0,
+            y: 0,
+        };
     }
     tickEntity(entity) {
         const position = entity.components.get(PositionComponent);
@@ -76,46 +71,40 @@ export class PhysicsSystem extends System {
     }
 }
 export class HitboxComponent extends Component {
-    boxes;
-    active;
-    tags;
-    damage;
-    knockback;
     constructor(boxes, options) {
         super();
         this.boxes = boxes;
-        this.active = options?.active != false;
-        if (options?.knockback != undefined) {
+        this.active = (options === null || options === void 0 ? void 0 : options.active) != false;
+        if ((options === null || options === void 0 ? void 0 : options.knockback) != undefined) {
             this.knockback = options.knockback;
         }
-        if (options?.tags != undefined) {
+        if ((options === null || options === void 0 ? void 0 : options.tags) != undefined) {
             this.tags = options.tags;
         }
-        if (options?.damage != undefined) {
+        if ((options === null || options === void 0 ? void 0 : options.damage) != undefined) {
             this.damage = options.damage;
         }
     }
 }
 export class HurtboxComponent extends Component {
-    boxes;
-    active;
-    tags;
-    invincible;
     constructor(boxes, options) {
         super();
         this.boxes = boxes;
-        this.active = options?.active != false;
-        if (options?.tags != undefined) {
+        this.active = (options === null || options === void 0 ? void 0 : options.active) != false;
+        if ((options === null || options === void 0 ? void 0 : options.tags) != undefined) {
             this.tags = options.tags;
         }
-        if (options?.invincible != undefined) {
+        if ((options === null || options === void 0 ? void 0 : options.invincible) != undefined) {
             this.invincible = options.invincible;
         }
     }
 }
 export class HitDetectionSystem extends System {
-    components = new Set([PositionComponent]);
-    hit = new Signal();
+    constructor() {
+        super(...arguments);
+        this.components = new Set([PositionComponent]);
+        this.hit = new Signal();
+    }
     update(entities) {
         const hitboxes = [];
         const hurtboxes = [];
@@ -179,4 +168,3 @@ export class HitDetectionSystem extends System {
             a.y + a.height > b.y);
     }
 }
-//# sourceMappingURL=physics.js.map

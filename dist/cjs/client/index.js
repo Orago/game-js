@@ -87,4 +87,3 @@ Object.defineProperty(exports, "Spritesheet", { enumerable: true, get: function 
 var image_packer_js_1 = require("./util/image-packer.js");
 Object.defineProperty(exports, "ImagePacker", { enumerable: true, get: function () { return image_packer_js_1.ImagePacker; } });
 exports.WGL = __importStar(require("./wgl/program.js"));
-//# sourceMappingURL=index.js.map

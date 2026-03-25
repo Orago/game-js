@@ -54,7 +54,7 @@
 	},
 	"dependencies": {
 		"@orago/ecs": "^0.0.20",
-		"@orago/lib": "^0.0.42"
+		"@orago/lib": "^0.0.43"
 	},
 	"optionalDependencies": {
 		"@orago/dom": "^0.0.47"

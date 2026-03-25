@@ -41,17 +41,24 @@ const render_js_1 = require("./render.js");
 var chainable_canvas_js_2 = require("./chainable-canvas.js");
 Object.defineProperty(exports, "ChainableCanvas", { enumerable: true, get: function () { return chainable_canvas_js_2.ChainableCanvas; } });
 class BrushCanvas {
-    resolution = 1;
-    smoothing = true;
-    /**
-     * Both are intentionally unset and will be set using BrushCanvas.swapCanvas
-     */
-    canvas;
-    ctx = undefined;
-    events = new emitter_1.default();
-    experimental = false;
-    onResize = new emitter_1.Signal();
     constructor(settings = {}) {
+        this.resolution = 1;
+        this.smoothing = true;
+        this.ctx = undefined;
+        this.events = new emitter_1.default();
+        this.experimental = false;
+        this.onResize = new emitter_1.Signal();
+        /**
+         * Toggles smoothing
+         * ON - blurred when using low resolution assets and smooth on high resolution
+         * OFF - Crisp on low resolution assets and jagged on high resolution
+         */
+        this.setSmoothing = (state) => {
+            if (this.experimental)
+                return this;
+            this.ctx.imageSmoothingEnabled = this.smoothing = state == true;
+            return this;
+        };
         if (typeof settings != "object")
             settings = {};
         const { dimensions = [100, 100], inputCanvas: canvas = document.createElement("canvas"), } = settings;
@@ -61,7 +68,7 @@ class BrushCanvas {
             this.events.emit("resize", width, height);
         });
         this.canvas = canvas;
-        if (settings?.experimental_gl == true) {
+        if ((settings === null || settings === void 0 ? void 0 : settings.experimental_gl) == true) {
             this.experimental = true;
             // WebGLCanvas.affect(canvas);
             const ctx = this.canvas.getContext("webgl-2d");
@@ -188,17 +195,6 @@ class BrushCanvas {
         this.ctx.clearRect(x, y, width, height);
         return this;
     }
-    /**
-     * Toggles smoothing
-     * ON - blurred when using low resolution assets and smooth on high resolution
-     * OFF - Crisp on low resolution assets and jagged on high resolution
-     */
-    setSmoothing = (state) => {
-        if (this.experimental)
-            return this;
-        this.ctx.imageSmoothingEnabled = this.smoothing = state == true;
-        return this;
-    };
     resizable() {
         etch_js_1.EtchUtility.resizable({
             canvas: this.canvas,
@@ -209,10 +205,11 @@ class BrushCanvas {
         return this;
     }
     getEtch(options) {
+        var _a;
         return new etch_js_1.Etch({
             canvas: this.canvas,
             ctx: this.ctx,
-            stack: options?.stack ?? true,
+            stack: (_a = options === null || options === void 0 ? void 0 : options.stack) !== null && _a !== void 0 ? _a : true,
         });
     }
     get get() {
@@ -223,4 +220,3 @@ class BrushCanvas {
     }
 }
 exports.default = BrushCanvas;
-//# sourceMappingURL=brush.js.map

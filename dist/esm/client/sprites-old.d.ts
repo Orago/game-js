@@ -40,7 +40,7 @@ export default class Sprites {
         height: number;
     }): ImageType;
     static Slice: typeof Sprites.slice;
-    canvas: import("./index.js").ChainableCanvas;
+    canvas: import("./brush/chainable-canvas.js").ChainableCanvas;
     /**
      * Host domain and or path
      * it's essentially just a url prefix

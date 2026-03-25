@@ -49,4 +49,3 @@ var __importStar = (this && this.__importStar) || (function () {
     Object.defineProperty(exports, "PanningPlugin", { enumerable: true, get: function () { return panning_js_1.PanningPlugin; } });
     exports.EcsRenderer = __importStar(require("./ecs-renderer.js"));
 });
-//# sourceMappingURL=index.js.map

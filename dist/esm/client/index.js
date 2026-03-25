@@ -19,4 +19,3 @@ export { default as Ticker } from "./repeater.js";
 export { default as Sprites, Spritesheet } from "./sprites-old.js";
 export { ImagePacker } from "./util/image-packer.js";
 export * as WGL from "./wgl/program.js";
-//# sourceMappingURL=index.js.map

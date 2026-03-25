@@ -26,4 +26,3 @@ class ImagePacker {
     }
 }
 exports.ImagePacker = ImagePacker;
-//# sourceMappingURL=image-packer.js.map

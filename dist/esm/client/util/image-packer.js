@@ -19,4 +19,3 @@ export class ImagePacker {
         };
     }
 }
-//# sourceMappingURL=image-packer.js.map

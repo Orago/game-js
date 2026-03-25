@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     function getDistance(point1, point2) {
         const dx = point2.x - point1.x;
         const dy = point2.y - point1.y;
-        return Math.sqrt(dx ** 2 + dy ** 2);
+        return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
     }
     function getTotalDistance(points) {
         let total_distance = 0;
@@ -36,7 +36,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         return total_distance;
     }
     class PCHandler {
-        parent;
         constructor(parent) {
             this.parent = parent;
         }
@@ -55,13 +54,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         }
     }
     class MobileHandler {
-        parent;
-        start = {
-            points: [],
-            size: 0,
-        };
-        last_distance;
         constructor(parent) {
+            this.start = {
+                points: [],
+                size: 0,
+            };
             this.parent = parent;
         }
         pan(e) {
@@ -112,33 +109,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         }
     }
     class PanningPlugin extends base_js_1.EnginePlugin {
-        focus_element;
-        modes = {
-            panning: false,
-            zoom: false,
-        };
-        options = {
-            min: undefined,
-            max: undefined,
-            mobile_factor: 1,
-            pc_factor: 1,
-        };
-        pan = {
-            start: { x: 0, y: 0 },
-            offset: { x: 0, y: 0 },
-            change: { x: 0, y: 0 },
-            state: false,
-            active: false,
-        };
-        PC;
-        Mobile;
-        events = new lib_1.Emitter();
-        engine;
         constructor(
         // public engine: Engine,
         controls, focus_element) {
             super();
             this.focus_element = focus_element;
+            this.modes = {
+                panning: false,
+                zoom: false,
+            };
+            this.options = {
+                min: undefined,
+                max: undefined,
+                mobile_factor: 1,
+                pc_factor: 1,
+            };
+            this.pan = {
+                start: { x: 0, y: 0 },
+                offset: { x: 0, y: 0 },
+                change: { x: 0, y: 0 },
+                state: false,
+                active: false,
+            };
+            this.events = new lib_1.Emitter();
             if (controls === "all") {
                 controls = ["pc", "mobile"];
             }
@@ -147,13 +140,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             const touchEnd = (button) => (button == "Middle" || button == "Touch") && this.interactionEnd();
             if (controls.includes("pc")) {
                 this.PC = new PCHandler(this);
-                const mouseMove = () => this.PC?.panTick();
+                const mouseMove = () => { var _a; return (_a = this.PC) === null || _a === void 0 ? void 0 : _a.panTick(); };
                 const bound = this.handleWheel.bind(this);
                 const mouseOut = () => this.interactionEnd();
                 this.events
                     .on("plugin:add", (engine) => {
+                    var _a;
                     const cursor = engine.cursor;
-                    const wheel_element = this.focus_element ?? engine.dom.element;
+                    const wheel_element = (_a = this.focus_element) !== null && _a !== void 0 ? _a : engine.dom.element;
                     wheel_element.addEventListener("wheel", bound);
                     cursor.element.addEventListener("mousemove", mouseMove);
                     cursor.element.addEventListener("mouseout", mouseOut);
@@ -161,8 +155,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                     cursor.events.on("button-up", touchEnd);
                 })
                     .on("plugin:remove", (engine) => {
+                    var _a;
                     const cursor = engine.cursor;
-                    const wheel_element = this.focus_element ?? engine.dom.element;
+                    const wheel_element = (_a = this.focus_element) !== null && _a !== void 0 ? _a : engine.dom.element;
                     wheel_element.removeEventListener("wheel", bound);
                     cursor.element.removeEventListener("mousemove", mouseMove);
                     cursor.element.removeEventListener("mouseout", mouseOut);
@@ -172,7 +167,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             }
             if (controls.includes("mobile")) {
                 this.Mobile = new MobileHandler(this);
-                const touchMove = (e) => this.Mobile?.pan(e);
+                const touchMove = (e) => { var _a; return (_a = this.Mobile) === null || _a === void 0 ? void 0 : _a.pan(e); };
                 this.events
                     .on("plugin:add", (engine) => {
                     const cursor = engine.cursor;
@@ -203,8 +198,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             delete this.engine;
         }
         interactionEnd() {
+            var _a;
             if (this.pan.active) {
-                this.Mobile?.reset();
+                (_a = this.Mobile) === null || _a === void 0 ? void 0 : _a.reset();
                 this.panReset();
             }
             this.pan.active = false;
@@ -243,6 +239,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             this.engine.camera.y = this.pan.offset.y + this.pan.change.y;
         }
         setZoom(value, position) {
+            var _a;
             if (this.engine == undefined) {
                 return;
             }
@@ -251,7 +248,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             if (this.modes.panning != true) {
                 return this.setZoomTrim(value), void 0;
             }
-            const offset = this.engine?.camera;
+            const offset = (_a = this.engine) === null || _a === void 0 ? void 0 : _a.camera;
             const npos = { x: position.x, y: position.y };
             if (this.options.min != null && value < this.options.min) {
                 return this.setZoom(this.options.min, position);
@@ -277,7 +274,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             if (this.engine == undefined || this.modes.zoom != true) {
                 return;
             }
-            const zoom = (1.1 * this.options.pc_factor) ** (event.deltaY < 0 ? 1 : -1);
+            const zoom = Math.pow((1.1 * this.options.pc_factor), (event.deltaY < 0 ? 1 : -1));
             this.factorZoom(zoom, this.engine.cursor.position);
         }
         setZoomTrim(value) {
@@ -295,4 +292,3 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     }
     exports.PanningPlugin = PanningPlugin;
 });
-//# sourceMappingURL=panning.js.map

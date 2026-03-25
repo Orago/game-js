@@ -1,6 +1,5 @@
 import { EnginePlugin } from "../base.js";
 export class EngineClampPlugin extends EnginePlugin {
-    rectangle;
     constructor(rectangle) {
         super();
         this.rectangle = rectangle;
@@ -17,4 +16,3 @@ export class EngineClampPlugin extends EnginePlugin {
         camera.y = Math.min(Math.max(camera.y, half_h), this.rectangle.height - half_h);
     }
 }
-//# sourceMappingURL=utility.js.map

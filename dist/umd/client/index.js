@@ -97,4 +97,3 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     Object.defineProperty(exports, "ImagePacker", { enumerable: true, get: function () { return image_packer_js_1.ImagePacker; } });
     exports.WGL = __importStar(require("./wgl/program.js"));
 });
-//# sourceMappingURL=index.js.map

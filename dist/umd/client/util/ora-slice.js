@@ -58,6 +58,7 @@
             return captured;
         }
         static getValues(input) {
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
             const lexed = OraSlice.lex(input);
             const source = {
                 x: 0,
@@ -79,28 +80,28 @@
                 switch (key) {
                     case "s": {
                         const v_s = OraSlice.parseVec(vec).map(Number);
-                        source.x = v_s[0] ?? 0;
-                        source.y = v_s[1] ?? 0;
-                        source.width = v_s[2] ?? 0;
-                        source.height = v_s[3] ?? 0;
+                        source.x = (_a = v_s[0]) !== null && _a !== void 0 ? _a : 0;
+                        source.y = (_b = v_s[1]) !== null && _b !== void 0 ? _b : 0;
+                        source.width = (_c = v_s[2]) !== null && _c !== void 0 ? _c : 0;
+                        source.height = (_d = v_s[3]) !== null && _d !== void 0 ? _d : 0;
                         break;
                     }
                     case "d": {
                         const v_d = OraSlice.parseVec(vec).map(Number);
-                        destination.x = v_d[0] ?? 0;
-                        destination.y = v_d[1] ?? 0;
-                        destination.width = v_d[2] ?? 0;
-                        destination.height = v_d[3] ?? 0;
+                        destination.x = (_e = v_d[0]) !== null && _e !== void 0 ? _e : 0;
+                        destination.y = (_f = v_d[1]) !== null && _f !== void 0 ? _f : 0;
+                        destination.width = (_g = v_d[2]) !== null && _g !== void 0 ? _g : 0;
+                        destination.height = (_h = v_d[3]) !== null && _h !== void 0 ? _h : 0;
                         break;
                     }
                     case "i": {
                         const v_i = OraSlice.parseVec(vec).map(Number);
-                        index.x = v_i[0] ?? 0;
-                        index.y = v_i[1] ?? 0;
+                        index.x = (_j = v_i[0]) !== null && _j !== void 0 ? _j : 0;
+                        index.y = (_k = v_i[1]) !== null && _k !== void 0 ? _k : 0;
                         if (v_i.length >= 3) {
-                            index.width = v_i[2] ?? 0;
+                            index.width = (_l = v_i[2]) !== null && _l !== void 0 ? _l : 0;
                             if (v_i.length >= 4) {
-                                index.height = v_i[3] ?? 0;
+                                index.height = (_m = v_i[3]) !== null && _m !== void 0 ? _m : 0;
                             }
                         }
                         break;
@@ -121,4 +122,3 @@
     }
     exports.OraSlice = OraSlice;
 });
-//# sourceMappingURL=ora-slice.js.map

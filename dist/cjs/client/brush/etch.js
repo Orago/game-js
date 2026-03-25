@@ -1,8 +1,21 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EtchUtility = exports.EtchStack = exports.Etch = void 0;
 const render_js_1 = require("./render.js");
 class EtchStack {
+    constructor() {
+        this.stack = [];
+    }
     static push(instance, stack, state) {
         stack.push(state);
         instance.state = state;
@@ -25,12 +38,9 @@ class EtchStack {
             instance.stack = new EtchStack();
         }
     }
-    stack = [];
 }
 exports.EtchStack = EtchStack;
 class EtchUtility {
-    static canvas = document.createElement("canvas");
-    static ctx = this.canvas.getContext("2d");
     static resizable(input) {
         const resize = () => {
             const { canvas, setSmoothing } = input;
@@ -65,13 +75,14 @@ class EtchUtility {
         return ctx.measureText(text);
     }
     static getTextWidth(ctx, font, text) {
-        return EtchUtility.measureText(ctx, font, text).width;
+        return _a.measureText(ctx, font, text).width;
     }
 }
 exports.EtchUtility = EtchUtility;
+_a = EtchUtility;
+EtchUtility.canvas = document.createElement("canvas");
+EtchUtility.ctx = _a.canvas.getContext("2d");
 class Etch {
-    static Stack = EtchStack;
-    static Utility = EtchUtility;
     static identity() {
         return {
             x: 0,
@@ -92,11 +103,8 @@ class Etch {
             smoothing: state.smoothing,
         };
     }
-    state = Etch.identity();
-    canvas;
-    ctx;
-    stack;
     constructor(brush) {
+        this.state = Etch.identity();
         this.canvas = brush.canvas;
         this.ctx = brush.ctx;
         EtchStack.init(this, this.stack);
@@ -210,9 +218,11 @@ class Etch {
     textWidth(text) {
         return this.ctx.measureText(text).width;
     }
-    async getBitmap() {
-        const s = this.state;
-        return createImageBitmap(this.canvas, s.x, s.y, s.width, s.height);
+    getBitmap() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const s = this.state;
+            return createImageBitmap(this.canvas, s.x, s.y, s.width, s.height);
+        });
     }
     resizeCanvas(width, height) {
         const smoothing = this.ctx.imageSmoothingEnabled;
@@ -288,20 +298,16 @@ class Etch {
     }
     circle(override) {
         const s = this.state;
-        render_js_1.CanvasRender.circle(this.ctx, {
-            x: s.x,
-            y: s.y,
-            radius: s.width,
-            ...override,
-        });
+        render_js_1.CanvasRender.circle(this.ctx, Object.assign({ x: s.x, y: s.y, radius: s.width }, override));
         return this;
     }
     image(image, options
     // from?: VecRectangle,
     // to: VecRectangle = this.asVec()
     ) {
+        var _b;
         options = Object.assign({}, options);
-        options.to ??= this.asVec();
+        (_b = options.to) !== null && _b !== void 0 ? _b : (options.to = this.asVec());
         render_js_1.CanvasRender.Image(this.ctx, image, options);
         return this;
     }
@@ -315,4 +321,5 @@ class Etch {
     }
 }
 exports.Etch = Etch;
-//# sourceMappingURL=etch.js.map
+Etch.Stack = EtchStack;
+Etch.Utility = EtchUtility;

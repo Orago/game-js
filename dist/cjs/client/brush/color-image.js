@@ -116,19 +116,19 @@ function clipEditFrom(chain, sprite) {
  */
 function hslTintImage(sprite, options) {
     plainDraw(color_chain, sprite);
-    if (typeof options?.light === "number") {
+    if (typeof (options === null || options === void 0 ? void 0 : options.light) === "number") {
         lightenOverlay(color_chain, options.light);
     }
-    if (typeof options?.saturation === "number") {
+    if (typeof (options === null || options === void 0 ? void 0 : options.saturation) === "number") {
         saturateOverlay(color_chain, options.saturation);
     }
-    if (options?.rgb != null) {
+    if ((options === null || options === void 0 ? void 0 : options.rgb) != null) {
         hueOverlay(color_chain, (0, colors_1.rgbToHue)(...(0, colors_1.forceRgb)(options.rgb)));
     }
-    else if (options?.tint != null) {
+    else if ((options === null || options === void 0 ? void 0 : options.tint) != null) {
         hueOverlay(color_chain, (0, colors_1.rgbToHue)(...(0, colors_1.forceRgb)(options.tint)));
     }
-    else if (typeof options?.hue === "number") {
+    else if (typeof (options === null || options === void 0 ? void 0 : options.hue) === "number") {
         hueOverlay(color_chain, options.hue);
     }
     // Clipping
@@ -195,19 +195,19 @@ class TintImage {
      */
     static hslTint(sprite, options) {
         this.setupTintDraw(color_chain, sprite);
-        if (typeof options?.light === "number") {
+        if (typeof (options === null || options === void 0 ? void 0 : options.light) === "number") {
             this.lightenOverlay(color_chain, options.light);
         }
-        if (typeof options?.saturation === "number") {
+        if (typeof (options === null || options === void 0 ? void 0 : options.saturation) === "number") {
             this.saturateOverlay(color_chain, options.saturation);
         }
-        if (options?.rgb != null) {
+        if ((options === null || options === void 0 ? void 0 : options.rgb) != null) {
             this.hueOverlay(color_chain, (0, colors_1.rgbToHue)(...(0, colors_1.forceRgb)(options.rgb)));
         }
-        else if (options?.tint != null) {
+        else if ((options === null || options === void 0 ? void 0 : options.tint) != null) {
             this.hueOverlay(color_chain, (0, colors_1.rgbToHue)(...(0, colors_1.forceRgb)(options.tint)));
         }
-        else if (typeof options?.hue === "number") {
+        else if (typeof (options === null || options === void 0 ? void 0 : options.hue) === "number") {
             this.hueOverlay(color_chain, options.hue);
         }
         // Clipping
@@ -228,4 +228,3 @@ class TintImage {
     }
 }
 exports.TintImage = TintImage;
-//# sourceMappingURL=color-image.js.map

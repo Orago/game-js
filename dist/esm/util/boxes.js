@@ -13,8 +13,9 @@ export function gridsheetAnimation(frames, currentTime, endTime) {
  * Returns an offset vector
  */
 export function calculateGridWrapOffset(rect, gridSize, frame) {
-    const gridWidth = gridSize?.width ?? 0;
-    const gridHeight = gridSize?.height ?? 0;
+    var _a, _b;
+    const gridWidth = (_a = gridSize === null || gridSize === void 0 ? void 0 : gridSize.width) !== null && _a !== void 0 ? _a : 0;
+    const gridHeight = (_b = gridSize === null || gridSize === void 0 ? void 0 : gridSize.height) !== null && _b !== void 0 ? _b : 0;
     // Calculate the number of columns in the grid
     const numCols = Math.ceil(rect.width / gridWidth);
     // Calculate the row and column of the frame based on frame number
@@ -25,4 +26,3 @@ export function calculateGridWrapOffset(rect, gridSize, frame) {
     const offsetY = frameRow * gridHeight;
     return [offsetX, offsetY];
 }
-//# sourceMappingURL=boxes.js.map

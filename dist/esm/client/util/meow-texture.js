@@ -1,18 +1,28 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import { DebouncedSignal, Signal } from "@orago/lib";
 import potpack from "../../util/potpack.js";
 import { OraSlice } from "./ora-slice.js";
 class QueueChain {
-    source;
-    queue = Promise.resolve();
     constructor(source) {
         this.source = source;
+        this.queue = Promise.resolve();
     }
-    async isDone() {
-        let current;
-        do {
-            current = this.queue;
-            await current;
-        } while (current !== this.queue);
+    isDone() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let current;
+            do {
+                current = this.queue;
+                yield current;
+            } while (current !== this.queue);
+        });
     }
     enqueue(task) {
         const next = this.queue.then(() => task(this.source));
@@ -31,32 +41,39 @@ class SpriteUtility {
             height: 0,
         };
     }
-    static async normalizeBitmap(input) {
-        if (input instanceof HTMLImageElement) {
-            return await createImageBitmap(input);
-        }
-        else if (input instanceof HTMLCanvasElement) {
-            return await createImageBitmap(input);
-        }
-        else if (input instanceof Blob) {
-            return await createImageBitmap(input);
-        }
-        else {
-            return input;
-        }
+    static normalizeBitmap(input) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (input instanceof HTMLImageElement) {
+                return yield createImageBitmap(input);
+            }
+            else if (input instanceof HTMLCanvasElement) {
+                return yield createImageBitmap(input);
+            }
+            else if (input instanceof Blob) {
+                return yield createImageBitmap(input);
+            }
+            else {
+                return input;
+            }
+        });
     }
-    static async sliceBitmap(bitmap, options) {
-        return await createImageBitmap(bitmap, options?.x ?? 0, options?.y ?? 0, options?.width ?? bitmap.width, options?.height ?? bitmap.height);
+    static sliceBitmap(bitmap, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a, _b, _c, _d;
+            return yield createImageBitmap(bitmap, (_a = options === null || options === void 0 ? void 0 : options.x) !== null && _a !== void 0 ? _a : 0, (_b = options === null || options === void 0 ? void 0 : options.y) !== null && _b !== void 0 ? _b : 0, (_c = options === null || options === void 0 ? void 0 : options.width) !== null && _c !== void 0 ? _c : bitmap.width, (_d = options === null || options === void 0 ? void 0 : options.height) !== null && _d !== void 0 ? _d : bitmap.height);
+        });
     }
-    static async getBitmap(texture, id) {
-        const pending = texture.pending_sprites[id];
-        if (pending != undefined) {
-            return pending.bitmap;
-        }
-        else if (texture.sprites[id]) {
-            const sprite_box = texture.sprites[id];
-            return await createImageBitmap(texture.canvas, sprite_box.x, sprite_box.y, sprite_box.width, sprite_box.height);
-        }
+    static getBitmap(texture, id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const pending = texture.pending_sprites[id];
+            if (pending != undefined) {
+                return pending.bitmap;
+            }
+            else if (texture.sprites[id]) {
+                const sprite_box = texture.sprites[id];
+                return yield createImageBitmap(texture.canvas, sprite_box.x, sprite_box.y, sprite_box.width, sprite_box.height);
+            }
+        });
     }
     static resizeCanvas(canvas, ctx, width, height) {
         canvas.width = width;
@@ -81,74 +98,81 @@ class SpriteUtility {
             height: box.height,
         }));
     }
-    static async sliceUrlOrPass(url, tex) {
-        if (url.includes("s=") != true)
-            return;
-        let source = new URL(location.href);
-        try {
-            source = new URL(url);
-        }
-        catch (e) { }
-        const source_str = source.searchParams.get("s");
-        if (source_str == undefined)
-            return;
-        const slice = OraSlice.getValues(source_str);
-        await tex.afterEffect(async ({ bitmap }) => {
-            const sliced = await SpriteUtility.sliceBitmap(bitmap, {
-                x: slice.source.x || 0,
-                y: slice.source.y || 0,
-                width: slice.source.width || bitmap.width,
-                height: slice.source.height || bitmap.height,
-            });
-            await tex.replace(sliced);
+    static sliceUrlOrPass(url, tex) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (url.includes("s=") != true)
+                return;
+            let source = new URL(location.href);
+            try {
+                source = new URL(url);
+            }
+            catch (e) { }
+            const source_str = source.searchParams.get("s");
+            if (source_str == undefined)
+                return;
+            const slice = OraSlice.getValues(source_str);
+            yield tex.afterEffect((_a) => __awaiter(this, [_a], void 0, function* ({ bitmap }) {
+                const sliced = yield SpriteUtility.sliceBitmap(bitmap, {
+                    x: slice.source.x || 0,
+                    y: slice.source.y || 0,
+                    width: slice.source.width || bitmap.width,
+                    height: slice.source.height || bitmap.height,
+                });
+                yield tex.replace(sliced);
+            }));
         });
     }
-    static async injectSprites(texture, options) {
-        let image;
-        if (options.image instanceof HTMLImageElement) {
-            image = options.image;
-        }
-        else {
-            image = new Image();
-            image.src = options.image;
-        }
-        try {
-            await new Promise((resolve, reject) => {
-                let done = false;
-                image.addEventListener("load", () => {
-                    if (done == false)
-                        resolve();
-                    done = true;
-                });
-                image.addEventListener("error", () => {
-                    if (done == false)
-                        reject();
-                    done = true;
-                });
-                setTimeout(() => {
-                    if (done == false)
-                        reject();
-                    done = true;
-                }, options.timeout ?? 10_000);
-            });
-            const promises = [];
-            for (const [key, data] of options.sprites) {
-                const promise = createImageBitmap(image, data.x, data.y, data.width, data.height)
-                    .then((bitmap) => {
-                    texture.addSprite(key, bitmap);
-                })
-                    .catch(() => { });
-                promises.push(promise);
+    static injectSprites(texture, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let image;
+            if (options.image instanceof HTMLImageElement) {
+                image = options.image;
             }
-            await Promise.all(promises);
-        }
-        catch (_) { }
+            else {
+                image = new Image();
+                image.src = options.image;
+            }
+            try {
+                yield new Promise((resolve, reject) => {
+                    var _a;
+                    let done = false;
+                    image.addEventListener("load", () => {
+                        if (done == false)
+                            resolve();
+                        done = true;
+                    });
+                    image.addEventListener("error", () => {
+                        if (done == false)
+                            reject();
+                        done = true;
+                    });
+                    setTimeout(() => {
+                        if (done == false)
+                            reject();
+                        done = true;
+                    }, (_a = options.timeout) !== null && _a !== void 0 ? _a : 10000);
+                });
+                const promises = [];
+                for (const [key, data] of options.sprites) {
+                    const promise = createImageBitmap(image, data.x, data.y, data.width, data.height)
+                        .then((bitmap) => {
+                        texture.addSprite(key, bitmap);
+                    })
+                        .catch(() => { });
+                    promises.push(promise);
+                }
+                yield Promise.all(promises);
+            }
+            catch (_) { }
+        });
     }
 }
 class TextureHandler {
-    canvas = document.createElement("canvas");
-    ctx = this.canvas.getContext("2d");
-    queue = new QueueChain(this);
+    constructor() {
+        this.canvas = document.createElement("canvas");
+        this.ctx = this.canvas.getContext("2d");
+        this.queue = new QueueChain(this);
+    }
     repack(texture) {
         const boxes = SpriteUtility.getBoxes(texture);
         // hard coded padding
@@ -185,18 +209,22 @@ class TextureHandler {
         SpriteUtility.resizeCanvas(texture.canvas, texture.ctx, this.canvas.width, this.canvas.height);
         texture.ctx.drawImage(this.canvas, 0, 0);
     }
-    async getBlob() {
-        return await new Promise((resolve) => this.canvas.toBlob((blob) => {
-            if (!blob) {
-                resolve(new Blob());
-                return;
-            }
-            resolve(blob);
-        }, "image/png"));
+    getBlob() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield new Promise((resolve) => this.canvas.toBlob((blob) => {
+                if (!blob) {
+                    resolve(new Blob());
+                    return;
+                }
+                resolve(blob);
+            }, "image/png"));
+        });
     }
-    async getUrl() {
-        const blob = await this.getBlob();
-        return URL.createObjectURL(blob);
+    getUrl() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const blob = yield this.getBlob();
+            return URL.createObjectURL(blob);
+        });
     }
     /**
      * Draws a section of the canvas onto
@@ -204,46 +232,51 @@ class TextureHandler {
      * @param s - selection
      * @param image
      */
-    async selectionToUrl(texture, s) {
-        SpriteUtility.resizeCanvas(this.canvas, this.ctx, s.width, s.height);
-        this.ctx.drawImage(texture.canvas, s.x, s.y, s.width, s.height, 0, 0, s.width, s.height);
-        return await this.getUrl();
+    selectionToUrl(texture, s) {
+        return __awaiter(this, void 0, void 0, function* () {
+            SpriteUtility.resizeCanvas(this.canvas, this.ctx, s.width, s.height);
+            this.ctx.drawImage(texture.canvas, s.x, s.y, s.width, s.height, 0, 0, s.width, s.height);
+            return yield this.getUrl();
+        });
     }
-    async bitmapToUrl(bitmap) {
-        // await this.queue.enqueue(async (handler) => {
-        this.canvas.width = bitmap.width;
-        this.canvas.height = bitmap.height;
-        this.ctx.drawImage(bitmap, 0, 0);
-        return await this.getUrl();
-        // });
+    bitmapToUrl(bitmap) {
+        return __awaiter(this, void 0, void 0, function* () {
+            // await this.queue.enqueue(async (handler) => {
+            this.canvas.width = bitmap.width;
+            this.canvas.height = bitmap.height;
+            this.ctx.drawImage(bitmap, 0, 0);
+            return yield this.getUrl();
+            // });
+        });
     }
 }
 const texture_handler = new TextureHandler();
 class SpriteRef {
-    texture;
-    id;
-    static Utility = SpriteUtility;
-    queue = new QueueChain(this);
-    bitmap;
     constructor(texture, id) {
         this.texture = texture;
         this.id = id;
+        this.queue = new QueueChain(this);
     }
     /**
      * Applies effect if bitmap is resolved,
      * does nothing if it cannot obtain a bitmap
      */
-    async afterEffect(task) {
-        await this.texture.promise(this.id);
-        this.bitmap ??= await this.getBitmap();
-        const bitmap = this.bitmap;
-        if (bitmap == undefined) {
-            return;
-        }
-        await this.queue.enqueue(async () => await task({
-            sprite: this,
-            bitmap,
-        }));
+    afterEffect(task) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            yield this.texture.promise(this.id);
+            (_a = this.bitmap) !== null && _a !== void 0 ? _a : (this.bitmap = yield this.getBitmap());
+            const bitmap = this.bitmap;
+            if (bitmap == undefined) {
+                return;
+            }
+            yield this.queue.enqueue(() => __awaiter(this, void 0, void 0, function* () {
+                return yield task({
+                    sprite: this,
+                    bitmap,
+                });
+            }));
+        });
     }
     getNormalBitmap() {
         const { texture, id } = this;
@@ -253,33 +286,35 @@ class SpriteRef {
         if (pending != undefined)
             return pending.bitmap;
     }
-    async getBitmap() {
-        const { texture, id } = this;
-        const bitmap_a = this.getNormalBitmap();
-        if (bitmap_a != undefined) {
-            return bitmap_a;
-        }
-        else if (texture.sprites[id]) {
-            const sprite_box = texture.sprites[id];
-            return await createImageBitmap(texture.canvas, sprite_box.x, sprite_box.y, sprite_box.width, sprite_box.height);
-        }
+    getBitmap() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { texture, id } = this;
+            const bitmap_a = this.getNormalBitmap();
+            if (bitmap_a != undefined) {
+                return bitmap_a;
+            }
+            else if (texture.sprites[id]) {
+                const sprite_box = texture.sprites[id];
+                return yield createImageBitmap(texture.canvas, sprite_box.x, sprite_box.y, sprite_box.width, sprite_box.height);
+            }
+        });
     }
     urlCallback(callback) {
         const { texture, id } = this;
-        (async () => {
-            await this.texture.promise(id);
+        (() => __awaiter(this, void 0, void 0, function* () {
+            yield this.texture.promise(id);
             const bitmap = this.getNormalBitmap();
             if (bitmap != undefined) {
-                const url = await texture_handler.bitmapToUrl(bitmap);
+                const url = yield texture_handler.bitmapToUrl(bitmap);
                 callback(url);
                 return;
             }
             else if (texture.sprites[id] != undefined) {
-                const url = await texture_handler.selectionToUrl(this.texture, texture.sprites[id]);
+                const url = yield texture_handler.selectionToUrl(this.texture, texture.sprites[id]);
                 callback(url);
                 return;
             }
-        })();
+        }))();
     }
     getImage() {
         const image = new Image();
@@ -294,14 +329,14 @@ class SpriteRef {
     livingSource() {
         const { id } = this;
         const source = SpriteUtility.blankSource(id);
-        this.texture.promise(id).then(async () => {
+        this.texture.promise(id).then(() => __awaiter(this, void 0, void 0, function* () {
             const { x, y, width, height, data } = this.getSource();
             source.data = data;
             source.x = x;
             source.y = y;
             source.width = width;
             source.height = height;
-        });
+        }));
         return source;
     }
     getSource() {
@@ -354,15 +389,18 @@ class SpriteRef {
                 return false;
         }
     }
-    async replace(input) {
-        this.bitmap = await SpriteUtility.normalizeBitmap(input);
+    replace(input) {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.bitmap = yield SpriteUtility.normalizeBitmap(input);
+        });
     }
 }
+SpriteRef.Utility = SpriteUtility;
 class SpriteStore {
-    records = new Map();
-    lifetime = 30000;
-    debounce = new DebouncedSignal(1000);
     constructor() {
+        this.records = new Map();
+        this.lifetime = 30000;
+        this.debounce = new DebouncedSignal(1000);
         this.debounce.on(() => {
             for (const [id, data] of this.records) {
                 if (performance.now() > data.time + this.lifetime) {
@@ -390,20 +428,18 @@ class SpriteStore {
     }
 }
 class MeowTexture {
-    static Utility = SpriteUtility;
-    static Handler = texture_handler;
-    sprites = {};
-    pending_sprites = {};
-    loading = {};
-    canvas = document.createElement("canvas");
-    ctx = this.canvas.getContext("2d");
-    debounce = new DebouncedSignal(100);
-    store = new SpriteStore();
-    options = {
-        host: "",
-    };
     constructor(options) {
-        if (options?.host) {
+        this.sprites = {};
+        this.pending_sprites = {};
+        this.loading = {};
+        this.canvas = document.createElement("canvas");
+        this.ctx = this.canvas.getContext("2d");
+        this.debounce = new DebouncedSignal(100);
+        this.store = new SpriteStore();
+        this.options = {
+            host: "",
+        };
+        if (options === null || options === void 0 ? void 0 : options.host) {
             this.options.host = options.host;
         }
         this.debounce.on(() => {
@@ -428,6 +464,8 @@ class MeowTexture {
             this.pending_sprites[id] != undefined);
     }
     getUrl(url) {
+        var _a;
+        var _b;
         url = this.resolveUrl(url);
         if (this.exists(url)) {
             return new SpriteRef(this, url);
@@ -436,7 +474,7 @@ class MeowTexture {
             const image = new Image();
             image.src = url;
             image.crossOrigin = "anonymous";
-            this.loading[url] ??= new Signal();
+            (_a = (_b = this.loading)[url]) !== null && _a !== void 0 ? _a : (_b[url] = new Signal());
             new Promise((resolve) => {
                 image.addEventListener("load", () => {
                     resolve();
@@ -447,26 +485,33 @@ class MeowTexture {
             return new SpriteRef(this, url);
         }
     }
-    async addSprite(id, input) {
-        this.loading[id] ??= new Signal();
-        const bitmap = await SpriteUtility.normalizeBitmap(input);
-        this.pending_sprites[id] = { bitmap };
-        this.loading[id].emit();
-        delete this.loading[id];
-        this.debounce.emit();
+    addSprite(id, input) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            var _b;
+            (_a = (_b = this.loading)[id]) !== null && _a !== void 0 ? _a : (_b[id] = new Signal());
+            const bitmap = yield SpriteUtility.normalizeBitmap(input);
+            this.pending_sprites[id] = { bitmap };
+            this.loading[id].emit();
+            delete this.loading[id];
+            this.debounce.emit();
+        });
     }
     removeSprite(id) {
         delete this.sprites[id];
         delete this.pending_sprites[id];
     }
-    async promise(id) {
-        const loading = this.loading[id];
-        if (loading != undefined) {
-            return new Promise((resolve) => {
-                loading.once(resolve);
-            });
-        }
+    promise(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const loading = this.loading[id];
+            if (loading != undefined) {
+                return new Promise((resolve) => {
+                    loading.once(resolve);
+                });
+            }
+        });
     }
 }
+MeowTexture.Utility = SpriteUtility;
+MeowTexture.Handler = texture_handler;
 export { SpriteUtility, TextureHandler, SpriteRef, MeowTexture, SpriteStore };
-//# sourceMappingURL=meow-texture.js.map

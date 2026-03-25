@@ -59,12 +59,13 @@
         // from: ArrayRect = [],
         // to: ArrayRect = []
         ) {
-            const source_array = CanvasRender.getImageArray(source, options?.from ?? [], options?.to ?? []);
+            var _a, _b;
+            const source_array = CanvasRender.getImageArray(source, (_a = options === null || options === void 0 ? void 0 : options.from) !== null && _a !== void 0 ? _a : [], (_b = options === null || options === void 0 ? void 0 : options.to) !== null && _b !== void 0 ? _b : []);
             if (source_array == undefined)
                 return;
             try {
                 let [image, sx, sy, sw, sh, dx, dy, dw, dh] = source_array;
-                if (options?.tint != undefined) {
+                if ((options === null || options === void 0 ? void 0 : options.tint) != undefined) {
                     image = tint_js_1.TintImage.hslAffect(image, options.tint, (ctx) => ctx.drawImage(image, 0, 0));
                 }
                 else {
@@ -90,7 +91,7 @@
             context.arc(x, y, radius, amt * Math.PI, 1.5 * Math.PI, false); //25%
             context.fillStyle = "transparent";
             context.fill();
-            context.lineWidth = strokeWidth ?? (radius - 0.3) * 2;
+            context.lineWidth = strokeWidth !== null && strokeWidth !== void 0 ? strokeWidth : (radius - 0.3) * 2;
             context.strokeStyle = color;
             context.stroke();
             context.restore();
@@ -121,4 +122,3 @@
     }
     exports.CanvasRender = CanvasRender;
 });
-//# sourceMappingURL=render.js.map

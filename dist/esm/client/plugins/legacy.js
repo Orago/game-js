@@ -4,11 +4,10 @@ class LegacySignature extends Component {
 }
 const sig = new LegacySignature();
 export class LegacySystem extends System {
-    world;
-    components = new Set([LegacySignature]);
     constructor(ecs, world) {
         super();
         this.world = world;
+        this.components = new Set([LegacySignature]);
         this.world = world;
     }
     update(entities) {
@@ -18,10 +17,10 @@ export class LegacySystem extends System {
     }
 }
 export class LegacyEntity extends Entity {
-    events = new Emitter();
-    priority = 0;
     constructor(ecs) {
         super();
+        this.events = new Emitter();
+        this.priority = 0;
         ecs.components.add(this, sig);
     }
     ref(fn) {
@@ -33,4 +32,3 @@ export class LegacyEntity extends Entity {
         this.events.emit("render");
     }
 }
-//# sourceMappingURL=legacy.js.map

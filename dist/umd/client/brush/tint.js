@@ -137,10 +137,11 @@
          * Best image color manipulation method
          */
         static hslAffect(size, options, ref) {
+            var _a, _b, _c, _d, _e, _f;
             const hsl = TintImage.normalizeHsl(options);
-            const light = options?.override?.light ?? hsl.light;
-            const saturation = options?.override?.saturation ?? hsl.saturation;
-            const hue = options?.override?.hue ?? hsl.hue;
+            const light = (_b = (_a = options === null || options === void 0 ? void 0 : options.override) === null || _a === void 0 ? void 0 : _a.light) !== null && _b !== void 0 ? _b : hsl.light;
+            const saturation = (_d = (_c = options === null || options === void 0 ? void 0 : options.override) === null || _c === void 0 ? void 0 : _c.saturation) !== null && _d !== void 0 ? _d : hsl.saturation;
+            const hue = (_f = (_e = options === null || options === void 0 ? void 0 : options.override) === null || _e === void 0 ? void 0 : _e.hue) !== null && _f !== void 0 ? _f : hsl.hue;
             this.setupTint(canvas, ctx, size, ref);
             if (typeof light === "number") {
                 this.lightenOverlay(ctx, size, light);
@@ -160,4 +161,3 @@
     }
     exports.TintImage = TintImage;
 });
-//# sourceMappingURL=tint.js.map

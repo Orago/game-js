@@ -18,7 +18,6 @@ export var RenderType;
     RenderType[RenderType["IMAGE"] = 2] = "IMAGE";
 })(RenderType || (RenderType = {}));
 export class RenderingComponent extends Ecs.Component {
-    visuals;
     constructor(visuals) {
         super();
         this.visuals = new Set(visuals);
@@ -32,12 +31,6 @@ var RenderComponentFlagNames;
     RenderComponentFlagNames["POSITION"] = "POSITION";
 })(RenderComponentFlagNames || (RenderComponentFlagNames = {}));
 export class RenderComponent {
-    static Flags = {
-        [RenderComponentFlagNames.NONE]: 0,
-        [RenderComponentFlagNames.ENGINE_OFFSET]: 1 << 0,
-        [RenderComponentFlagNames.ENGINE_SCALE]: 1 << 1,
-        [RenderComponentFlagNames.POSITION]: 1 << 2,
-    };
     static isValidFlag(name) {
         return (RenderComponent.Flags[name] !=
             undefined);
@@ -71,13 +64,13 @@ export class RenderComponent {
             }
         }
     }
-    transform = new Transform();
-    // rotation: [x: number, y: number] = [0, 0];
-    // scale: [x: number, y: number] = [1, 1];
-    // translate: [x: number, y: number, z: number] = [0, 0, 0];
-    layer = 1;
-    flags = 0;
     constructor(options) {
+        this.transform = new Transform();
+        // rotation: [x: number, y: number] = [0, 0];
+        // scale: [x: number, y: number] = [1, 1];
+        // translate: [x: number, y: number, z: number] = [0, 0, 0];
+        this.layer = 1;
+        this.flags = 0;
         if (options != undefined) {
             this.update(options);
         }
@@ -86,32 +79,32 @@ export class RenderComponent {
         this.flags = RenderComponent.makeFlags(flags);
     }
     update(options) {
-        if (options?.layer != undefined) {
+        if ((options === null || options === void 0 ? void 0 : options.layer) != undefined) {
             this.layer = options.layer;
         }
-        if (options?.flags != undefined) {
+        if ((options === null || options === void 0 ? void 0 : options.flags) != undefined) {
             this.flags = RenderComponent.makeFlags(options.flags);
         }
-        if (options?.transform != undefined) {
+        if ((options === null || options === void 0 ? void 0 : options.transform) != undefined) {
             this.transform = new Transform();
             options.transform(this.transform);
         }
     }
 }
+RenderComponent.Flags = {
+    [RenderComponentFlagNames.NONE]: 0,
+    [RenderComponentFlagNames.ENGINE_OFFSET]: 1 << 0,
+    [RenderComponentFlagNames.ENGINE_SCALE]: 1 << 1,
+    [RenderComponentFlagNames.POSITION]: 1 << 2,
+};
 export class TextRenderComponent extends RenderComponent {
-    text;
-    size;
-    cache_canvas;
-    cache_ctx;
-    cache_key;
-    font = "sans-serif";
-    options;
-    width = 0;
-    height = 0;
     constructor(text, size, options) {
         super(options);
         this.text = text;
         this.size = size;
+        this.font = "sans-serif";
+        this.width = 0;
+        this.height = 0;
         this.options = {
             font: "sans-serif",
             size,
@@ -159,9 +152,6 @@ export class TextRenderComponent extends RenderComponent {
     }
 }
 export class RectangleRenderComponent extends RenderComponent {
-    width;
-    height;
-    color;
     constructor(width, height = width, options) {
         super(options);
         this.width = width;
@@ -177,10 +167,6 @@ export class RectangleRenderComponent extends RenderComponent {
     }
 }
 export class ImageRenderComponent extends RenderComponent {
-    image;
-    opacity;
-    source;
-    destination;
     constructor(image) {
         super();
         this.image = image;
@@ -188,14 +174,11 @@ export class ImageRenderComponent extends RenderComponent {
     }
 }
 export class RenderSystem extends Ecs.System {
-    engine;
-    components = new Set([RenderingComponent]);
-    clear = true;
-    canvas;
-    ctx;
     constructor(engine) {
         super();
         this.engine = engine;
+        this.components = new Set([RenderingComponent]);
+        this.clear = true;
         this.canvas = engine.brush.canvas;
         this.ctx = engine.brush.ctx;
     }
@@ -294,7 +277,8 @@ export class RenderSystem extends Ecs.System {
         this.ctx.restore();
     }
     drawRectangle(comp) {
-        this.ctx.fillStyle = comp.color ?? "black";
+        var _a;
+        this.ctx.fillStyle = (_a = comp.color) !== null && _a !== void 0 ? _a : "black";
         this.ctx.fillRect(0, 0, comp.width, comp.height);
     }
     drawText(comp) {
@@ -302,8 +286,9 @@ export class RenderSystem extends Ecs.System {
         this.ctx.drawImage(canvas, 0, 0);
     }
     drawImage(comp) {
-        const src = comp.source ?? [0, 0, comp.image.width, comp.image.height];
-        const dst = comp.destination ?? [0, 0, src[2], src[3]];
+        var _a, _b;
+        const src = (_a = comp.source) !== null && _a !== void 0 ? _a : [0, 0, comp.image.width, comp.image.height];
+        const dst = (_b = comp.destination) !== null && _b !== void 0 ? _b : [0, 0, src[2], src[3]];
         if (comp.opacity !== undefined) {
             this.ctx.globalAlpha = comp.opacity;
         }
@@ -321,13 +306,12 @@ export class RenderParticleGenerator extends Ecs.Component {
     generator(callback) { }
 }
 export class RenderParticleSystem extends Ecs.System {
-    components = new Set([
-        PositionComponent,
-        RenderParticleGenerator,
-    ]);
     constructor() {
         super();
+        this.components = new Set([
+            PositionComponent,
+            RenderParticleGenerator,
+        ]);
     }
     update(entities, dirty) { }
 }
-//# sourceMappingURL=ecs-renderer.js.map

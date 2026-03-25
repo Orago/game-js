@@ -3,13 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Ticker = exports.FPS = void 0;
 const lib_1 = require("@orago/lib");
 class FPS {
-    value = 0;
-    currentIndex = 0;
-    lastTick = 0;
-    samples = [];
-    sampleSize;
     constructor(sampleSize) {
-        this.sampleSize = sampleSize ?? 60;
+        this.value = 0;
+        this.currentIndex = 0;
+        this.lastTick = 0;
+        this.samples = [];
+        this.sampleSize = sampleSize !== null && sampleSize !== void 0 ? sampleSize : 60;
     }
     tick() {
         if (this.lastTick == null) {
@@ -35,19 +34,15 @@ class FPS {
 }
 exports.FPS = FPS;
 class Ticker {
-    tick = new lib_1.Signal();
-    frame = -1;
-    paused = true;
-    RafRef;
-    fpsLimit = -1;
-    actualFps = -1;
-    delay;
-    maxFramesPerSecond;
-    start_time = 0;
-    timestamp = 0;
-    delta = 0;
-    _fpsHandler;
     constructor(fpsLimit) {
+        this.tick = new lib_1.Signal();
+        this.frame = -1;
+        this.paused = true;
+        this.fpsLimit = -1;
+        this.actualFps = -1;
+        this.start_time = 0;
+        this.timestamp = 0;
+        this.delta = 0;
         this.fpsLimit = fpsLimit;
         this.delay = 1000 / fpsLimit;
         this._fpsHandler = new FPS();
@@ -116,4 +111,3 @@ class Ticker {
 }
 exports.Ticker = Ticker;
 exports.default = Ticker;
-//# sourceMappingURL=repeater.js.map

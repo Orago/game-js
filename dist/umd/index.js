@@ -57,4 +57,3 @@ var __importStar = (this && this.__importStar) || (function () {
     Object.defineProperty(exports, "Rect", { enumerable: true, get: function () { return shapes_js_1.Rect; } });
     Object.defineProperty(exports, "Bound", { enumerable: true, get: function () { return shapes_js_1.Bound; } });
 });
-//# sourceMappingURL=index.js.map

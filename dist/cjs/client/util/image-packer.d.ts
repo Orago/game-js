@@ -11,7 +11,7 @@ export declare class ImagePacker {
             width: number;
             height: number;
             fill: number;
-            boxes: (TImageBox & import("@orago/lib").Point & import("@orago/lib").Size)[];
+            boxes: (TImageBox & import("@orago/lib/src/math.js").Point & import("@orago/lib/src/math.js").Size)[];
         };
     };
     static pack(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, boxes: TImageBox[], padding?: number): {
@@ -20,7 +20,7 @@ export declare class ImagePacker {
             width: number;
             height: number;
             fill: number;
-            boxes: (TImageBox & import("@orago/lib").Point & import("@orago/lib").Size)[];
+            boxes: (TImageBox & import("@orago/lib/src/math.js").Point & import("@orago/lib/src/math.js").Size)[];
         };
     };
 }

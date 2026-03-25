@@ -22,20 +22,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         InputSource[InputSource["GAMEPAD"] = 4] = "GAMEPAD";
     })(InputSource || (exports.InputSource = InputSource = {}));
     class InputMap {
-        current_maps = new Map();
-        current_states = {};
-        active = true;
-        onceing = new Set();
-        /**
-         * This should only be modified by the engine itself
-         */
-        check_hook;
         /**
          *
          * @param input
          * @param parent - unused
          */
         constructor(input) {
+            this.current_maps = new Map();
+            this.current_states = {};
+            this.active = true;
+            this.onceing = new Set();
             if (typeof input === "object") {
                 const mappings = Object.entries(input);
                 for (const [name, data] of mappings) {
@@ -89,13 +85,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     }
     exports.InputMap = InputMap;
     class InputMapHandler {
-        input_map;
-        keyboard;
-        cursor;
-        hooks = {};
-        allowed_gamepads = [];
         constructor(input_map) {
             this.input_map = input_map;
+            this.hooks = {};
+            this.allowed_gamepads = [];
             this.input_map = input_map;
             this.input_map.check_hook = () => {
                 this.tick();
@@ -193,7 +186,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             for (const [name, data] of this.input_map.current_maps) {
                 if (data.gamepad != undefined) {
                     for (const button of data.gamepad) {
-                        const is_active = gamepad_js_1.Gamepads.TestAction(gamepads, button, data?.gamepad_deadzone);
+                        const is_active = gamepad_js_1.Gamepads.TestAction(gamepads, button, data === null || data === void 0 ? void 0 : data.gamepad_deadzone);
                         if (is_active) {
                             this.input_map.addSource(name, InputSource.GAMEPAD);
                         }
@@ -219,4 +212,3 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     }
     exports.InputMapHandler = InputMapHandler;
 });
-//# sourceMappingURL=input-map.js.map

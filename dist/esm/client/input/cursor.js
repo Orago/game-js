@@ -35,8 +35,7 @@ const cursorActionDict = {
     [CursorButton.TOUCH]: "Touch",
 };
 const reverseCursorActionDict = Object.fromEntries(Object.entries(cursorActionDict).map((e) => [e[1], Number(e[0])]));
-export default class Cursor {
-    static Button = CursorButton;
+class Cursor {
     // private static actionDict = cursorActionDict;
     // private static reverseActionDict = reverseCursorActionDict;
     static buttonToAction(value) {
@@ -47,24 +46,33 @@ export default class Cursor {
             ? CursorButton.TOUCH
             : event.button;
     }
-    // private static actionToButtonID(value: MouseButton) {
-    // 	return reverseCursorActionDict[value];
-    // }
-    element;
-    events = new Emitter();
-    // state management
-    position = { x: 0, y: 0 };
-    start_position = { x: 0, y: 0 };
-    end_position = { x: 0, y: 0 };
-    buttons = new Set();
-    mouse_down = false;
-    touching = false;
-    start_time = 0;
-    // systems management
-    alive = false;
-    bound_events = new Set();
     // private _mobile_mode?: 0 | 2;
     constructor(element = document.body) {
+        this.events = new Emitter();
+        // state management
+        this.position = { x: 0, y: 0 };
+        this.start_position = { x: 0, y: 0 };
+        this.end_position = { x: 0, y: 0 };
+        this.buttons = new Set();
+        this.mouse_down = false;
+        this.touching = false;
+        this.start_time = 0;
+        // systems management
+        this.alive = false;
+        this.bound_events = new Set();
+        this.on = {
+            click: (e) => e.preventDefault(),
+            contextmenu: (e) => e.preventDefault(),
+            mousemove: (e) => e instanceof MouseEvent &&
+                this.events.emit("move", e.clientX, e.clientY),
+            touchmove: (e) => isTouchEvent(e) &&
+                this.events.emit("move", e.touches[0].clientX, e.touches[0].clientY),
+            mouseup: (e) => this.events.emit("end", e),
+            touchend: (e) => (e.preventDefault(),
+                isTouchEvent(e) && this.events.emit("end", e.changedTouches[0])),
+            mousedown: (e) => this.events.emit("start", e),
+            touchstart: (e) => isTouchEvent(e) && this.events.emit("start", e.touches[0]),
+        };
         this.element = element;
         this.reset();
     }
@@ -143,18 +151,6 @@ export default class Cursor {
         this.toggleButton(button_id, false);
         this.events.emit("release");
     }
-    on = {
-        click: (e) => e.preventDefault(),
-        contextmenu: (e) => e.preventDefault(),
-        mousemove: (e) => e instanceof MouseEvent &&
-            this.events.emit("move", e.clientX, e.clientY),
-        touchmove: (e) => isTouchEvent(e) &&
-            this.events.emit("move", e.touches[0].clientX, e.touches[0].clientY),
-        mouseup: (e) => this.events.emit("end", e),
-        touchend: (e) => (e.preventDefault(),
-            isTouchEvent(e) && this.events.emit("end", e.changedTouches[0])),
-        mousedown: (e) => this.events.emit("start", e),
-        touchstart: (e) => isTouchEvent(e) && this.events.emit("start", e.touches[0]),
-    };
 }
-//# sourceMappingURL=cursor.js.map
+Cursor.Button = CursorButton;
+export default Cursor;

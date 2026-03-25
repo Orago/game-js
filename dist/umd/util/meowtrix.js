@@ -462,9 +462,10 @@
                 return matrices.reduce((acc, m) => Meowtrix.multiply(acc, m));
             }
         }
-        matrix = Meowtrix.identity();
-        stack = [];
-        constructor() { }
+        constructor() {
+            this.matrix = Meowtrix.identity();
+            this.stack = [];
+        }
         multiply(matrixB) {
             this.stack.push(Meowtrix.format(matrixB));
             return this;
@@ -498,9 +499,10 @@
             return this;
         }
         translate(options) {
-            const x = options.x ?? 0;
-            const y = options.y ?? 0;
-            const z = options.z ?? 0;
+            var _a, _b, _c;
+            const x = (_a = options.x) !== null && _a !== void 0 ? _a : 0;
+            const y = (_b = options.y) !== null && _b !== void 0 ? _b : 0;
+            const z = (_c = options.z) !== null && _c !== void 0 ? _c : 0;
             this.stack.push(Meowtrix.translate3d(x, y, z));
             return this;
         }
@@ -511,7 +513,6 @@
     }
     exports.Meowtrix = Meowtrix;
     class Transform {
-        matrix;
         static exportMatrix(matrix) {
             const exported = {
                 position: Meowtrix.getPosition(matrix),
@@ -521,18 +522,17 @@
             };
             return exported;
         }
-        position = { x: 0, y: 0, z: 0 };
-        scale = { x: 1, y: 1, z: 1 };
-        rotation = { z: 0 }; // (You can extend to 3D if needed)
-        origin = {
-            x: 0,
-            y: 0,
-        };
-        rotation_origin;
-        // matrix: Matrix3D = Meowtrix.identity();
-        dirty = true;
         constructor(matrix = Meowtrix.identity()) {
             this.matrix = matrix;
+            this.position = { x: 0, y: 0, z: 0 };
+            this.scale = { x: 1, y: 1, z: 1 };
+            this.rotation = { z: 0 }; // (You can extend to 3D if needed)
+            this.origin = {
+                x: 0,
+                y: 0,
+            };
+            // matrix: Matrix3D = Meowtrix.identity();
+            this.dirty = true;
         }
         import(options) {
             this.position = {
@@ -559,18 +559,19 @@
             return this;
         }
         export() {
+            var _a, _b, _c, _d;
             const exported = {
                 position: [this.position.x, this.position.y, this.position.z],
                 scale: [this.scale.x, this.scale.y, this.scale.z],
                 rotation: [0, 0, this.rotation.z],
                 origin: [0, 0],
             };
-            if (this.rotation_origin?.x != undefined) {
-                exported.rotation_origin ??= [0, 0];
+            if (((_a = this.rotation_origin) === null || _a === void 0 ? void 0 : _a.x) != undefined) {
+                (_b = exported.rotation_origin) !== null && _b !== void 0 ? _b : (exported.rotation_origin = [0, 0]);
                 exported.rotation_origin[0] = this.rotation_origin.x;
             }
-            if (this.rotation_origin?.y != undefined) {
-                exported.rotation_origin ??= [0, 0];
+            if (((_c = this.rotation_origin) === null || _c === void 0 ? void 0 : _c.y) != undefined) {
+                (_d = exported.rotation_origin) !== null && _d !== void 0 ? _d : (exported.rotation_origin = [0, 0]);
                 exported.rotation_origin[1] = this.rotation_origin.y;
             }
             return exported;
@@ -582,13 +583,14 @@
          * Recompute the matrix only when dirty.
          */
         updateMatrix() {
+            var _a, _b, _c, _d;
             if (!this.dirty) {
                 return;
             }
             const t = Meowtrix.translate3d(this.position.x, this.position.y, this.position.z);
             let r;
-            const px = (this.rotation_origin?.x ?? this.origin.x) * this.scale.x;
-            const py = (this.rotation_origin?.y ?? this.origin.y) * this.scale.y;
+            const px = ((_b = (_a = this.rotation_origin) === null || _a === void 0 ? void 0 : _a.x) !== null && _b !== void 0 ? _b : this.origin.x) * this.scale.x;
+            const py = ((_d = (_c = this.rotation_origin) === null || _c === void 0 ? void 0 : _c.y) !== null && _d !== void 0 ? _d : this.origin.y) * this.scale.y;
             // Order matters: move back * rotation * move to origin
             r = Meowtrix.combine(Meowtrix.translate(px, py), // move to
             Meowtrix.rotateZ(this.rotation.z), // rotate
@@ -645,10 +647,11 @@
             return this;
         }
         setRotationOrigin(x, y) {
+            var _a;
             if (this.rotation_origin == undefined ||
                 x != this.rotation_origin.x ||
                 y != this.rotation_origin.y) {
-                this.rotation_origin ??= {};
+                (_a = this.rotation_origin) !== null && _a !== void 0 ? _a : (this.rotation_origin = {});
                 this.rotation_origin.x = x;
                 this.rotation_origin.y = y;
                 this.dirty = true;
@@ -699,4 +702,3 @@
     }
     exports.MeowtrixDom = MeowtrixDom;
 });
-//# sourceMappingURL=meowtrix.js.map

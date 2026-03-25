@@ -2,43 +2,43 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ObjectManager = exports.EngineObject = exports.PluginManager = exports.EnginePlugin = void 0;
 class EnginePlugin {
-    order;
     constructor() { }
 }
 exports.EnginePlugin = EnginePlugin;
 class PluginManager {
-    engine;
-    list = new Set();
-    /** Handling order */
-    ordered_list = [];
-    /** Shouldn't be accessed outside of engine */
-    temp0 = {
-        render: [],
-        update: [],
-    };
     constructor(engine) {
         this.engine = engine;
+        this.list = new Set();
+        /** Handling order */
+        this.ordered_list = [];
+        /** Shouldn't be accessed outside of engine */
+        this.temp0 = {
+            render: [],
+            update: [],
+        };
         this.engine = engine;
     }
     /**
      * Rebuilds the plugin list
      */
     changed() {
-        this.ordered_list = Array.from(this.list.values()).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        this.ordered_list = Array.from(this.list.values()).sort((a, b) => { var _a, _b; return ((_a = a.order) !== null && _a !== void 0 ? _a : 0) - ((_b = b.order) !== null && _b !== void 0 ? _b : 0); });
     }
     add(plugin) {
+        var _a;
         if (this.list.has(plugin)) {
             return;
         }
-        plugin.onAdd?.(this.engine);
+        (_a = plugin.onAdd) === null || _a === void 0 ? void 0 : _a.call(plugin, this.engine);
         this.list.add(plugin);
         this.changed();
     }
     remove(plugin) {
+        var _a;
         if (this.list.has(plugin) != true) {
             return;
         }
-        plugin.onRemove?.(this.engine);
+        (_a = plugin.onRemove) === null || _a === void 0 ? void 0 : _a.call(plugin, this.engine);
         this.list.delete(plugin);
         this.changed();
     }
@@ -50,40 +50,40 @@ class PluginManager {
 }
 exports.PluginManager = PluginManager;
 class EngineObject {
-    order;
     constructor() { }
 }
 exports.EngineObject = EngineObject;
 class ObjectManager {
-    engine;
-    list = new Set();
-    /** Handling order */
-    ordered_list = [];
-    /** Shouldn't be accessed outside of engine */
-    temp0 = {
-        render: [],
-        update: [],
-    };
     constructor(engine) {
         this.engine = engine;
+        this.list = new Set();
+        /** Handling order */
+        this.ordered_list = [];
+        /** Shouldn't be accessed outside of engine */
+        this.temp0 = {
+            render: [],
+            update: [],
+        };
         this.engine = engine;
     }
     changed() {
-        this.ordered_list = Array.from(this.list.values()).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        this.ordered_list = Array.from(this.list.values()).sort((a, b) => { var _a, _b; return ((_a = a.order) !== null && _a !== void 0 ? _a : 0) - ((_b = b.order) !== null && _b !== void 0 ? _b : 0); });
     }
     add(value) {
+        var _a;
         if (this.list.has(value)) {
             return;
         }
-        value.onAdd?.(this.engine);
+        (_a = value.onAdd) === null || _a === void 0 ? void 0 : _a.call(value, this.engine);
         this.list.add(value);
         this.changed();
     }
     remove(value) {
+        var _a;
         if (this.list.has(value) != true) {
             return;
         }
-        value.onRemove?.(this.engine);
+        (_a = value.onRemove) === null || _a === void 0 ? void 0 : _a.call(value, this.engine);
         this.list.delete(value);
         this.changed();
     }
@@ -94,4 +94,3 @@ class ObjectManager {
     }
 }
 exports.ObjectManager = ObjectManager;
-//# sourceMappingURL=base.js.map

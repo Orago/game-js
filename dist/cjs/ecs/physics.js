@@ -4,8 +4,6 @@ exports.HitDetectionSystem = exports.HurtboxComponent = exports.HitboxComponent 
 const ecs_1 = require("@orago/ecs");
 const lib_1 = require("@orago/lib");
 class PositionComponent extends ecs_1.Component {
-    x;
-    y;
     constructor(x, y) {
         super();
         this.x = x;
@@ -28,26 +26,23 @@ class PositionComponent extends ecs_1.Component {
 }
 exports.PositionComponent = PositionComponent;
 class VelocityComponent extends ecs_1.Component {
-    x;
-    y;
-    drag = {
-        x: 0,
-        y: 0,
-    };
-    gravity = {
-        x: 0,
-        y: 0,
-    };
     constructor(velocity) {
+        var _a, _b;
         super();
-        this.x = velocity?.x ?? 0;
-        this.y = velocity?.y ?? 0;
+        this.drag = {
+            x: 0,
+            y: 0,
+        };
+        this.gravity = {
+            x: 0,
+            y: 0,
+        };
+        this.x = (_a = velocity === null || velocity === void 0 ? void 0 : velocity.x) !== null && _a !== void 0 ? _a : 0;
+        this.y = (_b = velocity === null || velocity === void 0 ? void 0 : velocity.y) !== null && _b !== void 0 ? _b : 0;
     }
 }
 exports.VelocityComponent = VelocityComponent;
 class BoxComponent extends ecs_1.Component {
-    width;
-    height;
     constructor(width, height) {
         super();
         this.width = width;
@@ -56,14 +51,14 @@ class BoxComponent extends ecs_1.Component {
 }
 exports.BoxComponent = BoxComponent;
 class PhysicsSystem extends ecs_1.System {
-    components = new Set([PositionComponent, VelocityComponent]);
-    priority = 100;
-    gravity = {
-        x: 0,
-        y: 0,
-    };
     constructor() {
         super();
+        this.components = new Set([PositionComponent, VelocityComponent]);
+        this.priority = 100;
+        this.gravity = {
+            x: 0,
+            y: 0,
+        };
     }
     tickEntity(entity) {
         const position = entity.components.get(PositionComponent);
@@ -83,48 +78,42 @@ class PhysicsSystem extends ecs_1.System {
 }
 exports.PhysicsSystem = PhysicsSystem;
 class HitboxComponent extends ecs_1.Component {
-    boxes;
-    active;
-    tags;
-    damage;
-    knockback;
     constructor(boxes, options) {
         super();
         this.boxes = boxes;
-        this.active = options?.active != false;
-        if (options?.knockback != undefined) {
+        this.active = (options === null || options === void 0 ? void 0 : options.active) != false;
+        if ((options === null || options === void 0 ? void 0 : options.knockback) != undefined) {
             this.knockback = options.knockback;
         }
-        if (options?.tags != undefined) {
+        if ((options === null || options === void 0 ? void 0 : options.tags) != undefined) {
             this.tags = options.tags;
         }
-        if (options?.damage != undefined) {
+        if ((options === null || options === void 0 ? void 0 : options.damage) != undefined) {
             this.damage = options.damage;
         }
     }
 }
 exports.HitboxComponent = HitboxComponent;
 class HurtboxComponent extends ecs_1.Component {
-    boxes;
-    active;
-    tags;
-    invincible;
     constructor(boxes, options) {
         super();
         this.boxes = boxes;
-        this.active = options?.active != false;
-        if (options?.tags != undefined) {
+        this.active = (options === null || options === void 0 ? void 0 : options.active) != false;
+        if ((options === null || options === void 0 ? void 0 : options.tags) != undefined) {
             this.tags = options.tags;
         }
-        if (options?.invincible != undefined) {
+        if ((options === null || options === void 0 ? void 0 : options.invincible) != undefined) {
             this.invincible = options.invincible;
         }
     }
 }
 exports.HurtboxComponent = HurtboxComponent;
 class HitDetectionSystem extends ecs_1.System {
-    components = new Set([PositionComponent]);
-    hit = new lib_1.Signal();
+    constructor() {
+        super(...arguments);
+        this.components = new Set([PositionComponent]);
+        this.hit = new lib_1.Signal();
+    }
     update(entities) {
         const hitboxes = [];
         const hurtboxes = [];
@@ -189,4 +178,3 @@ class HitDetectionSystem extends ecs_1.System {
     }
 }
 exports.HitDetectionSystem = HitDetectionSystem;
-//# sourceMappingURL=physics.js.map

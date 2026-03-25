@@ -47,4 +47,3 @@ var shapes_js_1 = require("./util/shapes.js");
 Object.defineProperty(exports, "Box", { enumerable: true, get: function () { return shapes_js_1.Box; } });
 Object.defineProperty(exports, "Rect", { enumerable: true, get: function () { return shapes_js_1.Rect; } });
 Object.defineProperty(exports, "Bound", { enumerable: true, get: function () { return shapes_js_1.Bound; } });
-//# sourceMappingURL=index.js.map
