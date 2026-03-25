@@ -4,25 +4,26 @@
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "../index.js", "../util/image-packer.js", "@orago/ecs", "../../ecs/physics.js", "@orago/lib/math"], factory);
+        define(["require", "exports", "@orago/ecs", "@orago/lib/math", "../../ecs/physics.js", "../index.js", "../util/image-packer.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.WGLParticleSystem = exports.ParticleComponent = void 0;
+    const ecs_1 = require("@orago/ecs");
+    const math_1 = require("@orago/lib/math");
+    const physics_js_1 = require("../../ecs/physics.js");
     const index_js_1 = require("../index.js");
     const image_packer_js_1 = require("../util/image-packer.js");
-    const ecs_1 = require("@orago/ecs");
-    const physics_js_1 = require("../../ecs/physics.js");
-    const math_1 = require("@orago/lib/math");
     class ParticleCache {
-        constructor() {
-            this.sprites = new Set();
-            this.indexed_sprites = new Map();
-            this.id_matches = new Map();
-        }
+        sprites = new Set();
+        indexed_sprites = new Map();
+        id_matches = new Map();
     }
     class ParticleComponent extends ecs_1.Component {
+        image;
+        source;
+        particle_id;
         constructor(image, source = [
             0,
             0,
@@ -41,15 +42,17 @@
     // 	}
     // }
     class WGLParticleSystem extends ecs_1.System {
+        engine;
+        wgl = new index_js_1.WGL.WglProgram();
+        cache = new ParticleCache();
+        components = new Set([
+            physics_js_1.PositionComponent,
+            ParticleComponent,
+        ]);
+        atlas;
         constructor(engine) {
             super();
             this.engine = engine;
-            this.wgl = new index_js_1.WGL.WglProgram();
-            this.cache = new ParticleCache();
-            this.components = new Set([
-                physics_js_1.PositionComponent,
-                ParticleComponent,
-            ]);
         }
         update(entities) {
             const instances = this.wgl.instances;
@@ -73,7 +76,12 @@
                     }
                     instances.updateSelection(instances.getIndex(c_particle.particle_id), {
                         source,
-                        destination: [position.x, position.y, (0, math_1.random)(1, 50), (0, math_1.random)(1, 100)],
+                        destination: [
+                            position.x,
+                            position.y,
+                            (0, math_1.random)(1, 50),
+                            (0, math_1.random)(1, 100),
+                        ],
                     });
                 }
             }
@@ -94,7 +102,7 @@
                 width: e.width,
                 height: e.height,
             }));
-            const packed = image_packer_js_1.ImagePacker.pack(boxes, 1);
+            const packed = image_packer_js_1.ImagePacker.createPack(boxes, 1);
             this.atlas = new index_js_1.WGL.TextureAtlas(this.wgl.gl, packed.canvas);
             this.wgl.setTexture(this.atlas);
             for (const value of packed.packed.boxes) {
@@ -120,3 +128,4 @@
     }
     exports.WGLParticleSystem = WGLParticleSystem;
 });
+//# sourceMappingURL=particles.js.map

@@ -20,6 +20,37 @@ exports.Gamepads = void 0;
  */
 const difference = (first, second) => first - second > 0 ? first - second : (first - second) * -1;
 class Gamepads {
+    static mappedButtons = {
+        "Left-Axis-Up": -16,
+        "Left-Axis-Down": -15,
+        "Left-Axis-Left": -14,
+        "Left-Axis-Right": -13,
+        "Right-Axis-Up": -12,
+        "Right-Axis-Down": -11,
+        "Right-Axis-Left": -10,
+        "Right-Axis-Right": -9,
+        "Left-Axis-X": -8,
+        "Left-Axis-Y": -7,
+        "Right-Axis-X": -6,
+        "Right-Axis-Y": -5,
+        "Button-1": 0,
+        "Button-2": 1,
+        "Button-3": 2,
+        "Button-4": 3,
+        "Left-Shoulder": 4,
+        "Right-Shoulder": 5,
+        "Left-Trigger": 6,
+        "Right-Trigger": 7,
+        View: 8,
+        Menu: 9,
+        "Left-Stick": 10,
+        "Right-Stick": 11,
+        "Pad-Up": 12,
+        "Pad-Down": 13,
+        "Pad-Left": 14,
+        "Pad-Right": 15,
+        Home: 16,
+    };
     static allowed() {
         return "navigator" in window && "getGamepads" in window["navigator"];
     }
@@ -33,7 +64,6 @@ class Gamepads {
         return Gamepads.getAll().filter((e) => e != null);
     }
     static TestAction(gamepads, action, minimum = 0.6) {
-        var _a;
         if (gamepads == null || gamepads.length == 0) {
             return false;
         }
@@ -97,15 +127,14 @@ class Gamepads {
                     }
                 }
             }
-            const button = (_a = gamepad === null || gamepad === void 0 ? void 0 : gamepad.buttons) === null || _a === void 0 ? void 0 : _a[index];
-            if ((button === null || button === void 0 ? void 0 : button.pressed) == true && (button === null || button === void 0 ? void 0 : button.value) > minimum) {
+            const button = gamepad?.buttons?.[index];
+            if (button?.pressed == true && button?.value > minimum) {
                 return true;
             }
         }
         return false;
     }
     static TestButton(gamepads, index, minimum = 0.6) {
-        var _a;
         if (gamepads == null || gamepads.length == 0) {
             return false;
         }
@@ -113,8 +142,8 @@ class Gamepads {
             if (gamepad == null) {
                 continue;
             }
-            const button = (_a = gamepad === null || gamepad === void 0 ? void 0 : gamepad.buttons) === null || _a === void 0 ? void 0 : _a[index];
-            if ((button === null || button === void 0 ? void 0 : button.pressed) == true && (button === null || button === void 0 ? void 0 : button.value) > minimum) {
+            const button = gamepad?.buttons?.[index];
+            if (button?.pressed == true && button?.value > minimum) {
                 return true;
             }
         }
@@ -122,34 +151,4 @@ class Gamepads {
     }
 }
 exports.Gamepads = Gamepads;
-Gamepads.mappedButtons = {
-    "Left-Axis-Up": -16,
-    "Left-Axis-Down": -15,
-    "Left-Axis-Left": -14,
-    "Left-Axis-Right": -13,
-    "Right-Axis-Up": -12,
-    "Right-Axis-Down": -11,
-    "Right-Axis-Left": -10,
-    "Right-Axis-Right": -9,
-    "Left-Axis-X": -8,
-    "Left-Axis-Y": -7,
-    "Right-Axis-X": -6,
-    "Right-Axis-Y": -5,
-    "Button-1": 0,
-    "Button-2": 1,
-    "Button-3": 2,
-    "Button-4": 3,
-    "Left-Shoulder": 4,
-    "Right-Shoulder": 5,
-    "Left-Trigger": 6,
-    "Right-Trigger": 7,
-    View: 8,
-    Menu: 9,
-    "Left-Stick": 10,
-    "Right-Stick": 11,
-    "Pad-Up": 12,
-    "Pad-Down": 13,
-    "Pad-Left": 14,
-    "Pad-Right": 15,
-    Home: 16,
-};
+//# sourceMappingURL=gamepad.js.map

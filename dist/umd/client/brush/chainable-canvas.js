@@ -12,13 +12,14 @@
     exports.ChainableCanvas = void 0;
     const render_js_1 = require("./render.js");
     class ChainableConfig {
+        canvas = document.createElement("canvas");
+        ctx;
+        color = "black";
+        x = 0;
+        y = 0;
+        w = 0;
+        h = 0;
         constructor(data) {
-            this.canvas = document.createElement("canvas");
-            this.color = "black";
-            this.x = 0;
-            this.y = 0;
-            this.w = 0;
-            this.h = 0;
             this.ctx = data.ctx;
             if (data.canvas != null)
                 this.canvas = data.canvas;
@@ -41,11 +42,14 @@
      * ! Should not be used on it"s own
      */
     class ChainableCanvas {
+        stack = [];
+        last_config;
+        canvas;
+        ctx;
         constructor(brush) {
-            this.stack = [];
             this.stack.push(new ChainableConfig({
                 canvas: brush.canvas,
-                ctx: brush.ctx
+                ctx: brush.ctx,
             }));
             this.last_config = this.getConfig();
             this.canvas = this.last_config.canvas;
@@ -60,10 +64,22 @@
         getConfig() {
             return this.stack[this.stack.length - 1];
         }
-        x(x) { this.last_config.x = x; return this; }
-        y(y) { this.last_config.y = y; return this; }
-        w(w) { this.last_config.w = w; return this; }
-        h(h) { this.last_config.h = h; return this; }
+        x(x) {
+            this.last_config.x = x;
+            return this;
+        }
+        y(y) {
+            this.last_config.y = y;
+            return this;
+        }
+        w(w) {
+            this.last_config.w = w;
+            return this;
+        }
+        h(h) {
+            this.last_config.h = h;
+            return this;
+        }
         pos(x, y) {
             const config = this.last_config;
             if (typeof x == "number")
@@ -87,18 +103,17 @@
         // get canvas() { return this.last_config.canvas; }
         // get ctx() { return this.last_config.ctx; }
         rotate(rotation, center) {
-            var _a, _b;
             const config = this.getConfig();
             if (typeof center != "object") {
                 center = {
                     x: config.w / 2,
-                    y: config.h / 2
+                    y: config.h / 2,
                 };
             }
-            (_a = center.x) !== null && _a !== void 0 ? _a : (center.x = config.w / 2);
-            (_b = center.y) !== null && _b !== void 0 ? _b : (center.y = config.h / 2);
+            center.x ??= config.w / 2;
+            center.y ??= config.h / 2;
             this.last_config.ctx.translate(config.x + center.x, config.y + center.y);
-            this.last_config.ctx.rotate(rotation * Math.PI / 180);
+            this.last_config.ctx.rotate((rotation * Math.PI) / 180);
             config.x = -center.x;
             config.y = -center.y;
             return this;
@@ -108,7 +123,10 @@
             return this;
         }
         image(image, fromPos, toPos = this.last_config.rect) {
-            render_js_1.CanvasRender.Image(this.last_config.ctx, image, fromPos, toPos);
+            render_js_1.CanvasRender.Image(this.last_config.ctx, image, {
+                from: fromPos,
+                to: toPos,
+            });
             return this;
         }
         /**
@@ -124,7 +142,12 @@
         }
         circle(override) {
             const [x, y, w] = this.last_config.rect;
-            render_js_1.CanvasRender.circle(this.last_config.ctx, Object.assign({ x, y, radius: w }, override));
+            render_js_1.CanvasRender.circle(this.last_config.ctx, {
+                x,
+                y,
+                radius: w,
+                ...override,
+            });
             return this;
         }
         /**
@@ -136,15 +159,20 @@
             return this;
         }
         /** Sets color */
-        color(color) { this.last_config.ctx.fillStyle = color; return this; }
-        font(newFont) { this.last_config.ctx.font = newFont; return this; }
-        generatedFont({ font = "Arial", weight = "normal", size = 16 } = {}) {
+        color(color) {
+            this.last_config.ctx.fillStyle = color;
+            return this;
+        }
+        font(newFont) {
+            this.last_config.ctx.font = newFont;
+            return this;
+        }
+        generatedFont({ font = "Arial", weight = "normal", size = 16, } = {}) {
             return this.font(`${weight} ${size}px ${font}`);
         }
         /** Draws a rect to the screen */
         get rect() {
-            this.last_config.ctx
-                .fillRect(...this.last_config.rect);
+            this.last_config.ctx.fillRect(...this.last_config.rect);
             return this;
         }
         /** Saves the current canvas state */
@@ -229,7 +257,7 @@
             return this;
         }
         temporaryRotate(args, callback) {
-            this.temp(chain => {
+            this.temp((chain) => {
                 chain.rotate(...args);
                 callback(this);
             });
@@ -238,3 +266,4 @@
     }
     exports.ChainableCanvas = ChainableCanvas;
 });
+//# sourceMappingURL=chainable-canvas.js.map

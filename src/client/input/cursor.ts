@@ -1,5 +1,5 @@
-import type { Point } from "@orago/lib/vector";
-import Emitter from "@orago/lib/emitter";
+import type { Point } from "@orago/lib";
+import { Emitter } from "@orago/lib";
 import type { MouseButton } from "./symbols.js";
 
 type CursorInput = Touch | MouseEvent;

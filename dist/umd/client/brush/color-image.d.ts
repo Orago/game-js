@@ -27,7 +27,7 @@ export declare function plainDraw(chain: ChainableCanvas, sprite: HTMLCanvasElem
  * Tints overlay with Hue
  */
 export declare function hueOverlay(chain: ChainableCanvas, hue: number): void;
-interface hslTintOptions {
+interface HslTintOptions {
     saturation?: number;
     light?: number;
     rgb?: RgbArray;
@@ -38,5 +38,30 @@ interface hslTintOptions {
  * Checks if all items in an array match
  * Best image color manipulation method
  */
-export declare function hslTintImage(sprite: HTMLCanvasElement | HTMLImageElement, options: hslTintOptions): HTMLImageElement;
+export declare function hslTintImage(sprite: HTMLCanvasElement | HTMLImageElement, options: HslTintOptions): HTMLImageElement;
+export declare class TintImage {
+    private static setupTintDraw;
+    /**
+     * Old default is 100
+     */
+    private static lightenOverlay;
+    /**
+     * Saturates the image
+     * Old default is 100
+     */
+    private static saturateOverlay;
+    /**
+     * Used to clip over the same image and remove excess pixels quickly
+     */
+    private static clipEditFrom;
+    /**
+     * Tints overlay with Hue
+     */
+    private static hueOverlay;
+    /**
+     * Checks if all items in an array match
+     * Best image color manipulation method
+     */
+    static hslTint(sprite: HTMLCanvasElement | HTMLImageElement, options: HslTintOptions): Promise<HTMLImageElement>;
+}
 export {};

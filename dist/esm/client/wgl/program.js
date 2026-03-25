@@ -69,9 +69,18 @@ const OSF = {
     },
 };
 export class WglProgram {
+    // pos(2), size(2), uvrect(4), rotation(1) tint(4)
+    static fpi = OSF.destination.size +
+        OSF.source.size +
+        OSF.color.size +
+        OSF.rotation.size;
+    canvas = document.createElement("canvas");
+    gl = this.canvas.getContext("webgl2");
+    instances;
+    u_resolution;
+    texture;
+    program;
     constructor() {
-        this.canvas = document.createElement("canvas");
-        this.gl = this.canvas.getContext("webgl2");
         if (!this.gl)
             throw new Error("WebGL2 required");
         this.setup();
@@ -163,14 +172,11 @@ export class WglProgram {
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, this.instances.count);
     }
 }
-// pos(2), size(2), uvrect(4), rotation(1) tint(4)
-WglProgram.fpi = OSF.destination.size +
-    OSF.source.size +
-    OSF.color.size +
-    OSF.rotation.size;
 export class TextureAtlas {
+    texture;
+    width;
+    height;
     constructor(gl, img) {
-        var _a, _b;
         const tex = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, tex);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
@@ -178,8 +184,8 @@ export class TextureAtlas {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         this.texture = tex;
-        this.width = (_a = img === null || img === void 0 ? void 0 : img.width) !== null && _a !== void 0 ? _a : 0;
-        this.height = (_b = img === null || img === void 0 ? void 0 : img.height) !== null && _b !== void 0 ? _b : 0;
+        this.width = img?.width ?? 0;
+        this.height = img?.height ?? 0;
     }
     getSlice(x, y, w, h) {
         const u0 = x / this.width;
@@ -190,17 +196,22 @@ export class TextureAtlas {
     }
 }
 export class InstanceBuffer {
+    gl;
+    floats_per_instance;
     static initial() {
         return [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1];
     }
+    capacity;
+    count = 0;
+    data;
+    buffer;
+    id_indexes = 0;
+    // indexes: Map<number, number> = new Map();
+    new_indexes = {};
+    deleted = new Set();
     constructor(gl, floats_per_instance, initialCapacity = 256) {
         this.gl = gl;
         this.floats_per_instance = floats_per_instance;
-        this.count = 0;
-        this.id_indexes = 0;
-        // indexes: Map<number, number> = new Map();
-        this.new_indexes = {};
-        this.deleted = new Set();
         this.gl = gl;
         this.floats_per_instance = floats_per_instance;
         this.capacity = initialCapacity;
@@ -265,17 +276,15 @@ export class InstanceBuffer {
     toScreen() { }
     fromScreen() { }
     getSelection(index) {
-        var _a;
         const offset = index * this.floats_per_instance;
         const list = InstanceBuffer.initial();
         for (let i = 0; i < this.floats_per_instance; i++) {
-            list[i] = (_a = this.data[offset + i]) !== null && _a !== void 0 ? _a : 0;
+            list[i] = this.data[offset + i] ?? 0;
         }
         return list;
     }
     updateSelection(index, data) {
-        var _a;
-        const selection = (_a = data.selection) !== null && _a !== void 0 ? _a : this.getSelection(index);
+        const selection = data.selection ?? this.getSelection(index);
         if (data.source != undefined) {
             selection.splice(OSF.source.start, OSF.source.size, ...data.source.slice(0, OSF.source.size));
         }
@@ -306,12 +315,11 @@ export class InstanceBuffer {
         return id;
     }
     getIndex(input) {
-        var _a, _b;
         if (typeof input == "number") {
-            return (_a = this.new_indexes[input]) !== null && _a !== void 0 ? _a : 0;
+            return this.new_indexes[input] ?? 0;
         }
         else {
-            return (_b = this.new_indexes[input.id]) !== null && _b !== void 0 ? _b : 0;
+            return this.new_indexes[input.id] ?? 0;
         }
     }
     getValue(index, data) {
@@ -346,6 +354,7 @@ export class InstanceBuffer {
     }
 }
 export class WGLSprite {
+    id;
     constructor(id) {
         this.id = id;
     }
@@ -356,3 +365,4 @@ export class WGLSprite {
         return reference.getValue(reference.getIndex(this), data);
     }
 }
+//# sourceMappingURL=program.js.map

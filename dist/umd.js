@@ -456,8 +456,55 @@
                 return matrices.reduce((acc, m) => Meowtrix.multiply(acc, m));
             }
         }
+        matrix = Meowtrix.identity();
+        stack = [];
+        constructor() { }
+        multiply(matrixB) {
+            this.stack.push(Meowtrix.format(matrixB));
+            return this;
+        }
+        rotate(axis, angle) {
+            if (axis == "x") {
+                this.stack.push(Meowtrix.rotateX(angle));
+            }
+            else if (axis == "y") {
+                this.stack.push(Meowtrix.rotateY(angle));
+            }
+            else if (axis == "z") {
+                this.stack.push(Meowtrix.rotateZ(angle));
+            }
+            return this;
+        }
+        scale(axis, angle) {
+            if (axis == "x") {
+                this.stack.push(Meowtrix.rotateX(angle));
+            }
+            else if (axis == "y") {
+                this.stack.push(Meowtrix.rotateY(angle));
+            }
+            else if (axis == "z") {
+                this.stack.push(Meowtrix.rotateZ(angle));
+            }
+            return this;
+        }
+        scale2(x, y) {
+            this.stack.push(Meowtrix.scale(x, y));
+            return this;
+        }
+        translate(options) {
+            const x = options.x ?? 0;
+            const y = options.y ?? 0;
+            const z = options.z ?? 0;
+            this.stack.push(Meowtrix.translate3d(x, y, z));
+            return this;
+        }
+        consume() {
+            this.matrix = this.stack.reduce(Meowtrix.multiply);
+            return this;
+        }
     }
     class Transform {
+        matrix;
         static exportMatrix(matrix) {
             const exported = {
                 position: Meowtrix.getPosition(matrix),
@@ -467,17 +514,18 @@
             };
             return exported;
         }
+        position = { x: 0, y: 0, z: 0 };
+        scale = { x: 1, y: 1, z: 1 };
+        rotation = { z: 0 }; // (You can extend to 3D if needed)
+        origin = {
+            x: 0,
+            y: 0,
+        };
+        rotation_origin;
+        // matrix: Matrix3D = Meowtrix.identity();
+        dirty = true;
         constructor(matrix = Meowtrix.identity()) {
             this.matrix = matrix;
-            this.position = { x: 0, y: 0, z: 0 };
-            this.scale = { x: 1, y: 1, z: 1 };
-            this.rotation = { z: 0 }; // (You can extend to 3D if needed)
-            this.origin = {
-                x: 0,
-                y: 0,
-            };
-            // matrix: Matrix3D = Meowtrix.identity();
-            this.dirty = true;
         }
         import(options) {
             this.position = {
@@ -504,19 +552,18 @@
             return this;
         }
         export() {
-            var _a, _b, _c, _d;
             const exported = {
                 position: [this.position.x, this.position.y, this.position.z],
                 scale: [this.scale.x, this.scale.y, this.scale.z],
                 rotation: [0, 0, this.rotation.z],
                 origin: [0, 0],
             };
-            if (((_a = this.rotation_origin) === null || _a === void 0 ? void 0 : _a.x) != undefined) {
-                (_b = exported.rotation_origin) !== null && _b !== void 0 ? _b : (exported.rotation_origin = [0, 0]);
+            if (this.rotation_origin?.x != undefined) {
+                exported.rotation_origin ??= [0, 0];
                 exported.rotation_origin[0] = this.rotation_origin.x;
             }
-            if (((_c = this.rotation_origin) === null || _c === void 0 ? void 0 : _c.y) != undefined) {
-                (_d = exported.rotation_origin) !== null && _d !== void 0 ? _d : (exported.rotation_origin = [0, 0]);
+            if (this.rotation_origin?.y != undefined) {
+                exported.rotation_origin ??= [0, 0];
                 exported.rotation_origin[1] = this.rotation_origin.y;
             }
             return exported;
@@ -528,14 +575,13 @@
          * Recompute the matrix only when dirty.
          */
         updateMatrix() {
-            var _a, _b, _c, _d;
             if (!this.dirty) {
                 return;
             }
             const t = Meowtrix.translate3d(this.position.x, this.position.y, this.position.z);
             let r;
-            const px = ((_b = (_a = this.rotation_origin) === null || _a === void 0 ? void 0 : _a.x) !== null && _b !== void 0 ? _b : this.origin.x) * this.scale.x;
-            const py = ((_d = (_c = this.rotation_origin) === null || _c === void 0 ? void 0 : _c.y) !== null && _d !== void 0 ? _d : this.origin.y) * this.scale.y;
+            const px = (this.rotation_origin?.x ?? this.origin.x) * this.scale.x;
+            const py = (this.rotation_origin?.y ?? this.origin.y) * this.scale.y;
             // Order matters: move back * rotation * move to origin
             r = Meowtrix.combine(Meowtrix.translate(px, py), // move to
             Meowtrix.rotateZ(this.rotation.z), // rotate
@@ -592,11 +638,10 @@
             return this;
         }
         setRotationOrigin(x, y) {
-            var _a;
             if (this.rotation_origin == undefined ||
                 x != this.rotation_origin.x ||
                 y != this.rotation_origin.y) {
-                (_a = this.rotation_origin) !== null && _a !== void 0 ? _a : (this.rotation_origin = {});
+                this.rotation_origin ??= {};
                 this.rotation_origin.x = x;
                 this.rotation_origin.y = y;
                 this.dirty = true;
@@ -608,7 +653,16 @@
             return this.matrix;
         }
     }
-    class MeowtrixCss {
+    class MeowtrixDom {
+        static getCanvasMatrix(matrix) {
+            const a = matrix[0];
+            const b = matrix[1];
+            const c = matrix[4];
+            const d = matrix[5];
+            const e = matrix[12];
+            const f = matrix[13];
+            return [a, b, c, d, e, f];
+        }
         /**
          * Converts a CSS Transform to array.
          * @param source A `string` containing a `matrix` or `matrix3d` property value.
@@ -1085,9 +1139,8 @@
      * Returns an offset vector
      */
     function calculateGridWrapOffset(rect, gridSize, frame) {
-        var _a, _b;
-        const gridWidth = (_a = gridSize === null || gridSize === void 0 ? void 0 : gridSize.width) !== null && _a !== void 0 ? _a : 0;
-        const gridHeight = (_b = gridSize === null || gridSize === void 0 ? void 0 : gridSize.height) !== null && _b !== void 0 ? _b : 0;
+        const gridWidth = gridSize?.width ?? 0;
+        const gridHeight = gridSize?.height ?? 0;
         // Calculate the number of columns in the grid
         const numCols = Math.ceil(rect.width / gridWidth);
         // Calculate the row and column of the frame based on frame number
@@ -1154,29 +1207,28 @@
             return new Rect(obj.width, obj.height);
         }
         static contains(parent, child) {
-            var _a, _b;
             const parentx2 = parent.x + parent.width;
             const parenty2 = parent.y + parent.height;
-            const childx2 = child.x + ((_a = child === null || child === void 0 ? void 0 : child.width) !== null && _a !== void 0 ? _a : 0);
-            const childy2 = child.y + ((_b = child === null || child === void 0 ? void 0 : child.height) !== null && _b !== void 0 ? _b : 0);
+            const childx2 = child.x + (child?.width ?? 0);
+            const childy2 = child.y + (child?.height ?? 0);
             return (parent.x <= child.x &&
                 parentx2 >= childx2 &&
                 parent.y <= child.y &&
                 parenty2 >= childy2);
         }
         static centerChild(parent, child) {
-            var _a, _b;
             return {
                 x: parent.x + (parent.width - child.width) / 2,
                 y: parent.y + (parent.height - child.height) / 2,
-                width: (_a = child.width) !== null && _a !== void 0 ? _a : 0,
-                height: (_b = child.height) !== null && _b !== void 0 ? _b : 0,
+                width: child.width ?? 0,
+                height: child.height ?? 0,
             };
         }
         static toBound(rect) {
-            var _a, _b;
-            return [(_a = rect === null || rect === void 0 ? void 0 : rect.x) !== null && _a !== void 0 ? _a : 0, (_b = rect === null || rect === void 0 ? void 0 : rect.y) !== null && _b !== void 0 ? _b : 0, rect.width, rect.height];
+            return [rect?.x ?? 0, rect?.y ?? 0, rect.width, rect.height];
         }
+        width;
+        height;
         constructor(width, height) {
             this.width = width;
             this.height = height;
@@ -1206,6 +1258,8 @@
                 return new Bound(0, 0, rect.width, rect.height);
             }
         }
+        x;
+        y;
         constructor(x, y, width = 0, height = 0) {
             super(width, height);
             this.x = x;
@@ -1240,14 +1294,14 @@
     class Bound {
         static toPositionalRect(bound) {
             const [x1, y1, x2, y2] = bound;
-            const x = Math.min(x1, x2); // Get the minimum x-coordinate as the top-left corner x
-            const y = Math.min(y1, y2); // Get the minimum y-coordinate as the top-left corner y
-            const w = Math.abs(x2 - x1); // Calculate the width as the absolute difference between x2 and x1
-            const h = Math.abs(y2 - y1); // Calculate the height as the absolute difference between y2 and y1
+            const x = Math.min(x1, x2);
+            const y = Math.min(y1, y2);
+            const w = Math.abs(x2 - x1);
+            const h = Math.abs(y2 - y1);
             return new Box(x, y, w, h);
         }
+        positions = [0, 0, 0, 0];
         constructor(x1 = 0, y1 = 0, x2 = 0, y2 = 0) {
-            this.positions = [0, 0, 0, 0];
             this.positions = [x1, y1, x2, y2];
         }
         clear() {
@@ -1288,7 +1342,7 @@
     exports.Collision = Collision;
     exports.Ecs = index$1;
     exports.Meowtrix = Meowtrix;
-    exports.MeowtrixCss = MeowtrixCss;
+    exports.MeowtrixCss = MeowtrixDom;
     exports.Rect = Rect;
     exports.Shapes = shapes;
     exports.Transform = Transform;

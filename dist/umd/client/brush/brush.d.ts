@@ -1,7 +1,8 @@
-import type { Point } from "@orago/lib/vector";
-import type { RectangleLike } from "../../util/shapes.js";
+import type { Point } from "@orago/lib";
+import { Size } from "@orago/lib";
 import Emitter from "@orago/lib/emitter";
 import { ChainableCanvas } from "./chainable-canvas.js";
+import { Etch, EtchOptions } from "./etch.js";
 export { ChainableCanvas } from "./chainable-canvas.js";
 type ArrayRect = [x: number, y: number, w: number, h: number];
 export default class BrushCanvas {
@@ -14,6 +15,7 @@ export default class BrushCanvas {
     readonly ctx: CanvasRenderingContext2D;
     events: Emitter<{}, false>;
     private experimental;
+    private onResize;
     constructor(settings?: {
         dimensions?: [width: number, height: number];
         inputCanvas?: HTMLCanvasElement;
@@ -23,7 +25,7 @@ export default class BrushCanvas {
     updateResolution(resolution: number): void;
     updateSize(width: number, height: number): void;
     center(): Point;
-    dimensions(): RectangleLike;
+    dimensions(): Size;
     /**
      * Makes brush the active dom element
      */
@@ -69,6 +71,10 @@ export default class BrushCanvas {
         h?: number | undefined;
         radius?: number | undefined;
     }): void;
+    /**
+     * Please use EtchUtility.getTextWidth
+     * @deprecated
+     */
     getTextWidth(values: {
         text: string;
         font?: string;
@@ -83,6 +89,7 @@ export default class BrushCanvas {
      */
     setSmoothing: (state: boolean) => this;
     resizable(): this;
+    getEtch(options: Omit<EtchOptions, "canvas" | "ctx">): Etch;
     get get(): this;
     get chainable(): ChainableCanvas;
 }

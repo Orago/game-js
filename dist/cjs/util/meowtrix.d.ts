@@ -207,6 +207,19 @@ export declare class Meowtrix {
      *   Meowtrix.combine(A, B, C) === A × B × C
      */
     static combine(...matrices: Matrix3D[]): Matrix3D;
+    matrix: Matrix3D;
+    stack: Matrix3D[];
+    constructor();
+    multiply(matrixB: Matrix): this;
+    rotate(axis: "x" | "y" | "z", angle: number): this;
+    scale(axis: "x" | "y" | "z", angle: number): this;
+    scale2(x: number, y: number): this;
+    translate(options: {
+        x?: number;
+        y?: number;
+        z?: number;
+    }): this;
+    consume(): this;
 }
 export interface TransformExport {
     position: [x: number, y: number, z: number];
@@ -262,7 +275,8 @@ export declare class Transform {
     setRotationOrigin(x: number, y: number): this;
     getMatrix(): Matrix3D;
 }
-export declare class MeowtrixCss {
+export declare class MeowtrixDom {
+    static getCanvasMatrix(matrix: Matrix3D): readonly [number, number, number, number, number, number];
     /**
      * Converts a CSS Transform to array.
      * @param source A `string` containing a `matrix` or `matrix3d` property value.

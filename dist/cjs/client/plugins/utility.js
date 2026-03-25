@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EngineClampPlugin = void 0;
 const base_js_1 = require("../base.js");
 class EngineClampPlugin extends base_js_1.EnginePlugin {
+    rectangle;
     constructor(rectangle) {
         super();
         this.rectangle = rectangle;
@@ -20,3 +21,4 @@ class EngineClampPlugin extends base_js_1.EnginePlugin {
     }
 }
 exports.EngineClampPlugin = EngineClampPlugin;
+//# sourceMappingURL=utility.js.map

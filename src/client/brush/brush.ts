@@ -1,10 +1,9 @@
-import type { Point } from "@orago/lib/vector";
-import type { RectangleLike } from "../../util/shapes.js";
-
-import Emitter from "@orago/lib/emitter";
+import type { Point } from "@orago/lib";
+import { Size } from "@orago/lib";
+import Emitter, { Signal } from "@orago/lib/emitter";
 import { ChainableCanvas } from "./chainable-canvas.js";
+import { Etch, EtchOptions, EtchUtility } from "./etch.js";
 import { CanvasRender } from "./render.js";
-// import { WebGLCanvas } from "./webgl-2d.js";
 export { ChainableCanvas } from "./chainable-canvas.js";
 
 type ArrayRect = [x: number, y: number, w: number, h: number];
@@ -21,6 +20,9 @@ export default class BrushCanvas {
 		undefined as unknown as CanvasRenderingContext2D;
 	public events = new Emitter();
 	private experimental: boolean = false;
+
+	private onResize: Signal<(width: number, height: number) => void> =
+		new Signal();
 
 	constructor(
 		settings: {
@@ -39,6 +41,10 @@ export default class BrushCanvas {
 
 		canvas.width = dimensions[0];
 		canvas.height = dimensions[1];
+
+		this.onResize.on((width, height) => {
+			this.events.emit("resize", width, height);
+		});
 
 		this.canvas = canvas;
 
@@ -70,7 +76,7 @@ export default class BrushCanvas {
 	center(): Point {
 		return { x: this.width / 2, y: this.height / 2 };
 	}
-	dimensions(): RectangleLike {
+	dimensions(): Size {
 		return { width: this.width, height: this.height };
 	}
 
@@ -104,7 +110,7 @@ export default class BrushCanvas {
 		from?: ArrayRect,
 		to?: ArrayRect
 	): this {
-		CanvasRender.Image(this.ctx, image, from, to);
+		CanvasRender.Image(this.ctx, image, { from, to });
 		return this;
 	}
 
@@ -186,7 +192,10 @@ export default class BrushCanvas {
 		ctx.fillStyle = gradient;
 		ctx.fillRect(x, y, w, h);
 	}
-
+	/**
+	 * Please use EtchUtility.getTextWidth
+	 * @deprecated
+	 */
 	getTextWidth(values: {
 		text: string;
 		font?: string;
@@ -239,31 +248,21 @@ export default class BrushCanvas {
 	};
 
 	resizable() {
-		const resize = () => {
-			const { canvas, setSmoothing } = this;
-			const { documentElement: dE } = document;
-
-			if (
-				canvas instanceof HTMLCanvasElement &&
-				document.body.contains(canvas)
-			) {
-				canvas.style.width = `${100 * this.resolution}%`;
-				canvas.style.height = `${100 * this.resolution}%`;
-			}
-
-			canvas.width = dE.clientWidth * this.resolution;
-			canvas.height = dE.clientHeight * this.resolution;
-
-			setSmoothing(false);
-
-			this.events.emit("resize", canvas.width, canvas.height);
-		};
-
-		if ("addEventListener" in window)
-			window.addEventListener("resize", resize);
-
-		resize();
+		EtchUtility.resizable({
+			canvas: this.canvas,
+			setSmoothing: this.setSmoothing.bind(this),
+			resolution: this.resolution,
+			onResize: this.onResize,
+		});
 		return this;
+	}
+
+	getEtch(options: Omit<EtchOptions, "canvas" | "ctx">) {
+		return new Etch({
+			canvas: this.canvas,
+			ctx: this.ctx,
+			stack: options?.stack ?? true,
+		});
 	}
 
 	get get() {

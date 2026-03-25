@@ -1,7 +1,8 @@
 import potpack from "../../util/potpack.js";
+import { SizedImageSource } from "../brush/render.js";
 
 export interface TImageBox {
-	image: HTMLImageElement | HTMLCanvasElement | OffscreenCanvas;
+	image: SizedImageSource;
 	width: number;
 	height: number;
 }
@@ -13,7 +14,7 @@ export class ImagePacker {
 
 		return ImagePacker.pack(canvas, ctx, boxes, padding);
 	}
-	
+
 	static pack(
 		canvas: HTMLCanvasElement,
 		ctx: CanvasRenderingContext2D,

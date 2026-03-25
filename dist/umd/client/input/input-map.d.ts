@@ -7,7 +7,10 @@ interface InputMapData {
     cursor?: MouseButton[];
     gamepad?: GamepadAction[];
     gamepad_deadzone?: number;
-    /** Dangerous */
+    /**
+     * Dangerous
+     * @deprecated
+     */
     simulated?: boolean;
 }
 export declare enum InputSource {
@@ -17,6 +20,7 @@ export declare enum InputSource {
 }
 interface ActionState {
     sources: number;
+    /** Dangerous */
     simulated?: boolean;
 }
 type MappedKeys = Record<string, InputMapData>;

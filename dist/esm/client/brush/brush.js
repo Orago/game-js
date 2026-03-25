@@ -1,33 +1,30 @@
-import Emitter from "@orago/lib/emitter";
+import Emitter, { Signal } from "@orago/lib/emitter";
 import { ChainableCanvas } from "./chainable-canvas.js";
+import { Etch, EtchUtility } from "./etch.js";
 import { CanvasRender } from "./render.js";
-// import { WebGLCanvas } from "./webgl-2d.js";
 export { ChainableCanvas } from "./chainable-canvas.js";
 export default class BrushCanvas {
+    resolution = 1;
+    smoothing = true;
+    /**
+     * Both are intentionally unset and will be set using BrushCanvas.swapCanvas
+     */
+    canvas;
+    ctx = undefined;
+    events = new Emitter();
+    experimental = false;
+    onResize = new Signal();
     constructor(settings = {}) {
-        this.resolution = 1;
-        this.smoothing = true;
-        this.ctx = undefined;
-        this.events = new Emitter();
-        this.experimental = false;
-        /**
-         * Toggles smoothing
-         * ON - blurred when using low resolution assets and smooth on high resolution
-         * OFF - Crisp on low resolution assets and jagged on high resolution
-         */
-        this.setSmoothing = (state) => {
-            if (this.experimental)
-                return this;
-            this.ctx.imageSmoothingEnabled = this.smoothing = state == true;
-            return this;
-        };
         if (typeof settings != "object")
             settings = {};
         const { dimensions = [100, 100], inputCanvas: canvas = document.createElement("canvas"), } = settings;
         canvas.width = dimensions[0];
         canvas.height = dimensions[1];
+        this.onResize.on((width, height) => {
+            this.events.emit("resize", width, height);
+        });
         this.canvas = canvas;
-        if ((settings === null || settings === void 0 ? void 0 : settings.experimental_gl) == true) {
+        if (settings?.experimental_gl == true) {
             this.experimental = true;
             // WebGLCanvas.affect(canvas);
             const ctx = this.canvas.getContext("webgl-2d");
@@ -77,7 +74,7 @@ export default class BrushCanvas {
             this.canvas.height = height;
     }
     image(image, from, to) {
-        CanvasRender.Image(this.ctx, image, from, to);
+        CanvasRender.Image(this.ctx, image, { from, to });
         return this;
     }
     text(values) {
@@ -124,6 +121,10 @@ export default class BrushCanvas {
         ctx.fillStyle = gradient;
         ctx.fillRect(x, y, w, h);
     }
+    /**
+     * Please use EtchUtility.getTextWidth
+     * @deprecated
+     */
     getTextWidth(values) {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
@@ -150,24 +151,32 @@ export default class BrushCanvas {
         this.ctx.clearRect(x, y, width, height);
         return this;
     }
-    resizable() {
-        const resize = () => {
-            const { canvas, setSmoothing } = this;
-            const { documentElement: dE } = document;
-            if (canvas instanceof HTMLCanvasElement &&
-                document.body.contains(canvas)) {
-                canvas.style.width = `${100 * this.resolution}%`;
-                canvas.style.height = `${100 * this.resolution}%`;
-            }
-            canvas.width = dE.clientWidth * this.resolution;
-            canvas.height = dE.clientHeight * this.resolution;
-            setSmoothing(false);
-            this.events.emit("resize", canvas.width, canvas.height);
-        };
-        if ("addEventListener" in window)
-            window.addEventListener("resize", resize);
-        resize();
+    /**
+     * Toggles smoothing
+     * ON - blurred when using low resolution assets and smooth on high resolution
+     * OFF - Crisp on low resolution assets and jagged on high resolution
+     */
+    setSmoothing = (state) => {
+        if (this.experimental)
+            return this;
+        this.ctx.imageSmoothingEnabled = this.smoothing = state == true;
         return this;
+    };
+    resizable() {
+        EtchUtility.resizable({
+            canvas: this.canvas,
+            setSmoothing: this.setSmoothing.bind(this),
+            resolution: this.resolution,
+            onResize: this.onResize,
+        });
+        return this;
+    }
+    getEtch(options) {
+        return new Etch({
+            canvas: this.canvas,
+            ctx: this.ctx,
+            stack: options?.stack ?? true,
+        });
     }
     get get() {
         return this;
@@ -176,3 +185,4 @@ export default class BrushCanvas {
         return new ChainableCanvas(this);
     }
 }
+//# sourceMappingURL=brush.js.map

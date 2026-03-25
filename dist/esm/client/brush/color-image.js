@@ -1,9 +1,9 @@
 import { rgbToHue, forceRgb } from "@orago/lib/colors";
 import BrushCanvas from "./brush.js";
-const colorableCanvas = new BrushCanvas({
+const colorable_canvas = new BrushCanvas({
     inputCanvas: document.createElement("canvas"),
 });
-const colorChain = colorableCanvas.chainable;
+const color_chain = colorable_canvas.chainable;
 /**
  * Draws an overlay tint to canvas
  * ! WARNING it is extremely slow
@@ -35,7 +35,7 @@ function badlyColorImage(image, red = 0, green = 0, blue = 0) {
  */
 export function rgbTintImage(sprite, [red = 0, green = 0, blue = 0, tint = 0.2]) {
     const image = new Image();
-    colorChain
+    color_chain
         .canvasSize(sprite.width, sprite.height)
         .size(sprite.width, sprite.height)
         .clear.pos(0, 0)
@@ -44,8 +44,8 @@ export function rgbTintImage(sprite, [red = 0, green = 0, blue = 0, tint = 0.2])
         .rendering("source-atop")
         .color(`rgb(${[red, green, blue].join(",")})`)
         .rect.rendering("source-over");
-    if (colorChain.last_config.canvas instanceof HTMLCanvasElement) {
-        image.src = colorChain.last_config.canvas.toDataURL("image/png");
+    if (color_chain.last_config.canvas instanceof HTMLCanvasElement) {
+        image.src = color_chain.last_config.canvas.toDataURL("image/png");
     }
     return sprite;
 }
@@ -103,27 +103,116 @@ function clipEditFrom(chain, sprite) {
  * Best image color manipulation method
  */
 export function hslTintImage(sprite, options) {
-    plainDraw(colorChain, sprite);
-    if (typeof (options === null || options === void 0 ? void 0 : options.light) === "number") {
-        lightenOverlay(colorChain, options.light);
+    plainDraw(color_chain, sprite);
+    if (typeof options?.light === "number") {
+        lightenOverlay(color_chain, options.light);
     }
-    if (typeof (options === null || options === void 0 ? void 0 : options.saturation) === "number") {
-        saturateOverlay(colorChain, options.saturation);
+    if (typeof options?.saturation === "number") {
+        saturateOverlay(color_chain, options.saturation);
     }
-    if ((options === null || options === void 0 ? void 0 : options.rgb) != null) {
-        hueOverlay(colorChain, rgbToHue(...forceRgb(options.rgb)));
+    if (options?.rgb != null) {
+        hueOverlay(color_chain, rgbToHue(...forceRgb(options.rgb)));
     }
-    else if ((options === null || options === void 0 ? void 0 : options.tint) != null) {
-        hueOverlay(colorChain, rgbToHue(...forceRgb(options.tint)));
+    else if (options?.tint != null) {
+        hueOverlay(color_chain, rgbToHue(...forceRgb(options.tint)));
     }
-    else if (typeof (options === null || options === void 0 ? void 0 : options.hue) === "number") {
-        hueOverlay(colorChain, options.hue);
+    else if (typeof options?.hue === "number") {
+        hueOverlay(color_chain, options.hue);
     }
     // Clipping
-    clipEditFrom(colorChain, sprite);
+    clipEditFrom(color_chain, sprite);
     const image = new Image();
-    if (colorChain.last_config.canvas instanceof HTMLCanvasElement) {
-        image.src = colorChain.canvas.toDataURL("image/png");
+    if (color_chain.last_config.canvas instanceof HTMLCanvasElement) {
+        image.src = color_chain.canvas.toDataURL("image/png");
     }
     return image;
 }
+export class TintImage {
+    static setupTintDraw(chain, sprite) {
+        chain
+            .canvasSize(sprite.width, sprite.height)
+            .size(sprite.width, sprite.height)
+            .clear.pos(0, 0)
+            .rendering("source-over")
+            .image(sprite);
+    }
+    /**
+     * Old default is 100
+     */
+    static lightenOverlay(chain, light) {
+        if (typeof light != "number") {
+            return;
+        }
+        chain.rendering(light < 100 ? "color-burn" : "color-dodge");
+        // Modify future light after color-effect
+        light = light >= 100 ? light - 100 : 100 - (100 - light);
+        // light
+        chain.color(`hsl(0, 50%, ${light}%)`).rect;
+    }
+    /**
+     * Saturates the image
+     * Old default is 100
+     */
+    static saturateOverlay(chain, saturation) {
+        if (typeof saturation != "number") {
+            return;
+        }
+        chain.rendering("saturation").color(`hsl(0,${saturation}%, 50%)`).rect;
+    }
+    /**
+     * Used to clip over the same image and remove excess pixels quickly
+     */
+    static clipEditFrom(chain, sprite) {
+        chain
+            .rendering("destination-in")
+            .image(sprite)
+            .rendering("source-over");
+    }
+    /**
+     * Tints overlay with Hue
+     */
+    static hueOverlay(chain, hue) {
+        if (typeof hue != "number") {
+            return;
+        }
+        chain.rendering("hue").color(`hsl(${hue},10%, 50%)`).rect;
+    }
+    /**
+     * Checks if all items in an array match
+     * Best image color manipulation method
+     */
+    static hslTint(sprite, options) {
+        this.setupTintDraw(color_chain, sprite);
+        if (typeof options?.light === "number") {
+            this.lightenOverlay(color_chain, options.light);
+        }
+        if (typeof options?.saturation === "number") {
+            this.saturateOverlay(color_chain, options.saturation);
+        }
+        if (options?.rgb != null) {
+            this.hueOverlay(color_chain, rgbToHue(...forceRgb(options.rgb)));
+        }
+        else if (options?.tint != null) {
+            this.hueOverlay(color_chain, rgbToHue(...forceRgb(options.tint)));
+        }
+        else if (typeof options?.hue === "number") {
+            this.hueOverlay(color_chain, options.hue);
+        }
+        // Clipping
+        this.clipEditFrom(color_chain, sprite);
+        const image = new Image();
+        if (color_chain.last_config.canvas instanceof HTMLCanvasElement) {
+            image.src = color_chain.canvas.toDataURL("image/png");
+            return new Promise((resolve) => {
+                color_chain.canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    image.src = url;
+                    resolve(image);
+                });
+            });
+        }
+        return new Promise((resolve) => resolve(image));
+        // return image;
+    }
+}
+//# sourceMappingURL=color-image.js.map

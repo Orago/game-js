@@ -1,4 +1,4 @@
-import type { Point } from "@orago/lib/vector";
+import type { Point } from "@orago/lib";
 type ArrayRect = [x: number, y: number, w: number, h: number];
 type AnyCanvas = HTMLCanvasElement;
 type AnyContext2D = CanvasRenderingContext2D;
@@ -72,7 +72,7 @@ export declare class ChainableCanvas {
     /** Sets color */
     color(color: string): this;
     font(newFont: string): this;
-    generatedFont({ font, weight, size }?: GeneratedFontOptions): this;
+    generatedFont({ font, weight, size, }?: GeneratedFontOptions): this;
     /** Draws a rect to the screen */
     get rect(): this;
     /** Saves the current canvas state */

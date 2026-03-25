@@ -35,7 +35,7 @@
         let maxWidth = 0;
         for (const box of boxes) {
             area += (box.width + padding) * (box.height + padding);
-            maxWidth = Math.max(maxWidth, box.width);
+            maxWidth = Math.max(maxWidth, box.width + padding);
         }
         // sort the boxes for insertion by height, descending
         const sorted_boxes = [...boxes].sort((a, b) => b.height - a.height);
@@ -46,14 +46,15 @@
         const spaces = [{ x: 0, y: 0, width: startWidth, height: Infinity }];
         let width = 0;
         let height = 0;
-        const new_boxes = sorted_boxes.map((e) => (Object.assign(Object.assign({}, e), { x: 0, y: 0 })));
+        const new_boxes = sorted_boxes.map((e) => ({ ...e, x: 0, y: 0 }));
         for (const box of new_boxes) {
+            const pad_box_w = box.width + padding;
+            const pad_box_h = box.height + padding;
             // look through spaces backwards so that we check smaller spaces first
             for (let i = spaces.length - 1; i >= 0; i--) {
                 const space = spaces[i];
                 // look for empty spaces that can accommodate the current box
-                if (box.width + padding > space.width ||
-                    box.height + padding > space.height)
+                if (pad_box_w > space.width || pad_box_h > space.height)
                     continue;
                 /**
                  * found the space; add the box to its top-left corner
@@ -63,28 +64,27 @@
                  * |         space |
                  * |_______________|
                  */
-                box.x = space.x + padding; // Add padding
-                box.y = space.y + padding; // Add padding
-                height = Math.max(height, box.y + box.height);
-                width = Math.max(width, box.x + box.width);
-                if (box.width + padding === space.width &&
-                    box.height + padding === space.height) {
+                box.x = space.x;
+                box.y = space.y;
+                height = Math.max(height, box.y + pad_box_h);
+                width = Math.max(width, box.x + pad_box_w);
+                if (pad_box_w === space.width && pad_box_h === space.height) {
                     // space matches the box exactly; remove it
                     const last = spaces.pop();
                     if (i < spaces.length && last)
                         spaces[i] = last;
                 }
-                else if (box.height + padding === space.height) {
+                else if (pad_box_h === space.height) {
                     /**
                      * space matches the box height; update it accordingly
                      * |-------|---------------|
                      * |  box  | updated space |
                      * |_______|_______________|
                      */
-                    space.x += box.width + padding;
-                    space.width -= box.width;
+                    space.x += pad_box_w;
+                    space.width -= pad_box_w;
                 }
-                else if (box.width + padding === space.width) {
+                else if (pad_box_w === space.width) {
                     /**
                      * space matches the box width; update it accordingly
                      * |---------------|
@@ -93,8 +93,8 @@
                      * | updated space |
                      * |_______________|
                      */
-                    space.y += box.height + padding;
-                    space.height -= box.height + padding;
+                    space.y += pad_box_h;
+                    space.height -= pad_box_h;
                 }
                 else {
                     /**
@@ -106,13 +106,13 @@
                      * |___________________|
                      */
                     spaces.push({
-                        x: space.x + (box.width + padding),
+                        x: space.x + pad_box_w,
                         y: space.y,
-                        width: space.width - (box.width + padding),
-                        height: box.height + padding,
+                        width: space.width - pad_box_w,
+                        height: pad_box_h,
                     });
-                    space.y += box.height + padding;
-                    space.height -= box.height + padding;
+                    space.y += pad_box_h;
+                    space.height -= pad_box_h;
                 }
                 break;
             }
@@ -120,10 +120,9 @@
         return {
             width, // container width
             height, // container height
-            fill: width > 0 && height > 0
-                ? area / ((width + padding) * (height + padding))
-                : 0, // space utilization
+            fill: width > 0 && height > 0 ? area / (width * height) : 0, // space utilization
             boxes: new_boxes,
         };
     }
 });
+//# sourceMappingURL=potpack.js.map

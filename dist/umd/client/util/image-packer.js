@@ -15,10 +15,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     exports.ImagePacker = void 0;
     const potpack_js_1 = __importDefault(require("../../util/potpack.js"));
     class ImagePacker {
-        static pack(boxes, padding = 0) {
-            const packed = (0, potpack_js_1.default)(boxes, padding);
+        static createPack(boxes, padding = 0) {
             const canvas = document.createElement("canvas");
             const ctx = canvas.getContext("2d");
+            return ImagePacker.pack(canvas, ctx, boxes, padding);
+        }
+        static pack(canvas, ctx, boxes, padding = 0) {
+            const packed = (0, potpack_js_1.default)(boxes, padding);
             canvas.width = packed.width;
             canvas.height = packed.height;
             ctx.imageSmoothingEnabled = false;
@@ -33,3 +36,4 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     }
     exports.ImagePacker = ImagePacker;
 });
+//# sourceMappingURL=image-packer.js.map

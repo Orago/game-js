@@ -1,6 +1,6 @@
 import { VNode } from "@orago/dom";
 import { Ecs } from "@orago/ecs";
-import { Emitter, Vector } from "@orago/lib";
+import { Emitter, Point } from "@orago/lib";
 import { Collision } from "../util/collision.js";
 import { ObjectManager, PluginManager } from "./base.js";
 import type BrushCanvas from "./brush/brush.js";
@@ -16,16 +16,16 @@ interface EngineObjectData {
     priority?: number;
     lifetime?: number;
 }
-declare function screenToWorld(screen: Vector.Point, options?: {
-    center?: Vector.Point;
-    offset?: Vector.Point;
+declare function screenToWorld(screen: Point, options?: {
+    center?: Point;
+    offset?: Point;
     zoom?: number;
-}): Vector.Point;
-declare function worldToScreen(world: Vector.Point, options?: {
-    center?: Vector.Point;
-    offset?: Vector.Point;
+}): Point;
+declare function worldToScreen(world: Point, options?: {
+    center?: Point;
+    offset?: Point;
     zoom?: number;
-}): Vector.Point;
+}): Point;
 export interface Camera {
     x: number;
     y: number;
@@ -56,12 +56,12 @@ export default class Engine {
     constructor(brush: BrushCanvas);
     collision: typeof Collision;
     object: (data: EngineObjectData, ref: (arg0: LegacyEntity) => void) => LegacyEntity;
-    screenToWorld(point: Vector.Point, options?: {
+    screenToWorld(point: Point, options?: {
         center?: boolean;
-    }): Vector.Point;
-    worldToScreen(point: Vector.Point, options?: {
+    }): Point;
+    worldToScreen(point: Point, options?: {
         center?: boolean;
-    }): Vector.Point;
+    }): Point;
     setCursor(url: string): this;
     pause(state?: boolean): void;
     destroy(): void;

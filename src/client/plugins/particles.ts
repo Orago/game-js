@@ -1,23 +1,22 @@
-import { Engine, WGL } from "../index.js";
-import { ImagePacker, TImageBox } from "../util/image-packer.js";
-import { Renderable } from "../brush/render.js";
-import potpack, { BoxLike } from "../../util/potpack.js";
 import { Component, Entity, System } from "@orago/ecs";
-import { BoxComponent, PositionComponent } from "../../ecs/physics.js";
-import { random } from "@orago/lib/math";
+import { random, Rectangle } from "@orago/lib/math";
+import { PositionComponent } from "../../ecs/physics.js";
+import { SizedImageSource } from "../brush/render.js";
+import { Engine, WGL } from "../index.js";
+import { ImagePacker } from "../util/image-packer.js";
 
 interface IParticleMappings extends Record<string, any> {}
 
 class ParticleCache {
-	sprites: Set<Renderable> = new Set();
-	indexed_sprites: Map<Renderable, BoxLike> = new Map();
-	id_matches: Map<Renderable, number> = new Map();
+	sprites: Set<SizedImageSource> = new Set();
+	indexed_sprites: Map<SizedImageSource, Rectangle> = new Map();
+	id_matches: Map<SizedImageSource, number> = new Map();
 }
 
 export class ParticleComponent extends Component {
 	particle_id?: number;
 	constructor(
-		public image: Renderable,
+		public image: SizedImageSource,
 		public source: [x: number, y: number, w: number, h: number] = [
 			0,
 			0,
@@ -128,7 +127,7 @@ export class WGLParticleSystem extends System {
 		}
 	}
 
-	addParticle(image: Renderable) {
+	addParticle(image: SizedImageSource) {
 		if (this.cache.indexed_sprites.has(image) != true) {
 			this.cache.sprites.add(image);
 			this.rebuild();

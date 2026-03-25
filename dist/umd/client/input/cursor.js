@@ -1,19 +1,16 @@
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 (function (factory) {
     if (typeof module === "object" && typeof module.exports === "object") {
         var v = factory(require, exports);
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@orago/lib/emitter"], factory);
+        define(["require", "exports", "@orago/lib"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.CursorButton = void 0;
-    const emitter_1 = __importDefault(require("@orago/lib/emitter"));
+    const lib_1 = require("@orago/lib");
     function isTouchEvent(input) {
         const __TouchEvent = typeof TouchEvent != "undefined" ? TouchEvent : window.TouchEvent;
         if (!__TouchEvent) {
@@ -51,6 +48,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     };
     const reverseCursorActionDict = Object.fromEntries(Object.entries(cursorActionDict).map((e) => [e[1], Number(e[0])]));
     class Cursor {
+        static Button = CursorButton;
         // private static actionDict = cursorActionDict;
         // private static reverseActionDict = reverseCursorActionDict;
         static buttonToAction(value) {
@@ -61,33 +59,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
                 ? CursorButton.TOUCH
                 : event.button;
         }
+        // private static actionToButtonID(value: MouseButton) {
+        // 	return reverseCursorActionDict[value];
+        // }
+        element;
+        events = new lib_1.Emitter();
+        // state management
+        position = { x: 0, y: 0 };
+        start_position = { x: 0, y: 0 };
+        end_position = { x: 0, y: 0 };
+        buttons = new Set();
+        mouse_down = false;
+        touching = false;
+        start_time = 0;
+        // systems management
+        alive = false;
+        bound_events = new Set();
         // private _mobile_mode?: 0 | 2;
         constructor(element = document.body) {
-            this.events = new emitter_1.default();
-            // state management
-            this.position = { x: 0, y: 0 };
-            this.start_position = { x: 0, y: 0 };
-            this.end_position = { x: 0, y: 0 };
-            this.buttons = new Set();
-            this.mouse_down = false;
-            this.touching = false;
-            this.start_time = 0;
-            // systems management
-            this.alive = false;
-            this.bound_events = new Set();
-            this.on = {
-                click: (e) => e.preventDefault(),
-                contextmenu: (e) => e.preventDefault(),
-                mousemove: (e) => e instanceof MouseEvent &&
-                    this.events.emit("move", e.clientX, e.clientY),
-                touchmove: (e) => isTouchEvent(e) &&
-                    this.events.emit("move", e.touches[0].clientX, e.touches[0].clientY),
-                mouseup: (e) => this.events.emit("end", e),
-                touchend: (e) => (e.preventDefault(),
-                    isTouchEvent(e) && this.events.emit("end", e.changedTouches[0])),
-                mousedown: (e) => this.events.emit("start", e),
-                touchstart: (e) => isTouchEvent(e) && this.events.emit("start", e.touches[0]),
-            };
             this.element = element;
             this.reset();
         }
@@ -166,7 +155,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             this.toggleButton(button_id, false);
             this.events.emit("release");
         }
+        on = {
+            click: (e) => e.preventDefault(),
+            contextmenu: (e) => e.preventDefault(),
+            mousemove: (e) => e instanceof MouseEvent &&
+                this.events.emit("move", e.clientX, e.clientY),
+            touchmove: (e) => isTouchEvent(e) &&
+                this.events.emit("move", e.touches[0].clientX, e.touches[0].clientY),
+            mouseup: (e) => this.events.emit("end", e),
+            touchend: (e) => (e.preventDefault(),
+                isTouchEvent(e) && this.events.emit("end", e.changedTouches[0])),
+            mousedown: (e) => this.events.emit("start", e),
+            touchstart: (e) => isTouchEvent(e) && this.events.emit("start", e.touches[0]),
+        };
     }
-    Cursor.Button = CursorButton;
     exports.default = Cursor;
 });
+//# sourceMappingURL=cursor.js.map

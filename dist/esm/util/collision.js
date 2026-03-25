@@ -18,3 +18,4 @@ export class Collision {
         return distance < a.r + b.r;
     }
 }
+//# sourceMappingURL=collision.js.map

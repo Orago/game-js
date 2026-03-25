@@ -1,5 +1,5 @@
 import BrushCanvas from "./brush/brush.js";
-import { Renderable } from "./brush/render.js";
+import { RenderableInput } from "./brush/render.js";
 import { ImagePacker, TImageBox } from "./util/image-packer.js";
 
 const rerenderCanvas = new BrushCanvas({

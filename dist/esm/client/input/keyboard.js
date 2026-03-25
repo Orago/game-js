@@ -10,9 +10,10 @@ const unions = {
     AltRight: "Alt",
 };
 class VNodeEventGroup {
+    node;
+    map = new Map();
     constructor(node) {
         this.node = node;
-        this.map = new Map();
         this.node = node;
     }
     on(event, callback) {
@@ -36,24 +37,15 @@ export default class Keyboard {
     static formatKeycode(value) {
         return value;
     }
+    element;
+    events = new Emitter();
+    // state management
+    pressed = {};
+    union = "both";
+    // systems management
+    alive = false;
+    bound_events = new Set();
     constructor(element = document.body) {
-        this.events = new Emitter();
-        // state management
-        this.pressed = {};
-        this.union = "both";
-        // systems management
-        this.alive = false;
-        this.bound_events = new Set();
-        this.isPressed = (key) => { var _a; return ((_a = this.pressed) === null || _a === void 0 ? void 0 : _a[key]) == true; };
-        this.intPressed = (key) => this.isPressed(key) ? 1 : 0;
-        this.on = {
-            keydown: (event) => {
-                this.simulateKeyDown(event.code);
-            },
-            keyup: (event) => {
-                this.simulateKeyUp(event.code);
-            },
-        };
         this.element = element;
     }
     changeKeyState(key, state) {
@@ -103,7 +95,7 @@ export default class Keyboard {
     simulateKeyDown(keycode) {
         keycode = Keyboard.formatKeycode(keycode);
         this.pressed[keycode] = true;
-        const alt = unions === null || unions === void 0 ? void 0 : unions[keycode];
+        const alt = unions?.[keycode];
         if (this.union != "split") {
             if (alt != null) {
                 this.simulateKeyDown(alt);
@@ -118,7 +110,7 @@ export default class Keyboard {
     simulateKeyUp(keycode) {
         keycode = Keyboard.formatKeycode(keycode);
         delete this.pressed[keycode];
-        const alt = unions === null || unions === void 0 ? void 0 : unions[keycode];
+        const alt = unions?.[keycode];
         if (this.union != "split") {
             if (alt != null) {
                 this.simulateKeyUp(alt);
@@ -134,6 +126,8 @@ export default class Keyboard {
     anyPressed(...args) {
         return args.some(this.isPressed);
     }
+    isPressed = (key) => this.pressed?.[key] == true;
+    intPressed = (key) => this.isPressed(key) ? 1 : 0;
     mapInt(...keys) {
         const keyMap = (key) => [
             key,
@@ -151,4 +145,13 @@ export default class Keyboard {
             }
         }
     }
+    on = {
+        keydown: (event) => {
+            this.simulateKeyDown(event.code);
+        },
+        keyup: (event) => {
+            this.simulateKeyUp(event.code);
+        },
+    };
 }
+//# sourceMappingURL=keyboard.js.map

@@ -1,13 +1,24 @@
-import { type Vector } from "@orago/lib";
-type Point = Vector.Point;
+import type { Point } from "@orago/lib";
+/**
+ * @deprecated
+ */
 export interface RectangleLike {
     width: number;
     height: number;
 }
+/**
+ * @deprecated
+ */
 export type CircleLike = {
     r: number;
 } & Point;
+/**
+ * @deprecated
+ */
 export type PositionedRectangleLike = RectangleLike & Point;
+/**
+ * @deprecated
+ */
 export type BoundsLike = [x1: number, y1: number, x2: number, y2: number];
 export declare class Rect {
     static scaleToFitRatio(container: RectangleLike, child: RectangleLike): number;
@@ -53,4 +64,3 @@ export declare class Bound {
     get valid(): boolean;
     [Symbol.iterator](): Generator<number, void, unknown>;
 }
-export {};

@@ -1,16 +1,17 @@
+import { Component, System } from "@orago/ecs";
+import { random } from "@orago/lib/math";
+import { PositionComponent } from "../../ecs/physics.js";
 import { WGL } from "../index.js";
 import { ImagePacker } from "../util/image-packer.js";
-import { Component, System } from "@orago/ecs";
-import { PositionComponent } from "../../ecs/physics.js";
-import { random } from "@orago/lib/math";
 class ParticleCache {
-    constructor() {
-        this.sprites = new Set();
-        this.indexed_sprites = new Map();
-        this.id_matches = new Map();
-    }
+    sprites = new Set();
+    indexed_sprites = new Map();
+    id_matches = new Map();
 }
 export class ParticleComponent extends Component {
+    image;
+    source;
+    particle_id;
     constructor(image, source = [
         0,
         0,
@@ -28,15 +29,17 @@ export class ParticleComponent extends Component {
 // 	}
 // }
 export class WGLParticleSystem extends System {
+    engine;
+    wgl = new WGL.WglProgram();
+    cache = new ParticleCache();
+    components = new Set([
+        PositionComponent,
+        ParticleComponent,
+    ]);
+    atlas;
     constructor(engine) {
         super();
         this.engine = engine;
-        this.wgl = new WGL.WglProgram();
-        this.cache = new ParticleCache();
-        this.components = new Set([
-            PositionComponent,
-            ParticleComponent,
-        ]);
     }
     update(entities) {
         const instances = this.wgl.instances;
@@ -60,7 +63,12 @@ export class WGLParticleSystem extends System {
                 }
                 instances.updateSelection(instances.getIndex(c_particle.particle_id), {
                     source,
-                    destination: [position.x, position.y, random(1, 50), random(1, 100)],
+                    destination: [
+                        position.x,
+                        position.y,
+                        random(1, 50),
+                        random(1, 100),
+                    ],
                 });
             }
         }
@@ -81,7 +89,7 @@ export class WGLParticleSystem extends System {
             width: e.width,
             height: e.height,
         }));
-        const packed = ImagePacker.pack(boxes, 1);
+        const packed = ImagePacker.createPack(boxes, 1);
         this.atlas = new WGL.TextureAtlas(this.wgl.gl, packed.canvas);
         this.wgl.setTexture(this.atlas);
         for (const value of packed.packed.boxes) {
@@ -105,3 +113,4 @@ export class WGLParticleSystem extends System {
         return this.wgl.instances.addInstance();
     }
 }
+//# sourceMappingURL=particles.js.map

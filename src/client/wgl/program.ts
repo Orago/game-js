@@ -1,5 +1,3 @@
-import { difference, random } from "@orago/lib/math";
-
 type TSpriteOptions = {
 	color?: [r: number, g: number, b: number, a: number];
 	source?: [x: number, y: number, w: number, h: number];

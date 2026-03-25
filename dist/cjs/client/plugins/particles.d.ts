@@ -1,17 +1,17 @@
-import { Engine, WGL } from "../index.js";
-import { TRenderableImage } from "../brush/render.js";
-import { TBox } from "../../util/potpack.js";
 import { Component, Entity, System } from "@orago/ecs";
+import { Rectangle } from "@orago/lib/math";
+import { SizedImageSource } from "../brush/render.js";
+import { Engine, WGL } from "../index.js";
 declare class ParticleCache {
-    sprites: Set<TRenderableImage>;
-    indexed_sprites: Map<TRenderableImage, TBox>;
-    id_matches: Map<TRenderableImage, number>;
+    sprites: Set<SizedImageSource>;
+    indexed_sprites: Map<SizedImageSource, Rectangle>;
+    id_matches: Map<SizedImageSource, number>;
 }
 export declare class ParticleComponent extends Component {
-    image: TRenderableImage;
+    image: SizedImageSource;
     source: [x: number, y: number, w: number, h: number];
     particle_id?: number;
-    constructor(image: TRenderableImage, source?: [x: number, y: number, w: number, h: number]);
+    constructor(image: SizedImageSource, source?: [x: number, y: number, w: number, h: number]);
 }
 export declare class WGLParticleSystem extends System {
     engine: Engine;
@@ -22,6 +22,6 @@ export declare class WGLParticleSystem extends System {
     constructor(engine: Engine);
     update(entities: Set<Entity>): void;
     rebuild(): void;
-    addParticle(image: TRenderableImage): number | undefined;
+    addParticle(image: SizedImageSource): number | undefined;
 }
 export {};

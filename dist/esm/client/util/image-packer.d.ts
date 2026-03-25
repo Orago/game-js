@@ -1,16 +1,26 @@
+import { SizedImageSource } from "../brush/render.js";
 export interface TImageBox {
-    image: HTMLImageElement | HTMLCanvasElement | OffscreenCanvas;
+    image: SizedImageSource;
     width: number;
     height: number;
 }
 export declare class ImagePacker {
-    static pack(boxes: TImageBox[], padding?: number): {
+    static createPack(boxes: TImageBox[], padding?: number): {
         canvas: HTMLCanvasElement;
         packed: {
             width: number;
             height: number;
             fill: number;
-            boxes: (TImageBox & import("../../util/potpack.js").TBox)[];
+            boxes: (TImageBox & import("@orago/lib").Point & import("@orago/lib").Size)[];
+        };
+    };
+    static pack(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, boxes: TImageBox[], padding?: number): {
+        canvas: HTMLCanvasElement;
+        packed: {
+            width: number;
+            height: number;
+            fill: number;
+            boxes: (TImageBox & import("@orago/lib").Point & import("@orago/lib").Size)[];
         };
     };
 }

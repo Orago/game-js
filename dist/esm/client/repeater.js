@@ -1,11 +1,12 @@
 import { Signal } from "@orago/lib";
 export class FPS {
+    value = 0;
+    currentIndex = 0;
+    lastTick = 0;
+    samples = [];
+    sampleSize;
     constructor(sampleSize) {
-        this.value = 0;
-        this.currentIndex = 0;
-        this.lastTick = 0;
-        this.samples = [];
-        this.sampleSize = sampleSize !== null && sampleSize !== void 0 ? sampleSize : 60;
+        this.sampleSize = sampleSize ?? 60;
     }
     tick() {
         if (this.lastTick == null) {
@@ -30,15 +31,19 @@ export class FPS {
     }
 }
 export class Ticker {
+    tick = new Signal();
+    frame = -1;
+    paused = true;
+    RafRef;
+    fpsLimit = -1;
+    actualFps = -1;
+    delay;
+    maxFramesPerSecond;
+    start_time = 0;
+    timestamp = 0;
+    delta = 0;
+    _fpsHandler;
     constructor(fpsLimit) {
-        this.tick = new Signal();
-        this.frame = -1;
-        this.paused = true;
-        this.fpsLimit = -1;
-        this.actualFps = -1;
-        this.start_time = 0;
-        this.timestamp = 0;
-        this.delta = 0;
         this.fpsLimit = fpsLimit;
         this.delay = 1000 / fpsLimit;
         this._fpsHandler = new FPS();
@@ -106,3 +111,4 @@ export class Ticker {
     }
 }
 export default Ticker;
+//# sourceMappingURL=repeater.js.map

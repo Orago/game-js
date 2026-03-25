@@ -1,5 +1,5 @@
 import { Component, Entity, System } from "@orago/ecs";
-import { Signal } from "@orago/lib";
+import { Signal, Point } from "@orago/lib";
 export declare class PositionComponent extends Component {
     x: number;
     y: number;
@@ -13,8 +13,7 @@ export declare class PositionComponent extends Component {
 export declare class VelocityComponent extends Component {
     x: number;
     y: number;
-    drag: number;
-    drag2: {
+    drag: {
         x: number;
         y: number;
     };
@@ -35,6 +34,7 @@ export declare class BoxComponent extends Component {
 export declare class PhysicsSystem extends System {
     components: Set<Function>;
     priority: number;
+    gravity: Point;
     constructor();
     tickEntity(entity: Entity): void;
     update(entities: Set<Entity>): void;

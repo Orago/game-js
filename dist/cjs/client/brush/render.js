@@ -1,19 +1,66 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CanvasRender = void 0;
+const tint_js_1 = require("./tint.js");
+let canvas;
+let ctx;
 class CanvasRender {
-    static Image(context, image, from = [], to = []) {
-        if ((image instanceof HTMLImageElement ||
-            image instanceof HTMLCanvasElement ||
-            image instanceof OffscreenCanvas) != true) {
-            return;
+    static resolveCanvas() {
+        if (canvas == undefined || ctx == undefined) {
+            canvas = document.createElement("canvas");
+            ctx = canvas.getContext("2d");
         }
-        const [preX = 0, preY = 0, preW = image.width, preH = image.height] = Array.isArray(from) ? from : [];
-        const [x = 0, y = 0, w = image.width, h = image.height] = Array.isArray(to)
-            ? to
-            : [];
+        return {
+            canvas,
+            ctx,
+        };
+    }
+    static getImageArray(source, from, to) {
+        if ("getSource" in source) {
+            source = source.getSource();
+        }
+        const source_width = "width" in source && typeof source.width == "number"
+            ? source.width
+            : 0;
+        const source_height = "height" in source && typeof source.height == "number"
+            ? source.height
+            : 0;
+        const [sx = 0, sy = 0, sw = source_width, sh = source_height] = Array.isArray(from) ? from : [];
+        const [dx = 0, dy = 0, dw = source_width, dh = source_height] = Array.isArray(to) ? to : [];
+        if ("id" in source && "data" in source) {
+            if (source.data == undefined)
+                return;
+            return [
+                source.data,
+                source.x + sx,
+                source.y + sy,
+                sw,
+                sh,
+                dx,
+                dy,
+                dw,
+                dh,
+            ];
+        }
+        else {
+            return [source, sx, sy, sw, sh, dx, dy, dw, dh];
+        }
+    }
+    static Image(context, source, options
+    // from: ArrayRect = [],
+    // to: ArrayRect = []
+    ) {
+        const source_array = CanvasRender.getImageArray(source, options?.from ?? [], options?.to ?? []);
+        if (source_array == undefined)
+            return;
         try {
-            context.drawImage(image, preX, preY, preW, preH, x, y, w, h);
+            let [image, sx, sy, sw, sh, dx, dy, dw, dh] = source_array;
+            if (options?.tint != undefined) {
+                image = tint_js_1.TintImage.hslAffect(image, options.tint, (ctx) => ctx.drawImage(image, 0, 0));
+            }
+            else {
+            }
+            context.drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh);
         }
         catch (err) { }
     }
@@ -34,7 +81,7 @@ class CanvasRender {
         context.arc(x, y, radius, amt * Math.PI, 1.5 * Math.PI, false); //25%
         context.fillStyle = "transparent";
         context.fill();
-        context.lineWidth = strokeWidth !== null && strokeWidth !== void 0 ? strokeWidth : (radius - 0.3) * 2;
+        context.lineWidth = strokeWidth ?? (radius - 0.3) * 2;
         context.strokeStyle = color;
         context.stroke();
         context.restore();
@@ -61,5 +108,7 @@ class CanvasRender {
             CanvasRender.fullCircle(context, values);
         }
     }
+    static tintSection() { }
 }
 exports.CanvasRender = CanvasRender;
+//# sourceMappingURL=render.js.map

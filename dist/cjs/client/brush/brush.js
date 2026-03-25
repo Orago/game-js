@@ -1,40 +1,67 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChainableCanvas = void 0;
-const emitter_1 = __importDefault(require("@orago/lib/emitter"));
+const emitter_1 = __importStar(require("@orago/lib/emitter"));
 const chainable_canvas_js_1 = require("./chainable-canvas.js");
+const etch_js_1 = require("./etch.js");
 const render_js_1 = require("./render.js");
-// import { WebGLCanvas } from "./webgl-2d.js";
 var chainable_canvas_js_2 = require("./chainable-canvas.js");
 Object.defineProperty(exports, "ChainableCanvas", { enumerable: true, get: function () { return chainable_canvas_js_2.ChainableCanvas; } });
 class BrushCanvas {
+    resolution = 1;
+    smoothing = true;
+    /**
+     * Both are intentionally unset and will be set using BrushCanvas.swapCanvas
+     */
+    canvas;
+    ctx = undefined;
+    events = new emitter_1.default();
+    experimental = false;
+    onResize = new emitter_1.Signal();
     constructor(settings = {}) {
-        this.resolution = 1;
-        this.smoothing = true;
-        this.ctx = undefined;
-        this.events = new emitter_1.default();
-        this.experimental = false;
-        /**
-         * Toggles smoothing
-         * ON - blurred when using low resolution assets and smooth on high resolution
-         * OFF - Crisp on low resolution assets and jagged on high resolution
-         */
-        this.setSmoothing = (state) => {
-            if (this.experimental)
-                return this;
-            this.ctx.imageSmoothingEnabled = this.smoothing = state == true;
-            return this;
-        };
         if (typeof settings != "object")
             settings = {};
         const { dimensions = [100, 100], inputCanvas: canvas = document.createElement("canvas"), } = settings;
         canvas.width = dimensions[0];
         canvas.height = dimensions[1];
+        this.onResize.on((width, height) => {
+            this.events.emit("resize", width, height);
+        });
         this.canvas = canvas;
-        if ((settings === null || settings === void 0 ? void 0 : settings.experimental_gl) == true) {
+        if (settings?.experimental_gl == true) {
             this.experimental = true;
             // WebGLCanvas.affect(canvas);
             const ctx = this.canvas.getContext("webgl-2d");
@@ -84,7 +111,7 @@ class BrushCanvas {
             this.canvas.height = height;
     }
     image(image, from, to) {
-        render_js_1.CanvasRender.Image(this.ctx, image, from, to);
+        render_js_1.CanvasRender.Image(this.ctx, image, { from, to });
         return this;
     }
     text(values) {
@@ -131,6 +158,10 @@ class BrushCanvas {
         ctx.fillStyle = gradient;
         ctx.fillRect(x, y, w, h);
     }
+    /**
+     * Please use EtchUtility.getTextWidth
+     * @deprecated
+     */
     getTextWidth(values) {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
@@ -157,24 +188,32 @@ class BrushCanvas {
         this.ctx.clearRect(x, y, width, height);
         return this;
     }
-    resizable() {
-        const resize = () => {
-            const { canvas, setSmoothing } = this;
-            const { documentElement: dE } = document;
-            if (canvas instanceof HTMLCanvasElement &&
-                document.body.contains(canvas)) {
-                canvas.style.width = `${100 * this.resolution}%`;
-                canvas.style.height = `${100 * this.resolution}%`;
-            }
-            canvas.width = dE.clientWidth * this.resolution;
-            canvas.height = dE.clientHeight * this.resolution;
-            setSmoothing(false);
-            this.events.emit("resize", canvas.width, canvas.height);
-        };
-        if ("addEventListener" in window)
-            window.addEventListener("resize", resize);
-        resize();
+    /**
+     * Toggles smoothing
+     * ON - blurred when using low resolution assets and smooth on high resolution
+     * OFF - Crisp on low resolution assets and jagged on high resolution
+     */
+    setSmoothing = (state) => {
+        if (this.experimental)
+            return this;
+        this.ctx.imageSmoothingEnabled = this.smoothing = state == true;
         return this;
+    };
+    resizable() {
+        etch_js_1.EtchUtility.resizable({
+            canvas: this.canvas,
+            setSmoothing: this.setSmoothing.bind(this),
+            resolution: this.resolution,
+            onResize: this.onResize,
+        });
+        return this;
+    }
+    getEtch(options) {
+        return new etch_js_1.Etch({
+            canvas: this.canvas,
+            ctx: this.ctx,
+            stack: options?.stack ?? true,
+        });
     }
     get get() {
         return this;
@@ -184,3 +223,4 @@ class BrushCanvas {
     }
 }
 exports.default = BrushCanvas;
+//# sourceMappingURL=brush.js.map

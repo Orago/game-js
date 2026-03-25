@@ -36,7 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Bound = exports.Rect = exports.Box = exports.Shapes = exports.Collision = exports.BoxUtil = exports.Ecs = exports.Transform = exports.MeowtrixCss = exports.Meowtrix = void 0;
 var meowtrix_js_1 = require("./util/meowtrix.js");
 Object.defineProperty(exports, "Meowtrix", { enumerable: true, get: function () { return meowtrix_js_1.Meowtrix; } });
-Object.defineProperty(exports, "MeowtrixCss", { enumerable: true, get: function () { return meowtrix_js_1.MeowtrixCss; } });
+Object.defineProperty(exports, "MeowtrixCss", { enumerable: true, get: function () { return meowtrix_js_1.MeowtrixDom; } });
 Object.defineProperty(exports, "Transform", { enumerable: true, get: function () { return meowtrix_js_1.Transform; } });
 exports.Ecs = __importStar(require("@orago/ecs"));
 exports.BoxUtil = __importStar(require("./util/boxes.js"));
@@ -47,3 +47,4 @@ var shapes_js_1 = require("./util/shapes.js");
 Object.defineProperty(exports, "Box", { enumerable: true, get: function () { return shapes_js_1.Box; } });
 Object.defineProperty(exports, "Rect", { enumerable: true, get: function () { return shapes_js_1.Rect; } });
 Object.defineProperty(exports, "Bound", { enumerable: true, get: function () { return shapes_js_1.Bound; } });
+//# sourceMappingURL=index.js.map
