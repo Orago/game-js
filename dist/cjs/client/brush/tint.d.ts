@@ -11,6 +11,7 @@ export interface HslTintOptions {
     hsl?: HslTint;
     rgb?: RgbArray;
     value?: any;
+    smoothing?: boolean;
 }
 type BoxedCtxRef = (ctx: CanvasRenderingContext2D, size: Size) => void;
 export declare class TintImage {

@@ -37,10 +37,10 @@ export declare class CanvasRender {
     };
     static getImageArray(source: RenderableInput, from: ArrayRect, to: ArrayRect): RenderableArray | undefined;
     static Image(context: CanvasRenderingContext2D, source: RenderableInput, options?: RenderableImageOptions): void;
-    static text(context: Context2D, text: string, { x, y, w }: {
+    static text(ctx: Context2D, text: string, options: {
         x: number;
         y: number;
-        w?: number;
+        width?: number;
     }): void;
     private static partialCircle;
     private static fullCircle;

@@ -134,7 +134,7 @@ export class InputMapHandler<MP extends InputMap> {
 		gamepad_poll?: number;
 	} = {};
 
-	allowed_gamepads: number[] = [];
+	allowed_gamepads?: number[] = undefined;
 
 	constructor(public input_map: MP) {
 		this.input_map = input_map;
@@ -152,7 +152,7 @@ export class InputMapHandler<MP extends InputMap> {
 			this.tickKeyboard(this.keyboard);
 		}
 
-		if (this.allowed_gamepads.length > 0) {
+		if (this.allowed_gamepads == undefined || this.allowed_gamepads.length > 0) {
 			this.updateGamepads();
 		}
 	}
@@ -254,10 +254,10 @@ export class InputMapHandler<MP extends InputMap> {
 		const gamepads = Gamepads.getAll()
 			.filter(
 				(_, i) =>
-					this.allowed_gamepads == null ||
+					this.allowed_gamepads == undefined ||
 					this.allowed_gamepads.includes(i)
 			)
-			.filter((_) => _ != null);
+			.filter((gamepad) => gamepad != null);
 
 		for (const [name, data] of this.input_map.current_maps) {
 			if (data.gamepad != undefined) {

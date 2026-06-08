@@ -22,7 +22,7 @@ export declare class PluginManager {
      * Rebuilds the plugin list
      */
     changed(): void;
-    add(plugin: EnginePlugin): void;
+    add(...plugins: EnginePlugin[]): void;
     remove(plugin: EnginePlugin): void;
     clear(): void;
 }

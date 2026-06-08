@@ -36,7 +36,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WGL = exports.ImagePacker = exports.Spritesheet = exports.Sprites = exports.Ticker = exports.WGLParticleSystem = exports.LegacySystem = exports.LegacyEntity = exports.EcsRenderer = exports.TextureHandler = exports.SpriteUtility = exports.SpriteStore = exports.SpriteRef = exports.MeowTexture = exports.Texture = exports.Action = exports.Keyboard = exports.InputMapHandler = exports.InputMap = exports.Gamepads = exports.Cursor = exports.Engine = exports.CanvasRender = exports.EtchUtility = exports.EtchStack = exports.Etch = exports.ColorImage = exports.ChainableCanvas = exports.BrushCanvas = exports.PluginManager = exports.ObjectManager = exports.EnginePlugin = exports.EngineObject = exports.Ecs = void 0;
+exports.WGL = exports.ImagePacker = exports.Spritesheet = exports.Sprites = exports.Ticker = exports.WGLParticleSystem = exports.LegacySystem = exports.LegacyEntity = exports.EcsRenderer = exports.TextureHandler = exports.SpriteUtility = exports.SpriteStore = exports.SpriteRef = exports.MeowTexture = exports.Texture = exports.Action = exports.Keyboard = exports.InputMapHandler = exports.InputMap = exports.Gamepads = exports.Cursor = exports.Engine = exports.CanvasRender = exports.EtchUtility = exports.EtchStack = exports.Etch = exports.ColorImage = exports.ChainableCanvas = exports.BrushCanvas = exports.PluginManager = exports.ObjectManager = exports.EnginePlugin = exports.EngineObject = exports.Ecs = exports.TintImage = void 0;
+var tint_js_1 = require("./brush/tint.js");
+Object.defineProperty(exports, "TintImage", { enumerable: true, get: function () { return tint_js_1.TintImage; } });
 exports.Ecs = __importStar(require("@orago/ecs"));
 var base_js_1 = require("./base.js");
 Object.defineProperty(exports, "EngineObject", { enumerable: true, get: function () { return base_js_1.EngineObject; } });

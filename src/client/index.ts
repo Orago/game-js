@@ -1,3 +1,4 @@
+export { TintImage } from "./brush/tint.js";
 export * as Ecs from "@orago/ecs";
 export {
 	EngineObject,
@@ -16,7 +17,13 @@ export {
 } from "./brush/etch.js";
 export { CanvasRender } from "./brush/render.js";
 export { default as Engine, type Camera } from "./engine.js";
-export { default as Cursor, type CursorEvents } from "./input/cursor.js";
+export {
+	default as Cursor,
+	type CursorEvents,
+	type CursorButtonPressContext,
+	type CursorButtonChangeContext,
+	type CursorButton,
+} from "./input/cursor.js";
 export { Gamepads } from "./input/gamepad.js";
 export { InputMap, InputMapHandler } from "./input/input-map.js";
 export { default as Keyboard, type KeyboardEvents } from "./input/keyboard.js";

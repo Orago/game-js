@@ -38,13 +38,15 @@ export class PluginManager {
 		);
 	}
 
-	add(plugin: EnginePlugin): void {
-		if (this.list.has(plugin)) {
-			return;
+	add(...plugins: EnginePlugin[]): void {
+		for (const plugin of plugins) {
+			if (this.list.has(plugin)) {
+				continue;
+			}
+			plugin.onAdd?.(this.engine);
+			this.list.add(plugin);
+			this.changed();
 		}
-		plugin.onAdd?.(this.engine);
-		this.list.add(plugin);
-		this.changed();
 	}
 
 	remove(plugin: EnginePlugin): void {

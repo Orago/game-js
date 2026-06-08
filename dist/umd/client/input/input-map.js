@@ -88,7 +88,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         constructor(input_map) {
             this.input_map = input_map;
             this.hooks = {};
-            this.allowed_gamepads = [];
+            this.allowed_gamepads = undefined;
             this.input_map = input_map;
             this.input_map.check_hook = () => {
                 this.tick();
@@ -101,7 +101,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
             if (this.keyboard) {
                 this.tickKeyboard(this.keyboard);
             }
-            if (this.allowed_gamepads.length > 0) {
+            if (this.allowed_gamepads == undefined || this.allowed_gamepads.length > 0) {
                 this.updateGamepads();
             }
         }
@@ -180,9 +180,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         }
         updateGamepads() {
             const gamepads = gamepad_js_1.Gamepads.getAll()
-                .filter((_, i) => this.allowed_gamepads == null ||
+                .filter((_, i) => this.allowed_gamepads == undefined ||
                 this.allowed_gamepads.includes(i))
-                .filter((_) => _ != null);
+                .filter((gamepad) => gamepad != null);
             for (const [name, data] of this.input_map.current_maps) {
                 if (data.gamepad != undefined) {
                     for (const button of data.gamepad) {

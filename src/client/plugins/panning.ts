@@ -2,6 +2,7 @@ import { Emitter, type Vector } from "@orago/lib";
 import { EnginePlugin } from "../base.js";
 import Engine from "../engine.js";
 import { MouseButton } from "../input/symbols.js";
+import { CursorButtonPressContext } from "../input/cursor.js";
 
 function getMidpoint(points: Vector.Point[]) {
 	const midpoint = {
@@ -30,11 +31,7 @@ function getTotalDistance(points: Vector.Point[]) {
 }
 
 class PCHandler {
-	parent: PanningPlugin;
-
-	constructor(parent: PCHandler["parent"]) {
-		this.parent = parent;
-	}
+	constructor(public parent: PanningPlugin) {}
 
 	panTick(): void {
 		if (this.parent.modes.panning && this.parent.pan.active) {
@@ -47,14 +44,12 @@ class PCHandler {
 			return;
 		}
 		const { cursor } = this.parent.engine;
-
 		this.parent.panStart(cursor.position);
 		this.parent.translate(cursor.position);
 	}
 }
 
 class MobileHandler {
-	parent: PanningPlugin;
 	start: MobileStart = {
 		points: [],
 		size: 0,
@@ -62,9 +57,7 @@ class MobileHandler {
 
 	last_distance?: number;
 
-	constructor(parent: MobileHandler["parent"]) {
-		this.parent = parent;
-	}
+	constructor(public parent: PanningPlugin) {}
 
 	pan(e: TouchEvent): void {
 		if (this.parent.pan.active) {
@@ -115,7 +108,7 @@ class MobileHandler {
 				const change = total / this.last_distance;
 
 				parent.factorZoom(
-					change * parent.options.mobile_factor,
+					change * parent.options.touch_zoom_factor,
 					position
 				);
 			}
@@ -140,8 +133,8 @@ type Control = "pc" | "mobile";
 interface Options {
 	min?: number;
 	max?: number;
-	mobile_factor: number;
-	pc_factor: number;
+	touch_zoom_factor: number;
+	mouse_zoom_factor: number;
 }
 
 export class PanningPlugin extends EnginePlugin {
@@ -153,8 +146,8 @@ export class PanningPlugin extends EnginePlugin {
 	public options: Options = {
 		min: undefined,
 		max: undefined,
-		mobile_factor: 1,
-		pc_factor: 1,
+		touch_zoom_factor: 1,
+		mouse_zoom_factor: 1,
 	};
 
 	public pan = {
@@ -180,20 +173,36 @@ export class PanningPlugin extends EnginePlugin {
 
 	constructor(
 		// public engine: Engine,
-		controls: Control[] | "all",
-		public focus_element?: HTMLElement
+		options: {
+			controls?: Control[] | "all";
+			focus?: HTMLElement;
+			modes: (keyof PanningPlugin["modes"])[];
+		}
 	) {
 		super();
 
-		if (controls === "all") {
-			controls = ["pc", "mobile"];
+		let controls: Control[] =
+			options.controls == "all" || options.controls == undefined
+				? ["pc", "mobile"]
+				: options.controls;
+
+		for (const mode of options.modes) {
+			this.modes[mode] = true;
 		}
 
-		const touchStart = (button: MouseButton) =>
-			(button == "Middle" || button == "Touch") &&
-			(this.pan.active = true);
-		const touchEnd = (button: MouseButton) =>
-			(button == "Middle" || button == "Touch") && this.interactionEnd();
+		const touchStart = (c: CursorButtonPressContext) => {
+			if (c.which == "Middle" || c.which == "Touch") {
+				this.pan.active = true;
+				c.preventDefault();
+			}
+		};
+
+		const touchEnd = (c: CursorButtonPressContext) => {
+			if (c.which == "Middle" || c.which == "Touch") {
+				this.interactionEnd();
+				c.preventDefault();
+			}
+		};
 
 		if (controls.includes("pc")) {
 			this.PC = new PCHandler(this);
@@ -201,22 +210,20 @@ export class PanningPlugin extends EnginePlugin {
 			const mouseMove = () => this.PC?.panTick();
 			const bound = this.handleWheel.bind(this);
 			const mouseOut = () => this.interactionEnd();
-
 			this.events
 				.on("plugin:add", (engine) => {
 					const cursor = engine.cursor;
-					const wheel_element =
-						this.focus_element ?? engine.dom.element;
+					const wheel_element = options.focus ?? engine.dom.element;
 					wheel_element.addEventListener("wheel", bound);
 					cursor.element.addEventListener("mousemove", mouseMove);
 					cursor.element.addEventListener("mouseout", mouseOut);
+
 					cursor.events.on("button-down", touchStart);
 					cursor.events.on("button-up", touchEnd);
 				})
 				.on("plugin:remove", (engine) => {
 					const cursor = engine.cursor;
-					const wheel_element =
-						this.focus_element ?? engine.dom.element;
+					const wheel_element = options.focus ?? engine.dom.element;
 					wheel_element.removeEventListener("wheel", bound);
 					cursor.element.removeEventListener("mousemove", mouseMove);
 					cursor.element.removeEventListener("mouseout", mouseOut);
@@ -295,8 +302,8 @@ export class PanningPlugin extends EnginePlugin {
 		const { pan } = this;
 
 		pan.state = false;
-		this.engine.camera.x = pan.offset.x += pan.change.x;
-		this.engine.camera.y = pan.offset.y += pan.change.y;
+		this.engine.camera.x = pan.offset.x -= pan.change.x;
+		this.engine.camera.y = pan.offset.y -= pan.change.y;
 		pan.change.x = 0;
 		pan.change.y = 0;
 	}
@@ -305,45 +312,38 @@ export class PanningPlugin extends EnginePlugin {
 		if (this.engine == undefined || this.modes.panning != true) {
 			return;
 		}
-		this.pan.change.x = pos.x - this.pan.start.x;
-		this.pan.change.y = pos.y - this.pan.start.y;
-		this.engine.camera.x = this.pan.offset.x + this.pan.change.x;
-		this.engine.camera.y = this.pan.offset.y + this.pan.change.y;
+		const camera = this.engine.camera;
+		const pan = this.pan;
+
+		pan.change.x = (pos.x - pan.start.x) / camera.zoom;
+		pan.change.y = (pos.y - pan.start.y) / camera.zoom;
+		camera.x = pan.offset.x - pan.change.x;
+		camera.y = pan.offset.y - pan.change.y;
 	}
 
 	public setZoom(value: number, position: Vector.Point): void {
 		if (this.engine == undefined) {
 			return;
-		}
-
-		const last = this.engine.camera.zoom;
-		const zoom = value / last;
-
-		if (this.modes.panning != true) {
+		} else if (this.modes.panning != true) {
 			return this.setZoomTrim(value), void 0;
 		}
-
-		const offset = this.engine?.camera;
-		const npos = { x: position.x, y: position.y };
+		const camera = this.engine.camera;
 
 		if (this.options.min != null && value < this.options.min) {
 			return this.setZoom(this.options.min, position);
-		}
-
-		if (this.options.max && value > this.options.max) {
+		} else if (this.options.max && value > this.options.max) {
 			return this.setZoom(this.options.max, position);
 		}
 
-		const before = Engine.worldToScreen(npos, { zoom: 1, offset });
+		const before = Engine.screenToWorld(position, camera);
+		camera.zoom = value;
 
-		this.engine.camera.zoom = value;
-
-		const after = Engine.worldToScreen(npos, { zoom, offset });
+		const after = Engine.screenToWorld(position, camera);
 
 		this.pan.offset.x += before.x - after.x;
 		this.pan.offset.y += before.y - after.y;
-		this.engine.camera.x += before.x - after.x;
-		this.engine.camera.y += before.y - after.y;
+		camera.x += before.x - after.x;
+		camera.y += before.y - after.y;
 	}
 
 	public factorZoom(zoom: number, pos: Vector.Point): void {
@@ -359,7 +359,8 @@ export class PanningPlugin extends EnginePlugin {
 		}
 
 		const zoom =
-			(1.1 * this.options.pc_factor) ** (event.deltaY < 0 ? 1 : -1);
+			(1.1 * this.options.mouse_zoom_factor) **
+			(event.deltaY < 0 ? 1 : -1);
 
 		this.factorZoom(zoom, this.engine.cursor.position);
 	}

@@ -40,11 +40,11 @@ class PCHandler {
 }
 class MobileHandler {
     constructor(parent) {
+        this.parent = parent;
         this.start = {
             points: [],
             size: 0,
         };
-        this.parent = parent;
     }
     pan(e) {
         if (this.parent.pan.active) {
@@ -83,7 +83,7 @@ class MobileHandler {
             const total = getTotalDistance(points);
             if (total != this.last_distance && this.last_distance) {
                 const change = total / this.last_distance;
-                parent.factorZoom(change * parent.options.mobile_factor, position);
+                parent.factorZoom(change * parent.options.touch_zoom_factor, position);
             }
             /* Update after */
             this.last_distance = total;
@@ -96,9 +96,8 @@ class MobileHandler {
 export class PanningPlugin extends EnginePlugin {
     constructor(
     // public engine: Engine,
-    controls, focus_element) {
+    options) {
         super();
-        this.focus_element = focus_element;
         this.modes = {
             panning: false,
             zoom: false,
@@ -106,8 +105,8 @@ export class PanningPlugin extends EnginePlugin {
         this.options = {
             min: undefined,
             max: undefined,
-            mobile_factor: 1,
-            pc_factor: 1,
+            touch_zoom_factor: 1,
+            mouse_zoom_factor: 1,
         };
         this.pan = {
             start: { x: 0, y: 0 },
@@ -117,12 +116,24 @@ export class PanningPlugin extends EnginePlugin {
             active: false,
         };
         this.events = new Emitter();
-        if (controls === "all") {
-            controls = ["pc", "mobile"];
+        let controls = options.controls == "all" || options.controls == undefined
+            ? ["pc", "mobile"]
+            : options.controls;
+        for (const mode of options.modes) {
+            this.modes[mode] = true;
         }
-        const touchStart = (button) => (button == "Middle" || button == "Touch") &&
-            (this.pan.active = true);
-        const touchEnd = (button) => (button == "Middle" || button == "Touch") && this.interactionEnd();
+        const touchStart = (c) => {
+            if (c.which == "Middle" || c.which == "Touch") {
+                this.pan.active = true;
+                c.preventDefault();
+            }
+        };
+        const touchEnd = (c) => {
+            if (c.which == "Middle" || c.which == "Touch") {
+                this.interactionEnd();
+                c.preventDefault();
+            }
+        };
         if (controls.includes("pc")) {
             this.PC = new PCHandler(this);
             const mouseMove = () => { var _a; return (_a = this.PC) === null || _a === void 0 ? void 0 : _a.panTick(); };
@@ -132,7 +143,7 @@ export class PanningPlugin extends EnginePlugin {
                 .on("plugin:add", (engine) => {
                 var _a;
                 const cursor = engine.cursor;
-                const wheel_element = (_a = this.focus_element) !== null && _a !== void 0 ? _a : engine.dom.element;
+                const wheel_element = (_a = options.focus) !== null && _a !== void 0 ? _a : engine.dom.element;
                 wheel_element.addEventListener("wheel", bound);
                 cursor.element.addEventListener("mousemove", mouseMove);
                 cursor.element.addEventListener("mouseout", mouseOut);
@@ -142,7 +153,7 @@ export class PanningPlugin extends EnginePlugin {
                 .on("plugin:remove", (engine) => {
                 var _a;
                 const cursor = engine.cursor;
-                const wheel_element = (_a = this.focus_element) !== null && _a !== void 0 ? _a : engine.dom.element;
+                const wheel_element = (_a = options.focus) !== null && _a !== void 0 ? _a : engine.dom.element;
                 wheel_element.removeEventListener("wheel", bound);
                 cursor.element.removeEventListener("mousemove", mouseMove);
                 cursor.element.removeEventListener("mouseout", mouseOut);
@@ -209,8 +220,8 @@ export class PanningPlugin extends EnginePlugin {
         }
         const { pan } = this;
         pan.state = false;
-        this.engine.camera.x = pan.offset.x += pan.change.x;
-        this.engine.camera.y = pan.offset.y += pan.change.y;
+        this.engine.camera.x = pan.offset.x -= pan.change.x;
+        this.engine.camera.y = pan.offset.y -= pan.change.y;
         pan.change.x = 0;
         pan.change.y = 0;
     }
@@ -218,36 +229,34 @@ export class PanningPlugin extends EnginePlugin {
         if (this.engine == undefined || this.modes.panning != true) {
             return;
         }
-        this.pan.change.x = pos.x - this.pan.start.x;
-        this.pan.change.y = pos.y - this.pan.start.y;
-        this.engine.camera.x = this.pan.offset.x + this.pan.change.x;
-        this.engine.camera.y = this.pan.offset.y + this.pan.change.y;
+        const camera = this.engine.camera;
+        const pan = this.pan;
+        pan.change.x = (pos.x - pan.start.x) / camera.zoom;
+        pan.change.y = (pos.y - pan.start.y) / camera.zoom;
+        camera.x = pan.offset.x - pan.change.x;
+        camera.y = pan.offset.y - pan.change.y;
     }
     setZoom(value, position) {
-        var _a;
         if (this.engine == undefined) {
             return;
         }
-        const last = this.engine.camera.zoom;
-        const zoom = value / last;
-        if (this.modes.panning != true) {
+        else if (this.modes.panning != true) {
             return this.setZoomTrim(value), void 0;
         }
-        const offset = (_a = this.engine) === null || _a === void 0 ? void 0 : _a.camera;
-        const npos = { x: position.x, y: position.y };
+        const camera = this.engine.camera;
         if (this.options.min != null && value < this.options.min) {
             return this.setZoom(this.options.min, position);
         }
-        if (this.options.max && value > this.options.max) {
+        else if (this.options.max && value > this.options.max) {
             return this.setZoom(this.options.max, position);
         }
-        const before = Engine.worldToScreen(npos, { zoom: 1, offset });
-        this.engine.camera.zoom = value;
-        const after = Engine.worldToScreen(npos, { zoom, offset });
+        const before = Engine.screenToWorld(position, camera);
+        camera.zoom = value;
+        const after = Engine.screenToWorld(position, camera);
         this.pan.offset.x += before.x - after.x;
         this.pan.offset.y += before.y - after.y;
-        this.engine.camera.x += before.x - after.x;
-        this.engine.camera.y += before.y - after.y;
+        camera.x += before.x - after.x;
+        camera.y += before.y - after.y;
     }
     factorZoom(zoom, pos) {
         if (this.engine == undefined) {
@@ -259,7 +268,7 @@ export class PanningPlugin extends EnginePlugin {
         if (this.engine == undefined || this.modes.zoom != true) {
             return;
         }
-        const zoom = Math.pow((1.1 * this.options.pc_factor), (event.deltaY < 0 ? 1 : -1));
+        const zoom = Math.pow((1.1 * this.options.mouse_zoom_factor), (event.deltaY < 0 ? 1 : -1));
         this.factorZoom(zoom, this.engine.cursor.position);
     }
     setZoomTrim(value) {

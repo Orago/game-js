@@ -17,6 +17,7 @@ export interface HslTintOptions {
 	hsl?: HslTint;
 	rgb?: RgbArray;
 	value?: any;
+	smoothing?: boolean;
 }
 
 type BoxedCtxRef = (ctx: CanvasRenderingContext2D, size: Size) => void;
@@ -190,6 +191,10 @@ export class TintImage {
 		const hue = options?.override?.hue ?? hsl.hue;
 
 		this.setupTint(canvas, ctx, size, ref);
+
+		if (options.smoothing != undefined) {
+			ctx.imageSmoothingEnabled = options.smoothing;
+		}
 
 		if (typeof light === "number") {
 			this.lightenOverlay(ctx, size, light);

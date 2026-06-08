@@ -20,14 +20,16 @@ export class PluginManager {
     changed() {
         this.ordered_list = Array.from(this.list.values()).sort((a, b) => { var _a, _b; return ((_a = a.order) !== null && _a !== void 0 ? _a : 0) - ((_b = b.order) !== null && _b !== void 0 ? _b : 0); });
     }
-    add(plugin) {
+    add(...plugins) {
         var _a;
-        if (this.list.has(plugin)) {
-            return;
+        for (const plugin of plugins) {
+            if (this.list.has(plugin)) {
+                continue;
+            }
+            (_a = plugin.onAdd) === null || _a === void 0 ? void 0 : _a.call(plugin, this.engine);
+            this.list.add(plugin);
+            this.changed();
         }
-        (_a = plugin.onAdd) === null || _a === void 0 ? void 0 : _a.call(plugin, this.engine);
-        this.list.add(plugin);
-        this.changed();
     }
     remove(plugin) {
         var _a;

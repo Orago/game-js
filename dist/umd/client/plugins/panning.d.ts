@@ -5,11 +5,10 @@ type Control = "pc" | "mobile";
 interface Options {
     min?: number;
     max?: number;
-    mobile_factor: number;
-    pc_factor: number;
+    touch_zoom_factor: number;
+    mouse_zoom_factor: number;
 }
 export declare class PanningPlugin extends EnginePlugin {
-    focus_element?: HTMLElement | undefined;
     modes: {
         panning: boolean;
         zoom: boolean;
@@ -38,7 +37,11 @@ export declare class PanningPlugin extends EnginePlugin {
         "plugin:remove": (engine: Engine) => void;
     }, true>;
     engine?: Engine;
-    constructor(controls: Control[] | "all", focus_element?: HTMLElement | undefined);
+    constructor(options: {
+        controls?: Control[] | "all";
+        focus?: HTMLElement;
+        modes: (keyof PanningPlugin["modes"])[];
+    });
     onAdd(engine: Engine): void;
     onRemove(engine: Engine): void;
     private interactionEnd;

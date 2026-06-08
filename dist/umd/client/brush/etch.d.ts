@@ -42,6 +42,7 @@ declare class EtchUtility {
         resolution: number;
         setSmoothing: (state: boolean) => void;
         onResize?: Signal<(width: number, height: number) => void>;
+        absolute?: boolean;
     }): void;
     static generateFontString({ font, weight, size, }?: GeneratedFontOptions): string;
     static measureText(ctx: CanvasRenderingContext2D, font: string, text: string): TextMetrics;
@@ -105,7 +106,9 @@ declare class Etch {
     /**
      * Renders text
      */
-    text(text: string): this;
+    text(text: string, options?: {
+        align: "top" | "center" | "bottom";
+    }): this;
 }
 export { Etch, EtchStack, EtchUtility };
 export type { EtchState, EtchOptions };

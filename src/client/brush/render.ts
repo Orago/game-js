@@ -135,13 +135,14 @@ export class CanvasRender {
 	}
 
 	public static text(
-		context: Context2D,
+		ctx: Context2D,
 		text: string,
-		{ x, y, w }: { x: number; y: number; w?: number }
+		options: { x: number; y: number; width?: number }
 	): void {
-		x |= 0;
-		y |= 0;
-		context.fillText(text, x, y, w);
+		options.x |= 0;
+		options.y |= 0;
+		
+		ctx.fillText(text, options.x, options.y, options.width);
 	}
 
 	private static partialCircle(

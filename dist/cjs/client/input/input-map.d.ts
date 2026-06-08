@@ -55,7 +55,7 @@ export declare class InputMapHandler<MP extends InputMap> {
         cursor?: CursorEvents["button-change"];
         gamepad_poll?: number;
     };
-    allowed_gamepads: number[];
+    allowed_gamepads?: number[];
     constructor(input_map: MP);
     tick(): void;
     tickKeyboard(keyboard: Keyboard): void;

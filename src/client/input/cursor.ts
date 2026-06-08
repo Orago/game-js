@@ -9,22 +9,22 @@ type CursorCalled = () => void;
 
 // type ActionPress = Record<CursorAction, CursorCalled> & Record<`${CursorAction}-release`, CursorCalled>;
 
+export interface CursorButtonPressContext {
+	which: MouseButton;
+	preventDefault: () => void;
+}
+
+export interface CursorButtonChangeContext {
+	which: MouseButton;
+	state: boolean;
+	preventDefault: () => void;
+}
+
 export type CursorEvents = {
-	"button-down": (
-		which: MouseButton
-		// event: Touch | MouseEvent,
-		// cursor: Cursor
-	) => void;
-	"button-up": (
-		which: MouseButton
-		// event: Touch | MouseEvent,
-		// cursor: Cursor
-	) => void;
-	"button-change": (
-		which: MouseButton,
-		state: boolean
-		// event: Touch | MouseEvent
-	) => void;
+	"button-down": (c: CursorButtonPressContext) => void;
+	"button-up": (c: CursorButtonPressContext) => void;
+	"button-change": (c: CursorButtonChangeContext) => void;
+
 	move: (x: number, y: number) => void;
 	start: (event: Touch | MouseEvent) => void;
 	end: (event: Touch | MouseEvent) => void;
@@ -138,18 +138,31 @@ export default class Cursor {
 		return this;
 	}
 
-	toggleButton(button_int: CursorButton, down: boolean) {
+	toggleButton(button_int: CursorButton, down: boolean, event: CursorInput) {
 		const button: MouseButton = Cursor.buttonToAction(button_int);
-
+		let prevented: boolean = false;
+		const preventDefault = () => {
+			if (prevented == true) {
+				return;
+			}
+			prevented = true;
+			if ("preventDefault" in event) {
+				event.preventDefault();
+			}
+		};
 		if (down == true) {
 			this.buttons.add(button_int);
-			this.events.emit("button-down", button);
+			this.events.emit("button-down", { which: button, preventDefault });
 		} else {
 			this.buttons.delete(button_int);
-			this.events.emit("button-up", button);
+			this.events.emit("button-up", { which: button, preventDefault });
 		}
 
-		this.events.emit("button-change", button, true);
+		this.events.emit("button-change", {
+			which: button,
+			state: true,
+			preventDefault,
+		});
 	}
 
 	public reset(): this {
@@ -200,7 +213,7 @@ export default class Cursor {
 		this.start_position = this.getPosition(event.clientX, event.clientY);
 		this.mouse_down = true;
 
-		this.toggleButton(button_id, true);
+		this.toggleButton(button_id, true, event);
 		this.events.emit("touch");
 	}
 
@@ -210,7 +223,7 @@ export default class Cursor {
 		this.end_position = this.getPosition(event.clientX, event.clientY);
 		this.mouse_down = false;
 
-		this.toggleButton(button_id, false);
+		this.toggleButton(button_id, false, event);
 		this.events.emit("release");
 	}
 

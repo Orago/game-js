@@ -143,6 +143,9 @@
             const saturation = (_d = (_c = options === null || options === void 0 ? void 0 : options.override) === null || _c === void 0 ? void 0 : _c.saturation) !== null && _d !== void 0 ? _d : hsl.saturation;
             const hue = (_f = (_e = options === null || options === void 0 ? void 0 : options.override) === null || _e === void 0 ? void 0 : _e.hue) !== null && _f !== void 0 ? _f : hsl.hue;
             this.setupTint(canvas, ctx, size, ref);
+            if (options.smoothing != undefined) {
+                ctx.imageSmoothingEnabled = options.smoothing;
+            }
             if (typeof light === "number") {
                 this.lightenOverlay(ctx, size, light);
             }

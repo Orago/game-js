@@ -1,3 +1,4 @@
+export { TintImage } from "./brush/tint.js";
 export * as Ecs from "@orago/ecs";
 export { EngineObject, EnginePlugin, ObjectManager, PluginManager, } from "./base.js";
 export { default as BrushCanvas, ChainableCanvas } from "./brush/brush.js";
@@ -5,7 +6,7 @@ export * as ColorImage from "./brush/color-image.js";
 export { Etch, EtchStack, EtchUtility, } from "./brush/etch.js";
 export { CanvasRender } from "./brush/render.js";
 export { default as Engine } from "./engine.js";
-export { default as Cursor } from "./input/cursor.js";
+export { default as Cursor, } from "./input/cursor.js";
 export { Gamepads } from "./input/gamepad.js";
 export { InputMap, InputMapHandler } from "./input/input-map.js";
 export { default as Keyboard } from "./input/keyboard.js";

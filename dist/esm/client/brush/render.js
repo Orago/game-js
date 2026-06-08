@@ -62,10 +62,10 @@ export class CanvasRender {
         }
         catch (err) { }
     }
-    static text(context, text, { x, y, w }) {
-        x |= 0;
-        y |= 0;
-        context.fillText(text, x, y, w);
+    static text(ctx, text, options) {
+        options.x |= 0;
+        options.y |= 0;
+        ctx.fillText(text, options.x, options.y, options.width);
     }
     static partialCircle(context, values) {
         let { x = 0, y = 0, radius = 10, percent, strokeWidth } = values;

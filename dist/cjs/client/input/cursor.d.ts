@@ -3,10 +3,19 @@ import { Emitter } from "@orago/lib";
 import type { MouseButton } from "./symbols.js";
 type CursorInput = Touch | MouseEvent;
 type CursorCalled = () => void;
+export interface CursorButtonPressContext {
+    which: MouseButton;
+    preventDefault: () => void;
+}
+export interface CursorButtonChangeContext {
+    which: MouseButton;
+    state: boolean;
+    preventDefault: () => void;
+}
 export type CursorEvents = {
-    "button-down": (which: MouseButton) => void;
-    "button-up": (which: MouseButton) => void;
-    "button-change": (which: MouseButton, state: boolean) => void;
+    "button-down": (c: CursorButtonPressContext) => void;
+    "button-up": (c: CursorButtonPressContext) => void;
+    "button-change": (c: CursorButtonChangeContext) => void;
     move: (x: number, y: number) => void;
     start: (event: Touch | MouseEvent) => void;
     end: (event: Touch | MouseEvent) => void;
@@ -40,7 +49,7 @@ export default class Cursor {
     reconnect(element: HTMLElement): void;
     hasButton(which: MouseButton): boolean;
     init(): this;
-    toggleButton(button_int: CursorButton, down: boolean): void;
+    toggleButton(button_int: CursorButton, down: boolean, event: CursorInput): void;
     reset(): this;
     dispose(): void;
     setPosition(x: number, y: number): void;

@@ -97,7 +97,7 @@ export class OraSlice {
             }
         }
         if (index.x != 0 && index.width != 0) {
-            source.x += source.width * index.x;
+            source.x += (index.width || source.width) * index.x;
         }
         if (index.y != 0 && index.height != 0) {
             source.y += (index.height || source.height) * index.y;

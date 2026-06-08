@@ -91,17 +91,31 @@ class Cursor {
         this.reset();
         return this;
     }
-    toggleButton(button_int, down) {
+    toggleButton(button_int, down, event) {
         const button = Cursor.buttonToAction(button_int);
+        let prevented = false;
+        const preventDefault = () => {
+            if (prevented == true) {
+                return;
+            }
+            prevented = true;
+            if ("preventDefault" in event) {
+                event.preventDefault();
+            }
+        };
         if (down == true) {
             this.buttons.add(button_int);
-            this.events.emit("button-down", button);
+            this.events.emit("button-down", { which: button, preventDefault });
         }
         else {
             this.buttons.delete(button_int);
-            this.events.emit("button-up", button);
+            this.events.emit("button-up", { which: button, preventDefault });
         }
-        this.events.emit("button-change", button, true);
+        this.events.emit("button-change", {
+            which: button,
+            state: true,
+            preventDefault,
+        });
     }
     reset() {
         this.dispose();
@@ -141,14 +155,14 @@ class Cursor {
         this.position = this.getPosition(event.clientX, event.clientY);
         this.start_position = this.getPosition(event.clientX, event.clientY);
         this.mouse_down = true;
-        this.toggleButton(button_id, true);
+        this.toggleButton(button_id, true, event);
         this.events.emit("touch");
     }
     onEnd(event) {
         const button_id = Cursor.getButtonID(event);
         this.end_position = this.getPosition(event.clientX, event.clientY);
         this.mouse_down = false;
-        this.toggleButton(button_id, false);
+        this.toggleButton(button_id, false, event);
         this.events.emit("release");
     }
 }

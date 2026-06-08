@@ -5,6 +5,7 @@ import {
 	RenderableInput,
 } from "./render.js";
 import { VecRectangle } from "@orago/lib/math";
+import { VNode } from "@orago/dom";
 
 interface OverrideCircleOptions {
 	x?: number;
@@ -75,6 +76,7 @@ class EtchUtility {
 		resolution: number;
 		setSmoothing: (state: boolean) => void;
 		onResize?: Signal<(width: number, height: number) => void>;
+		absolute?: boolean;
 	}): void {
 		const resize = () => {
 			const { canvas, setSmoothing } = input;
@@ -328,7 +330,7 @@ class Etch {
 		ctx.clip();
 		callback(this);
 		ctx.restore();
-		
+
 		return this;
 	}
 
@@ -435,8 +437,27 @@ class Etch {
 	/**
 	 * Renders text
 	 */
-	text(text: string): this {
+	text(
+		text: string,
+		options?: {
+			align: "top" | "center" | "bottom";
+		}
+	): this {
 		const [x, y] = this.asVec();
+		switch (options?.align) {
+			default:
+			case "top":
+				this.ctx.textBaseline = "top";
+				break;
+
+			case "bottom":
+				this.ctx.textBaseline = "bottom";
+				break;
+
+			case "center":
+				this.ctx.textBaseline = "middle";
+				break;
+		}
 		CanvasRender.text(this.ctx, text, { x, y });
 		return this;
 	}

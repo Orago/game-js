@@ -323,8 +323,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         /**
          * Renders text
          */
-        text(text) {
+        text(text, options) {
             const [x, y] = this.asVec();
+            switch (options === null || options === void 0 ? void 0 : options.align) {
+                default:
+                case "top":
+                    this.ctx.textBaseline = "top";
+                    break;
+                case "bottom":
+                    this.ctx.textBaseline = "bottom";
+                    break;
+                case "center":
+                    this.ctx.textBaseline = "middle";
+                    break;
+            }
             render_js_1.CanvasRender.text(this.ctx, text, { x, y });
             return this;
         }

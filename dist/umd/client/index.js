@@ -40,12 +40,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
         if (v !== undefined) module.exports = v;
     }
     else if (typeof define === "function" && define.amd) {
-        define(["require", "exports", "@orago/ecs", "./base.js", "./brush/brush.js", "./brush/color-image.js", "./brush/etch.js", "./brush/render.js", "./engine.js", "./input/cursor.js", "./input/gamepad.js", "./input/input-map.js", "./input/keyboard.js", "./input/symbols.js", "./util/meow-texture.js", "./util/meow-texture.js", "./plugins/index.js", "./plugins/legacy.js", "./plugins/particles.js", "./repeater.js", "./sprites-old.js", "./util/image-packer.js", "./wgl/program.js"], factory);
+        define(["require", "exports", "./brush/tint.js", "@orago/ecs", "./base.js", "./brush/brush.js", "./brush/color-image.js", "./brush/etch.js", "./brush/render.js", "./engine.js", "./input/cursor.js", "./input/gamepad.js", "./input/input-map.js", "./input/keyboard.js", "./input/symbols.js", "./util/meow-texture.js", "./util/meow-texture.js", "./plugins/index.js", "./plugins/legacy.js", "./plugins/particles.js", "./repeater.js", "./sprites-old.js", "./util/image-packer.js", "./wgl/program.js"], factory);
     }
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.WGL = exports.ImagePacker = exports.Spritesheet = exports.Sprites = exports.Ticker = exports.WGLParticleSystem = exports.LegacySystem = exports.LegacyEntity = exports.EcsRenderer = exports.TextureHandler = exports.SpriteUtility = exports.SpriteStore = exports.SpriteRef = exports.MeowTexture = exports.Texture = exports.Action = exports.Keyboard = exports.InputMapHandler = exports.InputMap = exports.Gamepads = exports.Cursor = exports.Engine = exports.CanvasRender = exports.EtchUtility = exports.EtchStack = exports.Etch = exports.ColorImage = exports.ChainableCanvas = exports.BrushCanvas = exports.PluginManager = exports.ObjectManager = exports.EnginePlugin = exports.EngineObject = exports.Ecs = void 0;
+    exports.WGL = exports.ImagePacker = exports.Spritesheet = exports.Sprites = exports.Ticker = exports.WGLParticleSystem = exports.LegacySystem = exports.LegacyEntity = exports.EcsRenderer = exports.TextureHandler = exports.SpriteUtility = exports.SpriteStore = exports.SpriteRef = exports.MeowTexture = exports.Texture = exports.Action = exports.Keyboard = exports.InputMapHandler = exports.InputMap = exports.Gamepads = exports.Cursor = exports.Engine = exports.CanvasRender = exports.EtchUtility = exports.EtchStack = exports.Etch = exports.ColorImage = exports.ChainableCanvas = exports.BrushCanvas = exports.PluginManager = exports.ObjectManager = exports.EnginePlugin = exports.EngineObject = exports.Ecs = exports.TintImage = void 0;
+    var tint_js_1 = require("./brush/tint.js");
+    Object.defineProperty(exports, "TintImage", { enumerable: true, get: function () { return tint_js_1.TintImage; } });
     exports.Ecs = __importStar(require("@orago/ecs"));
     var base_js_1 = require("./base.js");
     Object.defineProperty(exports, "EngineObject", { enumerable: true, get: function () { return base_js_1.EngineObject; } });
